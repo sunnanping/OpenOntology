@@ -191,6 +191,50 @@ mvn spring-boot:run
   - 测试保存功能
   - 保存成功后显示成功提示
 
+#### 4.2.12 前端Projects模块测试
+- **项目清单页面**：访问 http://localhost:5173/projects/list
+  - 查看项目列表（显示项目名称、所有者、最后打开时间、最后修改时间）
+  - 测试筛选功能（Owned by Me、Shared with Me、Trash）
+  - 测试排序功能（Last Opened、Last Modified、Name、Owner）
+  - 管理员角色显示"Create New Project"按钮
+
+- **项目操作菜单测试**：
+  - **Open**：点击操作菜单中的"Open"
+    - 更新项目最后打开时间
+    - 跳转到项目编辑页面（预留）
+  
+  - **Open in new window**：点击操作菜单中的"Open in new window"
+    - 更新项目最后打开时间
+    - 在新窗口打开项目编辑页面（预留）
+  
+  - **Download**：点击操作菜单中的"Download"
+    - 下载项目文件（支持OWL、RDF/XML、Turtle等多种格式）
+    - 验证下载文件内容正确
+  
+  - **Move to trash**：点击操作菜单中的"Move to trash"
+    - 将项目移动到回收站
+    - 更新项目状态为TRASH
+    - 项目从列表中消失（Trash筛选时可见）
+
+- **创建项目模态框**：
+  - 点击"Create New Project"按钮打开模态框
+  - **创建新项目**：
+    - 输入项目名称
+    - 选择项目语言（支持16种语言）
+    - 点击"Create"按钮创建项目
+    - 新项目添加到列表中
+  
+  - **从现有资源创建**：
+    - 点击"Create from existing sources"展开文件上传区域
+    - 选择文件格式（OWL、RDF/XML、Turtle等）
+    - 上传本体文件
+    - 点击"Create"按钮导入项目
+    - 新项目添加到列表中
+  
+  - **模态框操作**：
+    - 测试拖拽移动模态框
+    - 点击"×"按钮关闭模态框
+
 ### 4.3 集成测试
 
 1. **完整流程测试**
