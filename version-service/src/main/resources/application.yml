@@ -1,8 +1,6 @@
 spring:
   application:
     name: version-service
-  main:
-    sources: com.by.open.ontology.versionservice.VersionServiceApplication
   data:
     mongodb:
       uri: mongodb://localhost:27017/webprotege

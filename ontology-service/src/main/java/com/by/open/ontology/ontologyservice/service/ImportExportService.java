@@ -148,7 +148,6 @@ public class ImportExportService {
         
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         RDFDocumentFormat rdfFormat = new RDFXMLDocumentFormat();
-        rdfFormat.setParameter(RDFDocumentFormat.COMMENT, "Exported as RDF/XML for JSON-LD compatibility");
         manager.saveOntology(owlOntology, rdfFormat, outputStream);
         
         return outputStream.toByteArray();
@@ -249,7 +248,7 @@ public class ImportExportService {
         File tempFile = File.createTempFile("ontology", ".owl");
         try {
             java.nio.file.Files.write(tempFile.toPath(), content.getBytes(StandardCharsets.UTF_8));
-            OWLOntology owlOntology = manager.loadOntologyFromOntologyDocument(tempFile.toURI(), owlFormat);
+            OWLOntology owlOntology = manager.loadOntologyFromOntologyDocument(tempFile);
             
             String actualNamespace = owlOntology.getOntologyID().getOntologyIRI().map(IRI::toString).orElse(namespace);
             String actualName = ontologyName != null && !ontologyName.isEmpty() ? ontologyName : "Imported Ontology";

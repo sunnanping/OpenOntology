@@ -1,8 +1,6 @@
 spring:
   application:
     name: reasoning-service
-  main:
-    sources: com.by.open.ontology.reasoningservice.ReasoningServiceApplication
   data:
     mongodb:
       uri: mongodb://localhost:27017/webprotege

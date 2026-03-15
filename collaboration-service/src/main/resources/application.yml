@@ -1,8 +1,6 @@
 spring:
   application:
     name: collaboration-service
-  main:
-    sources: com.by.open.ontology.collaborationservice.CollaborationServiceApplication
   data:
     mongodb:
       uri: mongodb://localhost:27017/webprotege

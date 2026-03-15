@@ -1,8 +1,6 @@
 spring:
   application:
     name: eureka-server
-  main:
-    sources: com.by.open.ontology.eurekaserver.EurekaServerApplication
   security:
     user:
       name: admin
