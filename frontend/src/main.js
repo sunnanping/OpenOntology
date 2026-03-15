@@ -22,7 +22,7 @@ const i18n = createI18n({
   }
 })
 
-axios.defaults.baseURL = 'http://localhost:9000'
+axios.defaults.baseURL = 'http://localhost:8080'
 axios.defaults.headers.common['Content-Type'] = 'application/json'
 
 const app = createApp(App)
