@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: reasoning-service
+  main:
+    sources: com.by.open.ontology.reasoningservice.ReasoningServiceApplication
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/webprotege
+      database: webprotege
+
+server:
+  port: 8086
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://admin:admin123@localhost:8762/eureka/
+  instance:
+    preferIpAddress: true

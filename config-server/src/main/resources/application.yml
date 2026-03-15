@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: config-server
+  main:
+    sources: com.by.open.ontology.configserver.ConfigServerApplication
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/protegeproject/webprotege
+          search-paths: config
+          username: your-github-username
+          password: your-github-token
+
+server:
+  port: 8888
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://admin:admin123@localhost:8762/eureka/
+  instance:
+    preferIpAddress: true

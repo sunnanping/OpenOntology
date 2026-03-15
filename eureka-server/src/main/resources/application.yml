@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: eureka-server
+  main:
+    sources: com.by.open.ontology.eurekaserver.EurekaServerApplication
+  security:
+    user:
+      name: admin
+      password: admin123
+
+server:
+  port: 8762
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+    serviceUrl:
+      defaultZone: http://${spring.security.user.name}:${spring.security.user.password}@${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    enableSelfPreservation: false
+    evictionIntervalTimerInMs: 60000

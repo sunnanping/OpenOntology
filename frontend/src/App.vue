@@ -1,0 +1,15 @@
+<template>
+  <div class="app">
+    <router-view></router-view>
+  </div>
+</template>
+
+<script setup>
+// App component
+</script>
+
+<style>
+.app {
+  min-height: 100vh;
+}
+</style>
