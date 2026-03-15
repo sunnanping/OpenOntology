@@ -59,10 +59,10 @@ public class InternationalizationController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/languages")
+    @GetMapping("/available-languages")
     public ResponseEntity<List<String>> getAvailableLanguages(
-            @PathVariable(required = false) String entityType,
-            @PathVariable(required = false) String entityRef) {
+            @RequestParam(required = false) String entityType,
+            @RequestParam(required = false) String entityRef) {
         if (entityRef != null && entityType != null) {
             List<String> languages = i18nService.getAvailableLanguages(entityRef, entityType);
             return ResponseEntity.ok(languages);

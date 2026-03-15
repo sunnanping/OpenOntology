@@ -23,6 +23,9 @@
             <li class="nav-item">
               <router-link to="/instance" class="nav-link">{{ $t('nav.instance') }}</router-link>
             </li>
+            <li class="nav-item">
+              <router-link to="/import-export" class="nav-link">{{ $t('app.import') }}/{{ $t('app.export') }}</router-link>
+            </li>
           </ul>
           <div class="ms-auto d-flex align-items-center">
             <LanguageSwitcher class="me-3" />
