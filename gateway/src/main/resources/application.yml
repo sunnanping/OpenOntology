@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: gateway
+  main:
+    sources: com.by.open.ontology.gateway.GatewayApplication
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/user/**
+        - id: ontology-service
+          uri: lb://ontology-service
+          predicates:
+            - Path=/api/ontology/**
+        - id: class-service
+          uri: lb://class-service
+          predicates:
+            - Path=/api/class/**
+        - id: property-service
+          uri: lb://property-service
+          predicates:
+            - Path=/api/property/**
+        - id: instance-service
+          uri: lb://instance-service
+          predicates:
+            - Path=/api/instance/**
+        - id: reasoning-service
+          uri: lb://reasoning-service
+          predicates:
+            - Path=/api/reasoning/**
+        - id: collaboration-service
+          uri: lb://collaboration-service
+          predicates:
+            - Path=/api/collaboration/**
+        - id: version-service
+          uri: lb://version-service
+          predicates:
+            - Path=/api/version/**
+        - id: search-service
+          uri: lb://search-service
+          predicates:
+            - Path=/api/search/**
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://admin:admin123@localhost:8762/eureka/
+  instance:
+    preferIpAddress: true
