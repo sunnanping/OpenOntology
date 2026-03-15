@@ -1,8 +1,6 @@
 spring:
   application:
     name: search-service
-  main:
-    sources: com.by.open.ontology.searchservice.SearchServiceApplication
   data:
     mongodb:
       uri: mongodb://localhost:27017/webprotege

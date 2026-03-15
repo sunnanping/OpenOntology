@@ -1,8 +1,6 @@
 spring:
   application:
     name: instance-service
-  main:
-    sources: com.by.open.ontology.instanceservice.InstanceServiceApplication
   data:
     mongodb:
       uri: mongodb://localhost:27017/webprotege

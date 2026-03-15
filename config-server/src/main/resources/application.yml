@@ -1,8 +1,6 @@
 spring:
   application:
     name: config-server
-  main:
-    sources: com.by.open.ontology.configserver.ConfigServerApplication
   cloud:
     config:
       server:

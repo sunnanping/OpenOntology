@@ -1,8 +1,6 @@
 spring:
   application:
     name: gateway
-  main:
-    sources: com.by.open.ontology.gateway.GatewayApplication
   cloud:
     gateway:
       routes:

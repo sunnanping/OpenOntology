@@ -1,8 +1,6 @@
 spring:
   application:
     name: property-service
-  main:
-    sources: com.by.open.ontology.propertyservice.PropertyServiceApplication
   data:
     mongodb:
       uri: mongodb://localhost:27017/webprotege

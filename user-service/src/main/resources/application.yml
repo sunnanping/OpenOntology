@@ -1,8 +1,6 @@
 spring:
   application:
     name: user-service
-  main:
-    sources: com.by.open.ontology.userservice.UserServiceApplication
   data:
     mongodb:
       uri: mongodb://localhost:27017/webprotege

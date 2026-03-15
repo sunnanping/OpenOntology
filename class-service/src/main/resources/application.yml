@@ -1,8 +1,6 @@
 spring:
   application:
     name: class-service
-  main:
-    sources: com.by.open.ontology.classservice.ClassServiceApplication
   data:
     mongodb:
       uri: mongodb://localhost:27017/webprotege
