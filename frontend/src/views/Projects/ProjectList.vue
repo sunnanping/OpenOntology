@@ -216,8 +216,8 @@ export default {
       console.log('Open project:', projectId);
       // 更新项目最近打开时间
       await this.updateLastOpened(projectId);
-      // 这里可以跳转到项目编辑页面
-      // this.$router.push(`/projects/edit/${projectId}`);
+      // 跳转到项目编辑页面
+      this.$router.push(`/projects/edit/${projectId}`);
       this.activeMenu = null;
     },
     async openInNewWindow(projectId) {
@@ -225,8 +225,8 @@ export default {
       console.log('Open in new window:', projectId);
       // 更新项目最近打开时间
       await this.updateLastOpened(projectId);
-      // 这里可以在新窗口打开项目编辑页面
-      // window.open(`/projects/edit/${projectId}`, '_blank');
+      // 在新窗口打开项目编辑页面
+      window.open(`/projects/edit/${projectId}`, '_blank');
       this.activeMenu = null;
     },
     async updateLastOpened(projectId) {

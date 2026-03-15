@@ -202,12 +202,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useStore } from 'vuex'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
 const { t } = useI18n()
-const store = useStore()
 
 const activeTab = ref('pending')
 const loading = ref(false)
@@ -324,7 +322,7 @@ const loadHistory = async () => {
 
 const confirmTranslation = async (row) => {
   try {
-    const username = store.state.user?.username || 'admin'
+    const username = localStorage.getItem('username') || 'admin'
     await axios.post(
       `http://localhost:8086/api/i18n/confirm-translation/${row.entityType}/${row.entityRef}/${row.language}`,
       {},
@@ -347,7 +345,7 @@ const rejectTranslation = async (row) => {
   if (comment === null) return
   
   try {
-    const username = store.state.user?.username || 'admin'
+    const username = localStorage.getItem('username') || 'admin'
     await axios.post(
       `http://localhost:8086/api/i18n/reject-translation/${row.entityType}/${row.entityRef}/${row.language}`,
       { comment },

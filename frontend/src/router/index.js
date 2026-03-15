@@ -106,6 +106,11 @@ const routes = [
         path: '/projects/list',
         name: 'ProjectList',
         component: () => import('../views/Projects/ProjectList.vue')
+      },
+      {
+        path: '/projects/edit/:id',
+        name: 'ProjectEditor',
+        component: () => import('../views/Projects/ProjectEditor.vue')
       }
 ]
 
