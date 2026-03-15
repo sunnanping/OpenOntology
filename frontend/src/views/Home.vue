@@ -2,63 +2,64 @@
   <div class="home">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container-fluid">
-        <a class="navbar-brand" href="#">WebProtégé</a>
+        <a class="navbar-brand" href="#">{{ $t('app.title') }}</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav">
             <li class="nav-item">
-              <router-link to="/" class="nav-link active">Home</router-link>
+              <router-link to="/" class="nav-link active">{{ $t('nav.home') }}</router-link>
             </li>
             <li class="nav-item">
-              <router-link to="/ontology" class="nav-link">Ontology</router-link>
+              <router-link to="/ontology" class="nav-link">{{ $t('nav.ontology') }}</router-link>
             </li>
             <li class="nav-item">
-              <router-link to="/class" class="nav-link">Class</router-link>
+              <router-link to="/class" class="nav-link">{{ $t('nav.class') }}</router-link>
             </li>
             <li class="nav-item">
-              <router-link to="/property" class="nav-link">Property</router-link>
+              <router-link to="/property" class="nav-link">{{ $t('nav.property') }}</router-link>
             </li>
             <li class="nav-item">
-              <router-link to="/instance" class="nav-link">Instance</router-link>
+              <router-link to="/instance" class="nav-link">{{ $t('nav.instance') }}</router-link>
             </li>
           </ul>
-          <div class="ms-auto">
-            <router-link to="/login" class="btn btn-primary me-2">Login</router-link>
-            <router-link to="/register" class="btn btn-secondary">Register</router-link>
+          <div class="ms-auto d-flex align-items-center">
+            <LanguageSwitcher class="me-3" />
+            <router-link to="/login" class="btn btn-primary me-2">{{ $t('nav.login') }}</router-link>
+            <router-link to="/register" class="btn btn-secondary">{{ $t('nav.register') }}</router-link>
           </div>
         </div>
       </div>
     </nav>
     <div class="container mt-5">
-      <h1>Welcome to WebProtégé</h1>
-      <p class="lead">A collaborative ontology editor and knowledge base framework.</p>
+      <h1>{{ $t('home.welcome') }}</h1>
+      <p class="lead">{{ $t('home.description') }}</p>
       <div class="row mt-5">
         <div class="col-md-4">
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title">Ontology Management</h5>
-              <p class="card-text">Create, edit, and manage ontologies.</p>
-              <router-link to="/ontology" class="btn btn-primary">Get Started</router-link>
+              <h5 class="card-title">{{ $t('home.ontologyCard.title') }}</h5>
+              <p class="card-text">{{ $t('home.ontologyCard.description') }}</p>
+              <router-link to="/ontology" class="btn btn-primary">{{ $t('home.getStarted') }}</router-link>
             </div>
           </div>
         </div>
         <div class="col-md-4">
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title">Class Management</h5>
-              <p class="card-text">Define and organize classes in your ontology.</p>
-              <router-link to="/class" class="btn btn-primary">Get Started</router-link>
+              <h5 class="card-title">{{ $t('home.classCard.title') }}</h5>
+              <p class="card-text">{{ $t('home.classCard.description') }}</p>
+              <router-link to="/class" class="btn btn-primary">{{ $t('home.getStarted') }}</router-link>
             </div>
           </div>
         </div>
         <div class="col-md-4">
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title">Property Management</h5>
-              <p class="card-text">Define properties and relationships between classes.</p>
-              <router-link to="/property" class="btn btn-primary">Get Started</router-link>
+              <h5 class="card-title">{{ $t('home.propertyCard.title') }}</h5>
+              <p class="card-text">{{ $t('home.propertyCard.description') }}</p>
+              <router-link to="/property" class="btn btn-primary">{{ $t('home.getStarted') }}</router-link>
             </div>
           </div>
         </div>
@@ -68,7 +69,7 @@
 </template>
 
 <script setup>
-// Home component
+import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 </script>
 
 <style scoped>

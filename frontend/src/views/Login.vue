@@ -5,22 +5,22 @@
         <div class="col-md-6">
           <div class="card">
             <div class="card-header">
-              <h3 class="text-center">Login</h3>
+              <h3 class="text-center">{{ $t('auth.login') }}</h3>
             </div>
             <div class="card-body">
               <form @submit.prevent="handleLogin">
                 <div class="mb-3">
-                  <label for="username" class="form-label">Username</label>
+                  <label for="username" class="form-label">{{ $t('auth.username') }}</label>
                   <input type="text" class="form-control" id="username" v-model="form.username" required>
                 </div>
                 <div class="mb-3">
-                  <label for="password" class="form-label">Password</label>
+                  <label for="password" class="form-label">{{ $t('auth.password') }}</label>
                   <input type="password" class="form-control" id="password" v-model="form.password" required>
                 </div>
-                <button type="submit" class="btn btn-primary w-100">Login</button>
+                <button type="submit" class="btn btn-primary w-100">{{ $t('auth.login') }}</button>
               </form>
               <div class="mt-3 text-center">
-                <p>Don't have an account? <router-link to="/register">Register here</router-link></p>
+                <p>{{ $t('auth.noAccount') }} <router-link to="/register">{{ $t('nav.register') }}</router-link></p>
               </div>
             </div>
           </div>
@@ -33,9 +33,12 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 
 const router = useRouter()
+const { t } = useI18n()
+
 const form = ref({
   username: '',
   password: ''
@@ -47,13 +50,11 @@ const handleLogin = async () => {
       username: form.value.username,
       password: form.value.password
     })
-    // 保存用户信息到本地存储
     localStorage.setItem('user', JSON.stringify(response.data))
-    // 跳转到首页
     router.push('/')
   } catch (error) {
     console.error('Login failed:', error)
-    alert('Login failed. Please check your username and password.')
+    alert(t('auth.loginFailed'))
   }
 }
 </script>
