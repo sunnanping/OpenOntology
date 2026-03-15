@@ -18,7 +18,37 @@
         </el-table-column>
         <el-table-column prop="value" :label="$t('ontology.value')">
           <template #default="scope">
-            <span>{{ scope.row.value }}</span>
+            <TranslationTooltip
+              v-if="!scope.row.confirmed"
+              :text="scope.row.value"
+              :entity-ref="entityRef"
+              :entity-type="entityType"
+              :lang-tag="scope.row.language"
+              :is-confirmed="scope.row.confirmed"
+              :translation-info="scope.row.translationInfo"
+              :is-admin="isAdmin"
+              @confirmed="handleTranslationConfirmed"
+              @updated="handleTranslationUpdated"
+              @rejected="handleTranslationRejected"
+            />
+            <span v-else>{{ scope.row.value }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="$t('translation.status')" width="120">
+          <template #default="scope">
+            <el-tag :type="scope.row.confirmed ? 'success' : 'warning'">
+              {{ scope.row.confirmed ? $t('translation.confirmed') : $t('translation.pending') }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column :label="$t('translation.lastProposedBy')" width="120">
+          <template #default="scope">
+            <span>{{ scope.row.translationInfo?.lastProposedBy || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="$t('translation.lastConfirmedBy')" width="120">
+          <template #default="scope">
+            <span>{{ scope.row.translationInfo?.lastConfirmedBy || '-' }}</span>
           </template>
         </el-table-column>
         <el-table-column :label="$t('app.actions')" width="150">
@@ -73,7 +103,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useStore } from 'vuex'
 import axios from 'axios'
+import TranslationTooltip from './TranslationTooltip.vue'
 
 const props = defineProps({
   entityRef: {
@@ -87,13 +119,19 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
+const store = useStore()
 
 const translations = ref({})
+const languageMap = ref(null)
 const showAddDialog = ref(false)
 const isEditing = ref(false)
 const form = ref({
   language: '',
   value: ''
+})
+
+const isAdmin = computed(() => {
+  return store.state.user?.role === 'ADMIN'
 })
 
 const availableLanguages = [
@@ -114,7 +152,15 @@ const availableLanguages = [
 const translationList = computed(() => {
   return Object.entries(translations.value).map(([language, value]) => ({
     language,
-    value
+    value,
+    confirmed: languageMap.value?.confirmed || false,
+    translationInfo: languageMap.value ? {
+      lastProposedBy: languageMap.value.lastProposedBy,
+      lastProposedAt: languageMap.value.lastProposedAt,
+      lastConfirmedBy: languageMap.value.lastConfirmedBy,
+      lastConfirmedAt: languageMap.value.lastConfirmedAt,
+      source: languageMap.value.source
+    } : {}
   }))
 })
 
@@ -125,9 +171,10 @@ const getLanguageName = (code) => {
 
 const loadTranslations = async () => {
   try {
-    const response = await axios.get(`/api/i18n/translations/${props.entityType}/${props.entityRef}`)
-    if (response.data && response.data.translations) {
-      translations.value = response.data.translations
+    const response = await axios.get(`http://localhost:8086/api/i18n/translations/${props.entityType}/${props.entityRef}`)
+    if (response.data) {
+      languageMap.value = response.data
+      translations.value = response.data.translations || {}
     }
   } catch (error) {
     console.error('Failed to load translations:', error)
@@ -145,13 +192,25 @@ const editTranslation = (row) => {
 
 const saveTranslation = async () => {
   try {
+    const username = store.state.user?.username || 'anonymous'
+    
     if (isEditing.value) {
-      await axios.put(`/api/i18n/translations/${props.entityType}/${props.entityRef}/${form.value.language}`, {
+      await axios.put(`http://localhost:8086/api/i18n/translation/${props.entityType}/${props.entityRef}/${form.value.language}`, {
         value: form.value.value
+      }, {
+        headers: {
+          'X-User-Name': username
+        }
       })
     } else {
-      await axios.post(`/api/i18n/translations/${props.entityType}/${props.entityRef}`, {
-        [form.value.language]: form.value.value
+      await axios.post(`http://localhost:8086/api/i18n/translations/${props.entityType}/${props.entityRef}`, {
+        translations: {
+          [form.value.language]: form.value.value
+        }
+      }, {
+        headers: {
+          'X-User-Name': username
+        }
       })
     }
     await loadTranslations()
@@ -167,12 +226,30 @@ const deleteTranslation = async (language) => {
   if (!confirm(t('messages.confirmDelete'))) return
   
   try {
-    await axios.delete(`/api/i18n/translations/${props.entityType}/${props.entityRef}/${language}`)
+    const username = store.state.user?.username || 'anonymous'
+    await axios.delete(`http://localhost:8086/api/i18n/translation/${props.entityType}/${props.entityRef}/${language}`, {
+      headers: {
+        'X-User-Name': username
+      }
+    })
     await loadTranslations()
   } catch (error) {
     console.error('Failed to delete translation:', error)
     alert(t('messages.deleteError'))
   }
+}
+
+const handleTranslationConfirmed = (data) => {
+  languageMap.value = data
+  translations.value = data.translations || {}
+}
+
+const handleTranslationUpdated = (newValue) => {
+  translations.value[form.value.language] = newValue
+}
+
+const handleTranslationRejected = () => {
+  loadTranslations()
 }
 
 const resetForm = () => {

@@ -65,6 +65,17 @@ const routes = [
     path: '/search',
     name: 'Search',
     component: () => import('../views/Search.vue')
+  },
+  {
+    path: '/import-export',
+    name: 'ImportExport',
+    component: () => import('../views/ImportExport.vue')
+  },
+  {
+    path: '/admin/translation',
+    name: 'TranslationAdmin',
+    component: () => import('../views/TranslationAdmin.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
   }
 ]
 
