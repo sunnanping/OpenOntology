@@ -10,6 +10,7 @@
 | config-server | 配置中心 | eureka-server | application.yml |
 | gateway | API网关 | eureka-server, 所有业务服务 | application.yml |
 | user-service | 用户管理服务 | eureka-server | application.yml |
+| admin-service | 管理员管理服务 | eureka-server | application.yml |
 | ontology-service | 本体管理服务 | eureka-server | application.yml |
 | class-service | 类管理服务 | eureka-server | application.yml |
 | property-service | 属性管理服务 | eureka-server | application.yml |
@@ -28,6 +29,7 @@
 2. **config-server** (配置中心)
 3. **业务服务** (可并行启动)：
    - user-service
+   - admin-service
    - ontology-service
    - class-service
    - property-service
@@ -74,6 +76,7 @@ mvn spring-boot:run
 | 服务名称 | 访问路径 | 说明 |
 |---------|---------|------|
 | user-service | http://localhost:8080/api/user/** | 用户管理相关接口 |
+| admin-service | http://localhost:8080/api/admin/** | 管理员管理相关接口 |
 | ontology-service | http://localhost:8080/api/ontology/** | 本体管理相关接口 |
 | class-service | http://localhost:8080/api/class/** | 类管理相关接口 |
 | property-service | http://localhost:8080/api/property/** | 属性管理相关接口 |
@@ -110,52 +113,88 @@ mvn spring-boot:run
 - 测试用户登录：POST /api/user/login
 - 测试用户信息查询：GET /api/user/{id}
 
-#### 4.2.2 本体服务测试
+#### 4.2.2 管理员服务测试
+- 测试创建管理员：POST /api/admin/create
+- 测试管理员登录：POST /api/admin/login
+- 测试查询所有管理员：GET /api/admin/findAll
+- 测试查询管理员详情：GET /api/admin/findById/{id}
+- 测试更新管理员：PUT /api/admin/update
+- 测试删除管理员：DELETE /api/admin/delete/{id}
+- 测试获取系统设置：GET /api/admin/settings
+- 测试更新系统设置：PUT /api/admin/settings
+
+#### 4.2.3 本体服务测试
 - 测试创建本体：POST /api/ontology
 - 测试查询本体列表：GET /api/ontology
 - 测试查询本体详情：GET /api/ontology/{id}
 - 测试导出本体：GET /api/ontology/{id}/export
 - 测试导入本体：POST /api/ontology/import
 
-#### 4.2.3 类服务测试
+#### 4.2.4 类服务测试
 - 测试创建类：POST /api/class
 - 测试查询类列表：GET /api/class
 - 测试查询类详情：GET /api/class/{id}
 
-#### 4.2.4 属性服务测试
+#### 4.2.5 属性服务测试
 - 测试创建属性：POST /api/property
 - 测试查询属性列表：GET /api/property
 - 测试查询属性详情：GET /api/property/{id}
 
-#### 4.2.5 实例服务测试
+#### 4.2.6 实例服务测试
 - 测试创建实例：POST /api/instance
 - 测试查询实例列表：GET /api/instance
 - 测试查询实例详情：GET /api/instance/{id}
 
-#### 4.2.6 推理服务测试
+#### 4.2.7 推理服务测试
 - 测试执行推理：POST /api/reasoning/execute
 - 测试查询推理结果：GET /api/reasoning/result/{id}
 
-#### 4.2.7 协作服务测试
+#### 4.2.8 协作服务测试
 - 测试创建协作：POST /api/collaboration
 - 测试查询协作列表：GET /api/collaboration
 - 测试查询协作详情：GET /api/collaboration/{id}
 
-#### 4.2.8 版本服务测试
+#### 4.2.9 版本服务测试
 - 测试创建版本：POST /api/version
 - 测试查询版本列表：GET /api/version
 - 测试查询版本详情：GET /api/version/{id}
 
-#### 4.2.9 搜索服务测试
+#### 4.2.10 搜索服务测试
 - 测试搜索本体：GET /api/search/ontology
 - 测试搜索类：GET /api/search/class
 - 测试搜索属性：GET /api/search/property
 - 测试搜索实例：GET /api/search/instance
 
+#### 4.2.11 前端Admin模块测试
+- **管理员登录页面**：访问 http://localhost:5173/admin/login
+  - 输入用户名和密码
+  - 测试登录功能
+  - 登录成功后跳转到管理员列表页面
+
+- **创建管理员页面**：访问 http://localhost:5173/admin/create
+  - 填写管理员信息（用户名、密码、邮箱等）
+  - 测试创建功能
+  - 创建成功后显示成功提示
+
+- **管理员列表页面**：访问 http://localhost:5173/admin/list
+  - 查看管理员列表
+  - 测试编辑功能
+  - 测试删除功能
+
+- **更新管理员页面**：访问 http://localhost:5173/admin/update?id={adminId}
+  - 编辑管理员信息
+  - 测试更新功能
+  - 更新成功后跳转到管理员列表页面
+
+- **系统设置页面**：访问 http://localhost:5173/admin/settings
+  - 修改系统设置（如应用URL、权限设置、上传限制等）
+  - 测试保存功能
+  - 保存成功后显示成功提示
+
 ### 4.3 集成测试
 
 1. **完整流程测试**
-   - 创建用户 → 登录 → 创建本体 → 创建类 → 创建属性 → 创建实例 → 执行推理 → 搜索
+   - 创建管理员 → 管理员登录 → 创建用户 → 用户登录 → 创建本体 → 创建类 → 创建属性 → 创建实例 → 执行推理 → 搜索
 
 2. **权限测试**
    - 测试不同角色的访问权限

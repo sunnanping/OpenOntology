@@ -76,7 +76,37 @@ const routes = [
     name: 'TranslationAdmin',
     component: () => import('../views/TranslationAdmin.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
-  }
+  },
+  {
+    path: '/admin/login',
+    name: 'LoginAdmin',
+    component: () => import('../views/Admin/LoginAdmin.vue')
+  },
+  {
+    path: '/admin/create',
+    name: 'CreateAdmin',
+    component: () => import('../views/Admin/CreateAdmin.vue')
+  },
+  {
+    path: '/admin/list',
+    name: 'ListAdmin',
+    component: () => import('../views/Admin/ListAdmin.vue')
+  },
+  {
+        path: '/admin/update',
+        name: 'UpdateAdmin',
+        component: () => import('../views/Admin/UpdateAdmin.vue')
+      },
+      {
+        path: '/admin/settings',
+        name: 'Settings',
+        component: () => import('../views/Admin/Settings.vue')
+      },
+      {
+        path: '/projects/list',
+        name: 'ProjectList',
+        component: () => import('../views/Projects/ProjectList.vue')
+      }
 ]
 
 const router = createRouter({

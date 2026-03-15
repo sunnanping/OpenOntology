@@ -26,6 +26,9 @@
             <li class="nav-item">
               <router-link to="/import-export" class="nav-link">{{ $t('app.import') }}/{{ $t('app.export') }}</router-link>
             </li>
+            <li class="nav-item">
+              <router-link to="/admin/login" class="nav-link">管理员</router-link>
+            </li>
           </ul>
           <div class="ms-auto d-flex align-items-center">
             <LanguageSwitcher class="me-3" />

@@ -25,6 +25,7 @@ public class OntologyService {
         Date now = new Date();
         ontology.setCreatedDate(now);
         ontology.setLastModifiedDate(now);
+        ontology.setLastOpened(now);
 
         if (ontology.getStatus() == null) {
             ontology.setStatus("ACTIVE");
@@ -80,5 +81,11 @@ public class OntologyService {
 
     public void delete(String id) {
         ontologyRepository.deleteById(id);
+    }
+
+    public Ontology updateLastOpened(String id) {
+        Ontology ontology = ontologyRepository.findById(id).orElseThrow(() -> new RuntimeException("Ontology not found"));
+        ontology.setLastOpened(new Date());
+        return ontologyRepository.save(ontology);
     }
 }

@@ -41,6 +41,7 @@
         <module>config-server</module>
         <module>gateway</module>
         <module>user-service</module>
+        <module>admin-service</module>
         <module>ontology-service</module>
         <module>class-service</module>
         <module>property-service</module>

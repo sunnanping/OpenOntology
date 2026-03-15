@@ -14,6 +14,7 @@ public class Ontology {
     private String namespace;
     private Date createdDate;
     private Date lastModifiedDate;
+    private Date lastOpened;
     private String creatorId;
     private String[] contributors;
     private String status;
@@ -67,6 +68,14 @@ public class Ontology {
 
     public void setLastModifiedDate(Date lastModifiedDate) {
         this.lastModifiedDate = lastModifiedDate;
+    }
+
+    public Date getLastOpened() {
+        return lastOpened;
+    }
+
+    public void setLastOpened(Date lastOpened) {
+        this.lastOpened = lastOpened;
     }
 
     public String getCreatorId() {

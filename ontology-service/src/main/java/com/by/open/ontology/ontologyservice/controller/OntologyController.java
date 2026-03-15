@@ -47,4 +47,16 @@ public class OntologyController {
     public void delete(@PathVariable String id) {
         ontologyService.delete(id);
     }
+
+    @PutMapping("/update-status/{id}")
+    public Ontology updateStatus(@PathVariable String id, @RequestParam String status) {
+        Ontology ontology = ontologyService.findById(id);
+        ontology.setStatus(status);
+        return ontologyService.update(ontology);
+    }
+
+    @PutMapping("/update-last-opened/{id}")
+    public Ontology updateLastOpened(@PathVariable String id) {
+        return ontologyService.updateLastOpened(id);
+    }
 }
