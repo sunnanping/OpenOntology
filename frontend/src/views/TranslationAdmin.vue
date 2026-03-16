@@ -200,12 +200,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
-import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
 const { t } = useI18n()
+const http = inject('$http') || window.$http
 
 const activeTab = ref('pending')
 const loading = ref(false)
@@ -276,7 +276,7 @@ const getStatusType = (status) => {
 const loadPendingTranslations = async () => {
   loading.value = true
   try {
-    const response = await axios.get('http://localhost:8086/api/i18n/pending-translations', {
+    const response = await http.get('/i18n/pending-translations', {
       params: {
         entityType: filterForm.value.entityType,
         language: filterForm.value.language,
@@ -297,7 +297,7 @@ const loadPendingTranslations = async () => {
 const loadHistory = async () => {
   historyLoading.value = true
   try {
-    const response = await axios.get('http://localhost:8086/api/i18n/history', {
+    const response = await http.get('/i18n/history', {
       params: {
         entityRef: historyFilter.value.entityRef,
         entityType: historyFilter.value.entityType,
@@ -323,8 +323,8 @@ const loadHistory = async () => {
 const confirmTranslation = async (row) => {
   try {
     const username = localStorage.getItem('username') || 'admin'
-    await axios.post(
-      `http://localhost:8086/api/i18n/confirm-translation/${row.entityType}/${row.entityRef}/${row.language}`,
+    await http.post(
+      `/i18n/confirm-translation/${row.entityType}/${row.entityRef}/${row.language}`,
       {},
       {
         headers: {
@@ -346,8 +346,8 @@ const rejectTranslation = async (row) => {
   
   try {
     const username = localStorage.getItem('username') || 'admin'
-    await axios.post(
-      `http://localhost:8086/api/i18n/reject-translation/${row.entityType}/${row.entityRef}/${row.language}`,
+    await http.post(
+      `/i18n/reject-translation/${row.entityType}/${row.entityRef}/${row.language}`,
       { comment },
       {
         headers: {
@@ -365,7 +365,7 @@ const rejectTranslation = async (row) => {
 
 const exportHistory = async () => {
   try {
-    const response = await axios.get('http://localhost:8086/api/i18n/history/export', {
+    const response = await http.get('/i18n/history/export', {
       params: {
         entityRef: historyFilter.value.entityRef,
         entityType: historyFilter.value.entityType,

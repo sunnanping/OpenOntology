@@ -86,7 +86,7 @@ export default {
   methods: {
     async loadSettings() {
       try {
-        const response = await this.$axios.get('/api/admin/settings')
+        const response = await this.$http.get('/admin/settings')
         this.settings = response.data
       } catch (error) {
         this.message = '加载设置失败：' + (error.response?.data?.message || '未知错误')
@@ -95,7 +95,7 @@ export default {
     },
     async saveSettings() {
       try {
-        const response = await this.$axios.put('/api/admin/settings', this.settings)
+        const response = await this.$http.put('/admin/settings', this.settings)
         this.settings = response.data
         this.message = '设置保存成功！'
         this.messageType = 'success'

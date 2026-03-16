@@ -171,7 +171,7 @@ export default {
           formData.append('ontologyName', this.form.name);
           formData.append('namespace', this.form.namespace || `http://example.org/${this.form.name.toLowerCase().replace(/\s+/g, '-')}`);
           
-          const response = await this.$axios.post('/api/ontology/import-export/import', formData, {
+          const response = await this.$http.post('/ontology/import-export/import', formData, {
             headers: {
               'Content-Type': 'multipart/form-data'
             }
@@ -181,7 +181,7 @@ export default {
           this.closeModal();
         } else {
           // 创建新项目
-          const response = await this.$axios.post('/api/ontology/create', {
+          const response = await this.$http.post('/ontology/create', {
             name: this.form.name,
             namespace: this.form.namespace || `http://example.org/${this.form.name.toLowerCase().replace(/\s+/g, '-')}`,
             description: '',

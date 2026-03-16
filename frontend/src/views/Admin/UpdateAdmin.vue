@@ -66,7 +66,7 @@ export default {
         return
       }
       try {
-        const response = await this.$axios.get(`/api/admin/findById/${adminId}`)
+        const response = await this.$http.get(`/admin/findById/${adminId}`)
         this.admin = response.data
       } catch (error) {
         this.message = '获取管理员信息失败：' + (error.response?.data?.message || '未知错误')
@@ -79,7 +79,7 @@ export default {
         if (this.password) {
           updateData.password = this.password
         }
-        const response = await this.$axios.put('/api/admin/update', updateData)
+        const response = await this.$http.put('/admin/update', updateData)
         this.message = '更新成功！'
         this.messageType = 'success'
         this.$router.push('/admin/list')

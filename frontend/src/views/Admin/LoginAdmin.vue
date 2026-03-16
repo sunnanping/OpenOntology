@@ -32,7 +32,7 @@ export default {
   methods: {
     async login() {
       try {
-        const response = await this.$axios.post(`/api/admin/login?username=${this.loginForm.username}&password=${this.loginForm.password}`)
+        const response = await this.$http.post(`/admin/login?username=${this.loginForm.username}&password=${this.loginForm.password}`)
         localStorage.setItem('adminToken', response.data.token || 'admin')
         localStorage.setItem('adminUser', JSON.stringify(response.data))
         this.message = '登录成功！'

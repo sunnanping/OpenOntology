@@ -31,13 +31,13 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import axios from 'axios'
 
 const router = useRouter()
 const { t } = useI18n()
+const http = inject('$http') || window.$http
 
 const form = ref({
   username: '',
@@ -46,12 +46,13 @@ const form = ref({
 
 const handleLogin = async () => {
   try {
-    const response = await axios.post('/api/user/login', {
+    const response = await http.post('/user/login', {
       username: form.value.username,
       password: form.value.password
     })
     localStorage.setItem('user', JSON.stringify(response.data))
-    router.push('/')
+    // 登录成功后重定向到项目编辑页面，使用WebProtege格式的路径
+    router.push('/projects/9b7fe218-e70e-4514-848e-9a11f394df07/edit/Classes?selection=Class(%3Chttp://webprotege.stanford.edu/R90zHmRURjS2Q0BsIJCqLOD%3E)')
   } catch (error) {
     console.error('Login failed:', error)
     alert(t('auth.loginFailed'))

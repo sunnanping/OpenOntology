@@ -5,7 +5,7 @@ import 'element-plus/dist/index.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
-import axios from 'axios'
+import request from './utils/request'
 
 import en from './locales/en.json'
 import zhCN from './locales/zh-CN.json'
@@ -22,10 +22,11 @@ const i18n = createI18n({
   }
 })
 
-axios.defaults.baseURL = 'http://localhost:8080'
-axios.defaults.headers.common['Content-Type'] = 'application/json'
-
+// 将request实例挂载到Vue全局
 const app = createApp(App)
+app.config.globalProperties.$http = request
+// 提供$http实例，供组合式API使用
+app.provide('$http', request)
 
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)

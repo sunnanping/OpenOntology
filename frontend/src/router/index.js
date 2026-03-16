@@ -111,6 +111,11 @@ const routes = [
         path: '/projects/edit/:id',
         name: 'ProjectEditor',
         component: () => import('../views/Projects/ProjectEditor.vue')
+      },
+      {
+        path: '/projects/:id/edit/:resource',
+        name: 'ProjectEdit',
+        component: () => import('../views/Projects/ProjectEdit.vue')
       }
 ]
 

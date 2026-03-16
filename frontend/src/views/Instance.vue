@@ -136,10 +136,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { ref, onMounted, inject } from 'vue'
 
 const instances = ref([])
+const http = inject('$http') || window.$http
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const form = ref({
@@ -164,7 +164,7 @@ onMounted(async () => {
 
 const loadInstances = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/instance/findAll')
+    const response = await http.get('/instance/findAll')
     instances.value = response.data
   } catch (error) {
     console.error('Failed to load instances:', error)
@@ -180,7 +180,7 @@ const handleCreate = async () => {
       classId: form.value.classId,
       propertyValues: JSON.parse(form.value.properties || '{}')
     }
-    const response = await axios.post('http://localhost:8080/api/instance/create', instanceData)
+    const response = await http.post('/instance/create', instanceData)
     instances.value.push(response.data)
     showCreateModal.value = false
     form.value = {
@@ -217,7 +217,7 @@ const handleUpdate = async () => {
       classId: editForm.value.classId,
       propertyValues: JSON.parse(editForm.value.properties || '{}')
     }
-    const response = await axios.put(`http://localhost:8080/api/instance/update/${editForm.value.id}`, instanceData)
+    const response = await http.put(`/instance/update/${editForm.value.id}`, instanceData)
     const index = instances.value.findIndex(instance => instance.id === editForm.value.id)
     if (index !== -1) {
       instances.value[index] = response.data
@@ -232,7 +232,7 @@ const handleUpdate = async () => {
 const deleteInstance = async (id) => {
   if (confirm('Are you sure you want to delete this instance?')) {
     try {
-      await axios.delete(`http://localhost:8080/api/instance/delete/${id}`)
+      await http.delete(`/instance/delete/${id}`)
       instances.value = instances.value.filter(instance => instance.id !== id)
     } catch (error) {
       console.error('Failed to delete instance:', error)

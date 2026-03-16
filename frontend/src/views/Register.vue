@@ -43,11 +43,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
 
 const router = useRouter()
+const http = inject('$http') || window.$http
 const form = ref({
   username: '',
   email: '',
@@ -58,7 +58,7 @@ const form = ref({
 
 const handleRegister = async () => {
   try {
-    const response = await axios.post('/api/user/register', form.value)
+    const response = await http.post('/user/register', form.value)
     // 注册成功后跳转到登录页
     router.push('/login')
   } catch (error) {

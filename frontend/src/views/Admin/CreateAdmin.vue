@@ -60,7 +60,7 @@ export default {
   methods: {
     async createAdmin() {
       try {
-        await this.$axios.post('/api/admin/create', this.admin)
+        await this.$http.post('/admin/create', this.admin)
         this.message = '创建成功！'
         this.messageType = 'success'
         setTimeout(() => {

@@ -136,10 +136,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { ref, onMounted, inject } from 'vue'
 
 const classes = ref([])
+const http = inject('$http') || window.$http
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const form = ref({
@@ -164,7 +164,7 @@ onMounted(async () => {
 
 const loadClasses = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/class/findAll')
+    const response = await http.get('/class/findAll')
     classes.value = response.data
   } catch (error) {
     console.error('Failed to load classes:', error)
@@ -180,7 +180,7 @@ const handleCreate = async () => {
       description: form.value.description,
       superClasses: form.value.superClasses ? form.value.superClasses.split(',').map(s => s.trim()) : []
     }
-    const response = await axios.post('http://localhost:8080/api/class/create', classData)
+    const response = await http.post('/class/create', classData)
     classes.value.push(response.data)
     showCreateModal.value = false
     form.value = {
@@ -216,7 +216,7 @@ const handleUpdate = async () => {
       description: editForm.value.description,
       superClasses: editForm.value.superClasses ? editForm.value.superClasses.split(',').map(s => s.trim()) : []
     }
-    const response = await axios.put(`http://localhost:8080/api/class/update/${editForm.value.id}`, classData)
+    const response = await http.put(`/class/update/${editForm.value.id}`, classData)
     const index = classes.value.findIndex(cls => cls.id === editForm.value.id)
     if (index !== -1) {
       classes.value[index] = response.data
@@ -230,7 +230,7 @@ const handleUpdate = async () => {
 const deleteClass = async (id) => {
   if (confirm('Are you sure you want to delete this class?')) {
     try {
-      await axios.delete(`http://localhost:8080/api/class/delete/${id}`)
+      await http.delete(`/class/delete/${id}`)
       classes.value = classes.value.filter(cls => cls.id !== id)
     } catch (error) {
       console.error('Failed to delete class:', error)

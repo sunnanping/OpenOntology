@@ -54,7 +54,7 @@ export default {
   methods: {
     async fetchAdmins() {
       try {
-        const response = await this.$axios.get('/api/admin/findAll')
+        const response = await this.$http.get('/admin/findAll')
         this.admins = response.data
       } catch (error) {
         this.message = '获取管理员列表失败：' + (error.response?.data?.message || '未知错误')
@@ -67,7 +67,7 @@ export default {
     async deleteAdmin(id) {
       if (confirm('确定要删除这个管理员吗？')) {
         try {
-          await this.$axios.delete(`/api/admin/delete/${id}`)
+          await this.$http.delete(`/admin/delete/${id}`)
           this.message = '删除成功！'
           this.messageType = 'success'
           this.fetchAdmins()

@@ -1,0 +1,15 @@
+# Command line profile for create-admin-account command
+spring:
+  cloud:
+    discovery:
+      enabled: false
+
+# Disable Eureka client
+eureka:
+  client:
+    enabled: false
+
+# Enable console output for command line operation
+logging:
+  level:
+    root: info

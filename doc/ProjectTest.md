@@ -67,7 +67,7 @@ mvn spring-boot:run
 
 | 服务名称 | 基础URL | 访问路径 |
 |---------|---------|----------|
-| eureka-server | http://localhost:8762 | 服务注册中心控制台 |
+| eureka-server | http://localhost:8762 | 服务注册中心控制台 ,默认账号和口令为admin/admin123|
 | config-server | http://localhost:8888 | 配置中心 |
 | gateway | http://localhost:8080 | API网关 |
 
@@ -85,6 +85,63 @@ mvn spring-boot:run
 | collaboration-service | http://localhost:8080/api/collaboration/** | 协作相关接口 |
 | version-service | http://localhost:8080/api/version/** | 版本管理相关接口 |
 | search-service | http://localhost:8080/api/search/** | 搜索相关接口 |
+
+启动后端服务的方式,以search-service为示例：
+~~~shell
+cd d:\project\trae\java\OpenOntology\search-service ; 
+mvn spring-boot:run
+或者采取Debug方式来启动
+mvn spring-boot:run -Dspring-boot.run.debug
+~~~
+
+#### 后端启动后，服务清单和端口
+所有后端服务已经成功启动并注册到eureka-server。以下是启动的服务列表：
+
+1. eureka-server ：服务注册中心，运行在端口8762
+2. config-server ：配置中心，运行在端口8888
+3. gateway ：API网关，运行在端口8080
+4. user-service ：用户服务，运行在端口8081
+5. ontology-service ：本体服务，运行在端口8082
+6. class-service ：类服务，运行在端口8083
+7. property-service ：属性服务，运行在端口8084
+8. instance-service ：实例服务，运行在端口8085
+9. reasoning-service ：推理服务，运行在端口8086
+10. collaboration-service ：协作服务，运行在端口8087
+11. version-service ：版本服务，运行在端口8088
+12. search-service ：搜索服务，运行在端口8089
+13. i18n-service ：国际化服务，运行在端口8086
+14. admin-service ：管理服务，运行在端口8089
+我已经解决了服务注册到eureka-server的认证问题，通过在eureka-server中添加SecurityConfig.java文件，允许基本认证并禁用CSRF保护。同时，我修改了admin-service和i18n-service的配置文件，添加了eureka-server的认证信息。
+
+#### 需要注册到eureka-server服务清单
+在OpenOntology项目中，除了eureka-server本身外，以下所有服务都需要注册到eureka-server：
+
+1. config-server - 配置中心
+2. gateway - API网关
+3. user-service - 用户服务
+4. ontology-service - 本体服务
+5. class-service - 类服务
+6. property-service - 属性服务
+7. instance-service - 实例服务
+8. reasoning-service - 推理服务
+9. collaboration-service - 协作服务
+10. version-service - 版本服务
+11. search-service - 搜索服务
+12. i18n-service - 国际化服务
+13. admin-service - 管理服务
+这些服务通过在各自的 application.yml 配置文件中设置eureka-client相关配置来实现注册到eureka-server。例如，在服务的配置文件中会包含类似以下的配置：
+![alt text](558dad8e-ad9e-40ec-9e39-4a5e83249824.png)
+
+```
+eureka:
+  client:
+    service-url:
+      defaultZone: http://
+      admin:admin123@localhost:8762/eureka/
+  instance:
+    prefer-ip-address: true
+```
+这样，当服务启动时，会自动向eureka-server注册自己的信息，其他服务可以通过eureka-server发现并访问这些服务。
 
 ## 4. UAT测试步骤
 

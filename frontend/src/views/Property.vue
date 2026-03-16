@@ -160,10 +160,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { ref, onMounted, inject } from 'vue'
 
 const properties = ref([])
+const http = inject('$http') || window.$http
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const form = ref({
@@ -192,7 +192,7 @@ onMounted(async () => {
 
 const loadProperties = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/property/findAll')
+    const response = await http.get('/property/findAll')
     properties.value = response.data
   } catch (error) {
     console.error('Failed to load properties:', error)
@@ -210,7 +210,7 @@ const handleCreate = async () => {
       domains: form.value.domains ? form.value.domains.split(',').map(s => s.trim()) : [],
       ranges: form.value.ranges ? form.value.ranges.split(',').map(s => s.trim()) : []
     }
-    const response = await axios.post('http://localhost:8080/api/property/create', propertyData)
+    const response = await http.post('/property/create', propertyData)
     properties.value.push(response.data)
     showCreateModal.value = false
     form.value = {
@@ -252,7 +252,7 @@ const handleUpdate = async () => {
       domains: editForm.value.domains ? editForm.value.domains.split(',').map(s => s.trim()) : [],
       ranges: editForm.value.ranges ? editForm.value.ranges.split(',').map(s => s.trim()) : []
     }
-    const response = await axios.put(`http://localhost:8080/api/property/update/${editForm.value.id}`, propertyData)
+    const response = await http.put(`/property/update/${editForm.value.id}`, propertyData)
     const index = properties.value.findIndex(property => property.id === editForm.value.id)
     if (index !== -1) {
       properties.value[index] = response.data
@@ -266,7 +266,7 @@ const handleUpdate = async () => {
 const deleteProperty = async (id) => {
   if (confirm('Are you sure you want to delete this property?')) {
     try {
-      await axios.delete(`http://localhost:8080/api/property/delete/${id}`)
+      await http.delete(`/property/delete/${id}`)
       properties.value = properties.value.filter(property => property.id !== id)
     } catch (error) {
       console.error('Failed to delete property:', error)

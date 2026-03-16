@@ -112,12 +112,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import axios from 'axios'
 
 const router = useRouter()
+const http = inject('$http') || window.$http
 const activeTab = ref('export')
 const exporting = ref(false)
 const importing = ref(false)
@@ -147,7 +147,7 @@ const importResult = ref({
 
 const loadOntologies = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/ontology/findAll')
+    const response = await http.get('/ontology/findAll')
     ontologies.value = response.data
   } catch (error) {
     ElMessage.error('Failed to load ontologies')
@@ -157,7 +157,7 @@ const loadOntologies = async () => {
 
 const loadFormats = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/ontology/import-export/formats')
+    const response = await http.get('/ontology/import-export/formats')
     formats.value = response.data
   } catch (error) {
     ElMessage.error('Failed to load formats')
@@ -173,8 +173,8 @@ const handleExport = async () => {
 
   exporting.value = true
   try {
-    const response = await axios.get(
-      `http://localhost:8080/api/ontology/import-export/export/${exportForm.value.ontologyId}`,
+    const response = await http.get(
+      `/ontology/import-export/export/${exportForm.value.ontologyId}`,
       {
         params: { format: exportForm.value.format },
         responseType: 'blob'
@@ -237,8 +237,8 @@ const handleImport = async () => {
       formData.append('namespace', importForm.value.namespace)
     }
 
-    const response = await axios.post(
-      'http://localhost:8080/api/ontology/import-export/import',
+    const response = await http.post(
+      '/ontology/import-export/import',
       formData,
       {
         headers: {
