@@ -316,7 +316,10 @@ export default {
     const openProject = async (project) => {
       try {
         await http.put(`/projects/update-last-opened/${project.id}`)
-        router.push(`/projects/${project.id}/edit/Classes`)
+        router.push({
+          path: '/editor',
+          query: { p: project.id, v: 'Classes' }
+        })
       } catch (error) {
         console.error('Failed to open project:', error)
         ElMessage.error('Failed to open project')
@@ -326,7 +329,7 @@ export default {
     const openInNewWindow = async (project) => {
       try {
         await http.put(`/projects/update-last-opened/${project.id}`)
-        window.open(`/projects/${project.id}/edit/Classes`, '_blank')
+        window.open(`/editor?p=${project.id}&v=Classes`, '_blank')
       } catch (error) {
         console.error('Failed to open project:', error)
         ElMessage.error('Failed to open project')

@@ -16,6 +16,10 @@ spring:
           uri: lb://ontology-service
           predicates:
             - Path=/api/projects/**
+        - id: classes-service
+          uri: lb://ontology-service
+          predicates:
+            - Path=/api/classes/**
         - id: class-service
           uri: lb://class-service
           predicates:

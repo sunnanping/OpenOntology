@@ -116,6 +116,15 @@ const routes = [
         path: '/projects/:id/edit/:resource',
         name: 'ProjectEdit',
         component: () => import('../views/Projects/ProjectEdit.vue')
+      },
+      {
+        path: '/editor',
+        name: 'ProjectWorkspace',
+        component: () => import('../views/Projects/ProjectWorkspace.vue'),
+        props: (route) => ({ 
+          projectId: route.query.p,
+          viewType: route.query.v || 'Classes'
+        })
       }
 ]
 
