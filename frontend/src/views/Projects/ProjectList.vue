@@ -4,93 +4,125 @@
       <h1>Projects</h1>
       <div class="user-info">
         <span class="username">{{ currentUser.username }}</span>
-        <div class="user-avatar" :style="{ backgroundColor: getAvatarColor(currentUser.username) }">
+        <el-avatar :style="{ backgroundColor: getAvatarColor(currentUser.username) }">
           {{ getAvatarInitial(currentUser.username) }}
-        </div>
+        </el-avatar>
       </div>
     </div>
 
     <div class="projects-content">
       <div class="projects-toolbar">
-        <button v-if="isAdmin" class="btn btn-primary create-project-btn" @click="showCreateModal = true">
+        <el-button v-if="isAdmin" type="primary" @click="showCreateModal = true">
+          <el-icon><Plus /></el-icon>
           Create New Project
-        </button>
+        </el-button>
       </div>
 
       <div class="projects-filters">
-        <div class="filter-group">
-          <label>
-            <input type="checkbox" v-model="filters.ownedByMe" @change="filterProjects">
-            Owned by Me
-          </label>
+        <el-checkbox v-model="filters.ownedByMe" @change="filterProjects">Owned by Me</el-checkbox>
+        <el-checkbox v-model="filters.sharedWithMe" @change="filterProjects">Shared with Me</el-checkbox>
+        <el-checkbox v-model="filters.trash" @change="filterProjects">Trash</el-checkbox>
+        
+        <div class="search-box">
+          <el-input
+            v-model="searchQuery"
+            placeholder="Search projects..."
+            prefix-icon="Search"
+            clearable
+            @input="filterProjects"
+          />
         </div>
-        <div class="filter-group">
-          <label>
-            <input type="checkbox" v-model="filters.sharedWithMe" @change="filterProjects">
-            Shared with Me
-          </label>
-        </div>
-        <div class="filter-group">
-          <label>
-            <input type="checkbox" v-model="filters.trash" @change="filterProjects">
-            Trash
-          </label>
-        </div>
+
         <div class="sort-group">
-          <label>Sort by:</label>
-          <select v-model="sortBy" @change="sortProjects">
-            <option value="lastOpened">Last Opened</option>
-            <option value="lastModified">Last Modified</option>
-            <option value="name">Name</option>
-            <option value="owner">Owner</option>
-          </select>
+          <span>Sort by:</span>
+          <el-select v-model="sortBy" @change="sortProjects" style="width: 150px;">
+            <el-option label="Last Opened" value="lastOpened" />
+            <el-option label="Last Modified" value="lastModified" />
+            <el-option label="Name" value="name" />
+            <el-option label="Owner" value="owner" />
+          </el-select>
         </div>
       </div>
 
-      <div class="projects-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Project name</th>
-              <th>Owner</th>
-              <th>Last opened</th>
-              <th>Last modified</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="project in filteredProjects" :key="project.id">
-              <td>{{ project.name }}</td>
-              <td>
-                <div class="owner-info">
-                  <div class="owner-avatar" :style="{ backgroundColor: getAvatarColor(project.owner) }">
-                    {{ getAvatarInitial(project.owner) }}
-                  </div>
-                  <span>{{ project.owner }}</span>
-                </div>
-              </td>
-              <td>{{ formatTimeAgo(project.lastOpened) }}</td>
-              <td>{{ formatDate(project.lastModified) }}</td>
-              <td>
-                <div class="action-menu">
-                  <button class="action-btn" @click="toggleActionMenu(project.id)">
-                    <span class="menu-icon">⋮</span>
-                  </button>
-                  <div v-if="activeMenu === project.id" class="action-dropdown">
-                    <a href="#" @click="openProject(project.id)">Open</a>
-                    <a href="#" @click="openInNewWindow(project.id)">Open in new window</a>
-                    <a href="#" @click="downloadProject(project.id)">Download</a>
-                    <a href="#" @click="moveToTrash(project.id)">Move to trash</a>
-                  </div>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <el-table :data="filteredProjects" style="width: 100%" v-loading="loading">
+        <el-table-column prop="name" label="Project name" min-width="200">
+          <template #default="{ row }">
+            <div class="project-name">
+              <el-icon><Folder /></el-icon>
+              <span>{{ row.name }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="owner" label="Owner" width="180">
+          <template #default="{ row }">
+            <div class="owner-info">
+              <el-avatar :size="24" :style="{ backgroundColor: getAvatarColor(row.owner) }">
+                {{ getAvatarInitial(row.owner) }}
+              </el-avatar>
+              <span>{{ row.owner }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="lastOpened" label="Last opened" width="150">
+          <template #default="{ row }">
+            {{ formatTimeAgo(row.lastOpened) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="lastModified" label="Last modified" width="180">
+          <template #default="{ row }">
+            {{ formatDate(row.lastModified) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="Actions" width="100" fixed="right">
+          <template #default="{ row }">
+            <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
+              <el-button type="text">
+                <el-icon><MoreFilled /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="open">
+                    <el-icon><FolderOpened /></el-icon>
+                    Open
+                  </el-dropdown-item>
+                  <el-dropdown-item command="openNew">
+                    <el-icon><Link /></el-icon>
+                    Open in new window
+                  </el-dropdown-item>
+                  <el-dropdown-item command="download" divided>
+                    <el-icon><Download /></el-icon>
+                    Download
+                  </el-dropdown-item>
+                  <el-dropdown-item command="trash" v-if="!filters.trash" divided>
+                    <el-icon><Delete /></el-icon>
+                    Move to trash
+                  </el-dropdown-item>
+                  <el-dropdown-item command="restore" v-if="filters.trash">
+                    <el-icon><RefreshLeft /></el-icon>
+                    Restore
+                  </el-dropdown-item>
+                  <el-dropdown-item command="delete" v-if="filters.trash" divided>
+                    <el-icon><Delete /></el-icon>
+                    Delete permanently
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div class="projects-pagination" v-if="totalProjects > pageSize">
+        <el-pagination
+          v-model:current-page="currentPage"
+          :page-size="pageSize"
+          :total="totalProjects"
+          layout="prev, pager, next"
+          @current-change="handlePageChange"
+        />
       </div>
     </div>
 
-    <!-- 创建项目模态框 -->
     <CreateProject 
       v-if="showCreateModal" 
       @close="showCreateModal = false"
@@ -100,211 +132,299 @@
 </template>
 
 <script>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus, Folder, FolderOpened, Download, Delete, MoreFilled, Link, RefreshLeft, Search } from '@element-plus/icons-vue'
 import CreateProject from './CreateProject.vue'
+import http from '@/utils/http'
 
 export default {
   name: 'ProjectList',
   components: {
-    CreateProject
+    CreateProject,
+    Plus,
+    Folder,
+    FolderOpened,
+    Download,
+    Delete,
+    MoreFilled,
+    Link,
+    RefreshLeft,
+    Search
   },
-  data() {
-    return {
-      currentUser: {
-        username: '',
-        role: ''
-      },
-      projects: [
-        {
-          id: 1,
-          name: 'testProject',
-          owner: 'bjsun07',
-          lastOpened: new Date(Date.now() - 23 * 24 * 60 * 60 * 1000),
-          lastModified: new Date('2026-01-29'),
-          sharedWith: [],
-          inTrash: false
-        }
-        // 可以添加更多测试数据
-      ],
-      filters: {
-        ownedByMe: true,
-        sharedWithMe: true,
-        trash: false
-      },
-      sortBy: 'lastOpened',
-      activeMenu: null,
-      showCreateModal: false
-    }
-  },
-  computed: {
-    isAdmin() {
-      return this.currentUser.role === 'admin';
-    },
-    filteredProjects() {
-      let result = [...this.projects];
+  setup() {
+    const router = useRouter()
+    const currentUser = ref({ username: '', role: '' })
+    const projects = ref([])
+    const loading = ref(false)
+    const filters = ref({
+      ownedByMe: true,
+      sharedWithMe: true,
+      trash: false
+    })
+    const sortBy = ref('lastOpened')
+    const searchQuery = ref('')
+    const showCreateModal = ref(false)
+    const currentPage = ref(1)
+    const pageSize = ref(20)
+    const totalProjects = ref(0)
+
+    const isAdmin = computed(() => currentUser.value.role === 'admin')
+
+    const filteredProjects = computed(() => {
+      let result = [...projects.value]
       
-      // 应用筛选
-      if (!this.filters.trash) {
-        result = result.filter(project => !project.inTrash);
+      if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase()
+        result = result.filter(p => 
+          p.name.toLowerCase().includes(query) ||
+          p.owner.toLowerCase().includes(query)
+        )
       }
       
-      if (this.filters.ownedByMe && !this.filters.sharedWithMe) {
-        result = result.filter(project => project.owner === this.currentUser.username);
-      } else if (!this.filters.ownedByMe && this.filters.sharedWithMe) {
-        result = result.filter(project => project.owner !== this.currentUser.username && project.sharedWith.includes(this.currentUser.username));
-      } else if (this.filters.ownedByMe && this.filters.sharedWithMe) {
-        result = result.filter(project => project.owner === this.currentUser.username || project.sharedWith.includes(this.currentUser.username));
+      if (!filters.value.trash) {
+        result = result.filter(project => project.status !== 'TRASH')
+      } else {
+        result = result.filter(project => project.status === 'TRASH')
       }
       
-      // 应用排序
+      if (filters.value.ownedByMe && !filters.value.sharedWithMe) {
+        result = result.filter(project => project.owner === currentUser.value.username)
+      } else if (!filters.value.ownedByMe && filters.value.sharedWithMe) {
+        result = result.filter(project => 
+          project.owner !== currentUser.value.username && 
+          project.sharedWith && project.sharedWith.includes(currentUser.value.username)
+        )
+      } else if (filters.value.ownedByMe && filters.value.sharedWithMe) {
+        result = result.filter(project => 
+          project.owner === currentUser.value.username || 
+          (project.sharedWith && project.sharedWith.includes(currentUser.value.username))
+        )
+      }
+      
       result.sort((a, b) => {
-        switch (this.sortBy) {
+        switch (sortBy.value) {
           case 'lastOpened':
-            return new Date(b.lastOpened) - new Date(a.lastOpened);
+            return new Date(b.lastOpened || 0) - new Date(a.lastOpened || 0)
           case 'lastModified':
-            return new Date(b.lastModified) - new Date(a.lastModified);
+            return new Date(b.lastModified || 0) - new Date(a.lastModified || 0)
           case 'name':
-            return a.name.localeCompare(b.name);
+            return (a.name || '').localeCompare(b.name || '')
           case 'owner':
-            return a.owner.localeCompare(b.owner);
+            return (a.owner || '').localeCompare(b.owner || '')
           default:
-            return 0;
+            return 0
         }
-      });
+      })
       
-      return result;
-    }
-  },
-  methods: {
-    getAvatarColor(username) {
-      const colors = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336', '#607D8B'];
-      let hash = 0;
-      for (let i = 0; i < username.length; i++) {
-        hash = username.charCodeAt(i) + ((hash << 5) - hash);
+      totalProjects.value = result.length
+      const start = (currentPage.value - 1) * pageSize.value
+      return result.slice(start, start + pageSize.value)
+    })
+
+    const getAvatarColor = (username) => {
+      const colors = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336', '#607D8B']
+      let hash = 0
+      for (let i = 0; i < (username || '').length; i++) {
+        hash = username.charCodeAt(i) + ((hash << 5) - hash)
       }
-      return colors[Math.abs(hash) % colors.length];
-    },
-    getAvatarInitial(username) {
-      return username.charAt(0).toUpperCase();
-    },
-    formatTimeAgo(date) {
-      const now = new Date();
-      const diff = now - new Date(date);
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      if (days === 0) return 'Today';
-      if (days === 1) return '1 day ago';
-      return `${days} days ago`;
-    },
-    formatDate(date) {
-      const d = new Date(date);
+      return colors[Math.abs(hash) % colors.length]
+    }
+
+    const getAvatarInitial = (username) => {
+      return (username || '?').charAt(0).toUpperCase()
+    }
+
+    const formatTimeAgo = (date) => {
+      if (!date) return 'Never'
+      const now = new Date()
+      const diff = now - new Date(date)
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+      if (days === 0) return 'Today'
+      if (days === 1) return '1 day ago'
+      return `${days} days ago`
+    }
+
+    const formatDate = (date) => {
+      if (!date) return '-'
+      const d = new Date(date)
       return d.toLocaleDateString('en-GB', {
         day: 'numeric',
         month: 'long',
         year: 'numeric'
-      });
-    },
-    filterProjects() {
-      // 筛选逻辑已在computed中实现
-    },
-    sortProjects() {
-      // 排序逻辑已在computed中实现
-    },
-    toggleActionMenu(projectId) {
-      this.activeMenu = this.activeMenu === projectId ? null : projectId;
-    },
-    async openProject(projectId) {
-      // 打开项目的逻辑
-      console.log('Open project:', projectId);
-      // 更新项目最近打开时间
-      await this.updateLastOpened(projectId);
-      // 跳转到项目编辑页面
-      this.$router.push(`/projects/edit/${projectId}`);
-      this.activeMenu = null;
-    },
-    async openInNewWindow(projectId) {
-      // 在新窗口打开项目的逻辑
-      console.log('Open in new window:', projectId);
-      // 更新项目最近打开时间
-      await this.updateLastOpened(projectId);
-      // 在新窗口打开项目编辑页面
-      window.open(`/projects/edit/${projectId}`, '_blank');
-      this.activeMenu = null;
-    },
-    async updateLastOpened(projectId) {
+      })
+    }
+
+    const loadProjects = async () => {
+      loading.value = true
       try {
-        const response = await fetch(`/api/ontology/update-last-opened/${projectId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        if (!response.ok) {
-          throw new Error('Failed to update last opened time');
+        const userStr = localStorage.getItem('user')
+        if (userStr) {
+          const user = JSON.parse(userStr)
+          currentUser.value.username = user.username
+          currentUser.value.role = user.role || 'user'
         }
-        const updatedProject = await response.json();
-        console.log('Last opened time updated:', updatedProject);
-        // 更新前端项目列表中的lastOpened字段
-        const project = this.projects.find(p => p.id === projectId);
-        if (project) {
-          project.lastOpened = new Date();
-        }
+
+        const response = await http.get('/projects/available', {
+          params: { username: currentUser.value.username }
+        })
+        projects.value = response.data || []
       } catch (error) {
-        console.error('Error updating last opened time:', error);
-        // 可以在这里添加错误处理逻辑
+        console.error('Failed to load projects:', error)
+        ElMessage.error('Failed to load projects')
+      } finally {
+        loading.value = false
       }
-    },
-    downloadProject(projectId) {
-      // 下载项目的逻辑
-      console.log('Download project:', projectId);
-      // 调用后端导出接口
-      const format = 'OWL'; // 默认格式
-      window.location.href = `/api/ontology/import-export/export/${projectId}?format=${format}`;
-      this.activeMenu = null;
-    },
-    moveToTrash(projectId) {
-      // 移动到回收站的逻辑
-      console.log('Move to trash:', projectId);
-      const project = this.projects.find(p => p.id === projectId);
-      if (project) {
-        project.inTrash = true;
-        // 调用后端接口来更新项目状态
-        this.updateProjectStatus(projectId, 'TRASH');
+    }
+
+    const filterProjects = () => {
+      currentPage.value = 1
+    }
+
+    const sortProjects = () => {
+      currentPage.value = 1
+    }
+
+    const handlePageChange = (page) => {
+      currentPage.value = page
+    }
+
+    const handleCommand = async (command, project) => {
+      switch (command) {
+        case 'open':
+          await openProject(project)
+          break
+        case 'openNew':
+          await openInNewWindow(project)
+          break
+        case 'download':
+          downloadProject(project)
+          break
+        case 'trash':
+          await moveToTrash(project)
+          break
+        case 'restore':
+          await restoreProject(project)
+          break
+        case 'delete':
+          await deleteProject(project)
+          break
       }
-      this.activeMenu = null;
-    },
-    async updateProjectStatus(projectId, status) {
+    }
+
+    const openProject = async (project) => {
       try {
-        const response = await fetch(`/api/ontology/update-status/${projectId}?status=${status}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        if (!response.ok) {
-          throw new Error('Failed to update project status');
-        }
-        const updatedProject = await response.json();
-        console.log('Project status updated:', updatedProject);
+        await http.put(`/projects/update-last-opened/${project.id}`)
+        router.push(`/projects/${project.id}/edit/Classes`)
       } catch (error) {
-        console.error('Error updating project status:', error);
-        // 可以在这里添加错误处理逻辑
+        console.error('Failed to open project:', error)
+        ElMessage.error('Failed to open project')
       }
-    },
-    handleProjectCreated(project) {
-      // 处理项目创建成功后的逻辑
-      console.log('Project created:', project);
-      // 添加新项目到列表
-      const newProject = {
-        id: project.id,
-        name: project.name,
-        owner: this.currentUser.username,
-        lastOpened: new Date(),
-        lastModified: new Date(),
-        sharedWith: [],
-        inTrash: false
-      };
-      this.projects.unshift(newProject);
-      // 刷新项目列表
-      this.filterProjects();
+    }
+
+    const openInNewWindow = async (project) => {
+      try {
+        await http.put(`/projects/update-last-opened/${project.id}`)
+        window.open(`/projects/${project.id}/edit/Classes`, '_blank')
+      } catch (error) {
+        console.error('Failed to open project:', error)
+        ElMessage.error('Failed to open project')
+      }
+    }
+
+    const downloadProject = (project) => {
+      window.location.href = `/api/projects/download/${project.id}?format=OWL`
+    }
+
+    const moveToTrash = async (project) => {
+      try {
+        await ElMessageBox.confirm(
+          `Are you sure you want to move "${project.name}" to trash?`,
+          'Confirm',
+          {
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'Cancel',
+            type: 'warning'
+          }
+        )
+        
+        await http.put(`/projects/move-to-trash/${project.id}`)
+        ElMessage.success('Project moved to trash')
+        await loadProjects()
+      } catch (error) {
+        if (error !== 'cancel') {
+          console.error('Failed to move to trash:', error)
+          ElMessage.error('Failed to move project to trash')
+        }
+      }
+    }
+
+    const restoreProject = async (project) => {
+      try {
+        await http.put(`/projects/restore/${project.id}`)
+        ElMessage.success('Project restored')
+        await loadProjects()
+      } catch (error) {
+        console.error('Failed to restore project:', error)
+        ElMessage.error('Failed to restore project')
+      }
+    }
+
+    const deleteProject = async (project) => {
+      try {
+        await ElMessageBox.confirm(
+          `Are you sure you want to permanently delete "${project.name}"? This action cannot be undone.`,
+          'Delete Permanently',
+          {
+            confirmButtonText: 'Delete',
+            cancelButtonText: 'Cancel',
+            type: 'error'
+          }
+        )
+        
+        await http.delete(`/projects/delete/${project.id}`)
+        ElMessage.success('Project deleted permanently')
+        await loadProjects()
+      } catch (error) {
+        if (error !== 'cancel') {
+          console.error('Failed to delete project:', error)
+          ElMessage.error('Failed to delete project')
+        }
+      }
+    }
+
+    const handleProjectCreated = (project) => {
+      showCreateModal.value = false
+      loadProjects()
+    }
+
+    onMounted(() => {
+      loadProjects()
+    })
+
+    return {
+      currentUser,
+      projects,
+      loading,
+      filters,
+      sortBy,
+      searchQuery,
+      showCreateModal,
+      currentPage,
+      pageSize,
+      totalProjects,
+      isAdmin,
+      filteredProjects,
+      getAvatarColor,
+      getAvatarInitial,
+      formatTimeAgo,
+      formatDate,
+      filterProjects,
+      sortProjects,
+      handlePageChange,
+      handleCommand,
+      handleProjectCreated
     }
   }
 }
@@ -340,19 +460,6 @@ export default {
   font-weight: 500;
 }
 
-.user-avatar,
-.owner-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: bold;
-  font-size: 14px;
-}
-
 .projects-content {
   background: white;
   border-radius: 8px;
@@ -364,32 +471,17 @@ export default {
   margin-bottom: 20px;
 }
 
-.create-project-btn {
-  background-color: #9C27B0;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.create-project-btn:hover {
-  background-color: #7B1FA2;
-}
-
 .projects-filters {
   display: flex;
   gap: 20px;
   margin-bottom: 20px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
-.filter-group {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+.search-box {
+  flex: 1;
+  max-width: 300px;
 }
 
 .sort-group {
@@ -399,27 +491,10 @@ export default {
   margin-left: auto;
 }
 
-.projects-table {
-  width: 100%;
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th {
-  text-align: left;
-  padding: 12px;
-  border-bottom: 1px solid #e0e0e0;
-  font-weight: bold;
-  background-color: #f5f5f5;
-}
-
-td {
-  padding: 12px;
-  border-bottom: 1px solid #e0e0e0;
+.project-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .owner-info {
@@ -428,70 +503,9 @@ td {
   gap: 8px;
 }
 
-.action-menu {
-  position: relative;
-  display: inline-block;
-}
-
-.action-btn {
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-}
-
-.action-btn:hover {
-  background-color: #f0f0f0;
-}
-
-.menu-icon {
-  font-size: 16px;
-}
-
-.action-dropdown {
-  position: absolute;
-  right: 0;
-  top: 100%;
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  min-width: 150px;
-  z-index: 1000;
-}
-
-.action-dropdown a {
-  display: block;
-  padding: 8px 12px;
-  text-decoration: none;
-  color: #333;
-  font-size: 14px;
-}
-
-.action-dropdown a:hover {
-  background-color: #f5f5f5;
-}
-
-.action-dropdown a:nth-child(3) {
-  color: #2196F3;
-  font-weight: 500;
-}
-
-@media (max-width: 768px) {
-  .projects-filters {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .sort-group {
-    margin-left: 0;
-    width: 100%;
-  }
-  
-  .sort-group select {
-    flex: 1;
-  }
+.projects-pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
 }
 </style>

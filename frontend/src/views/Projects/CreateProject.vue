@@ -69,6 +69,8 @@
 </template>
 
 <script>
+import http from '@/utils/http'
+
 export default {
   name: 'CreateProject',
   data() {
@@ -163,15 +165,18 @@ export default {
     },
     async createProject() {
       try {
+        const userStr = localStorage.getItem('user')
+        const user = userStr ? JSON.parse(userStr) : {}
+        
         if (this.selectedFile) {
-          // 从现有资源创建项目（导入）
           const formData = new FormData();
           formData.append('file', this.selectedFile);
           formData.append('format', this.getFileFormat(this.selectedFile.name));
           formData.append('ontologyName', this.form.name);
           formData.append('namespace', this.form.namespace || `http://example.org/${this.form.name.toLowerCase().replace(/\s+/g, '-')}`);
+          formData.append('creatorId', user.username);
           
-          const response = await this.$http.post('/ontology/import-export/import', formData, {
+          const response = await http.post('/ontology/import-export/import', formData, {
             headers: {
               'Content-Type': 'multipart/form-data'
             }
@@ -180,12 +185,12 @@ export default {
           this.$emit('projectCreated', response.data);
           this.closeModal();
         } else {
-          // 创建新项目
-          const response = await this.$http.post('/ontology/create', {
+          const response = await http.post('/ontology/create', {
             name: this.form.name,
             namespace: this.form.namespace || `http://example.org/${this.form.name.toLowerCase().replace(/\s+/g, '-')}`,
             description: '',
-            format: 'OWL'
+            format: 'OWL',
+            creatorId: user.username
           });
           
           this.$emit('projectCreated', response.data);
