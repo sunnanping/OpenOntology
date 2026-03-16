@@ -51,8 +51,8 @@ const handleLogin = async () => {
       password: form.value.password
     })
     localStorage.setItem('user', JSON.stringify(response.data))
-    // 登录成功后重定向到项目编辑页面，使用WebProtege格式的路径
-    router.push('/projects/9b7fe218-e70e-4514-848e-9a11f394df07/edit/Classes?selection=Class(%3Chttp://webprotege.stanford.edu/R90zHmRURjS2Q0BsIJCqLOD%3E)')
+    // 登录成功后重定向到项目清单界面
+    router.push('/projects/list')
   } catch (error) {
     console.error('Login failed:', error)
     alert(t('auth.loginFailed'))

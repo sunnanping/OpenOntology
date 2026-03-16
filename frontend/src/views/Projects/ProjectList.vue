@@ -110,8 +110,8 @@ export default {
   data() {
     return {
       currentUser: {
-        username: 'bjsun07',
-        role: 'admin' // 这里应该从登录状态中获取
+        username: '',
+        role: ''
       },
       projects: [
         {
