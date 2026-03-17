@@ -1,0 +1,14 @@
+[Unit]
+Description=Eureka Server Monitor Service
+After=eureka-server.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/OpenOntology
+execStart=/bin/bash monitor-eureka.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,30 +1,56 @@
 <template>
   <div class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0, 0, 0, 0.5);">
     <div 
-      class="modal-dialog"
+      class="modal-dialog" 
       ref="modalDialog"
       :style="dialogStyle"
     >
       <div 
-        class="modal-content"
+        class="modal-content" 
         ref="modalContent"
         :style="contentStyle"
       >
         <div class="modal-header" @mousedown="startDrag">
-          <div class="modal-title-wrapper">
-            <div class="modal-icon" v-if="icon || showDefaultIcon">
-              <img v-if="icon" :src="icon" :alt="'Modal icon'" class="custom-icon" />
-              <img v-else src="/src/assets/logo.svg" alt="Default icon" class="default-icon" />
-            </div>
-            <h5 class="modal-title">{{ title }}</h5>
+          <h5 class="modal-title">
+            <span v-if="type === 'success'" class="icon success-icon">✓</span>
+            <span v-else-if="type === 'error'" class="icon error-icon">✗</span>
+            <span v-else-if="type === 'warning'" class="icon warning-icon">!</span>
+            <span v-else-if="type === 'info'" class="icon info-icon">i</span>
+            {{ title }}
+          </h5>
+          <button type="button" class="btn-close" @click="closeModal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" @mousedown.stop :style="{ 'display': 'flex', 'align-items': verticalAlign }">
+          <div class="alert-message" :style="{ 'white-space': 'pre-line', 'text-align': textAlign, 'width': '100%' }" v-html="processedMessage">
           </div>
-          <button type="button" class="btn-close" @mousedown.stop @click="closeModal" aria-label="Close"></button>
         </div>
-        <div class="modal-body" @mousedown.stop>
-          <slot></slot>
+        <div class="modal-footer" @mousedown.stop>
+          <button 
+            type="button" 
+            class="btn btn-secondary" 
+            @click="copyMessage"
+          >
+            {{ t('app.copy') }}
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-secondary" 
+            @click="captureScreenshot"
+          >
+            {{ t('app.capture') }}
+          </button>
+          <button 
+            type="button" 
+            :class="['btn', buttonClass]" 
+            @click="handleConfirm"
+          >
+            {{ confirmText }}
+          </button>
         </div>
-        <div class="modal-footer" v-if="$slots.footer" @mousedown.stop>
-          <slot name="footer"></slot>
+        
+        <!-- 操作提示 -->
+        <div v-if="showTip" class="success-tip">
+          {{ tipText }}
         </div>
         
         <!-- 拉伸缩放手柄 -->
@@ -43,17 +69,49 @@
 
 <script>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+// 动态引入html2canvas
+let html2canvas = null
+const loadHtml2Canvas = async () => {
+  if (!html2canvas) {
+    const script = document.createElement('script')
+    script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js'
+    script.async = true
+    await new Promise((resolve) => {
+      script.onload = () => {
+        html2canvas = window.html2canvas
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  }
+  return html2canvas
+}
 
 export default {
-  name: 'DraggableModal',
+  name: 'AlertModal',
   props: {
     title: {
       type: String,
-      default: ''
+      default: '提示'
+    },
+    message: {
+      type: String,
+      required: true
+    },
+    type: {
+      type: String,
+      default: 'info',
+      validator: (value) => ['success', 'error', 'warning', 'info'].includes(value)
+    },
+    confirmText: {
+      type: String,
+      default: '确定'
     },
     width: {
       type: String,
-      default: '500px'
+      default: '400px'
     },
     minWidth: {
       type: Number,
@@ -61,25 +119,59 @@ export default {
     },
     minHeight: {
       type: Number,
-      default: 200
+      default: 150
     },
-    closeOnClickOverlay: {
-      type: Boolean,
-      default: true
-    },
-    icon: {
+    textAlign: {
       type: String,
-      default: ''
+      default: 'left',
+      validator: (value) => ['left', 'center', 'right'].includes(value)
     },
-    showDefaultIcon: {
-      type: Boolean,
-      default: true
+    verticalAlign: {
+      type: String,
+      default: 'center',
+      validator: (value) => ['top', 'center', 'bottom'].includes(value)
+    },
+    captureType: {
+      type: String,
+      default: 'copy',
+      validator: (value) => ['copy', 'download'].includes(value)
+    },
+    tipMaxLength: {
+      type: Number,
+      default: 10
+    },
+    tipDuration: {
+      type: Number,
+      default: 500
     }
   },
-  emits: ['close'],
+  emits: ['close', 'confirm'],
   setup(props, { emit }) {
+    const { textAlign, message, captureType, tipMaxLength, tipDuration, verticalAlign } = props
     const modalDialog = ref(null)
     const modalContent = ref(null)
+    const { t } = useI18n()
+    
+    // 提示状态
+    const showTip = ref(false)
+    const tipText = ref('')
+    const isProcessing = ref(false)
+    
+    // 处理消息内容，将冒号前的内容转换为粗体
+    const processedMessage = computed(() => {
+      if (!message) return ''
+      
+      return message.split('\n').map(line => {
+        // 查找中文或英文冒号
+        const colonIndex = line.search(/[:：]/)
+        if (colonIndex !== -1) {
+          const beforeColon = line.substring(0, colonIndex + 1)
+          const afterColon = line.substring(colonIndex + 1)
+          return `<strong>${beforeColon}</strong>${afterColon}`
+        }
+        return line
+      }).join('\n')
+    })
     
     // 拖拽相关
     const isDragging = ref(false)
@@ -98,28 +190,14 @@ export default {
     const startResizeX = ref(0)
     const startResizeY = ref(0)
 
-    const dialogStyle = computed(() => {
-      // 只有当用户开始拖拽后，才使用绝对定位
-      if (currentX.value !== 0 || currentY.value !== 0) {
-        return {
-          position: 'absolute',
-          left: `${currentX.value}px`,
-          top: `${currentY.value}px`,
-          transform: 'none',
-          margin: '0',
-          maxWidth: 'none'
-        }
-      }
-      // 初始状态保持居中
-      return {
-        position: 'absolute',
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-        margin: '0',
-        maxWidth: 'none'
-      }
-    })
+    const dialogStyle = computed(() => ({
+      position: 'absolute',
+      left: currentX.value === 0 ? '50%' : `${currentX.value}px`,
+      top: currentY.value === 0 ? '50%' : `${currentY.value}px`,
+      transform: currentX.value === 0 && currentY.value === 0 ? 'translate(-50%, -50%)' : 'none',
+      margin: '0',
+      maxWidth: 'none'
+    }))
 
     const contentStyle = computed(() => ({
       width: `${currentWidth.value}px`,
@@ -128,14 +206,36 @@ export default {
       minHeight: `${props.minHeight}px`
     }))
 
+    const buttonClass = computed(() => {
+      switch (props.type) {
+        case 'success':
+          return 'btn-success'
+        case 'error':
+          return 'btn-danger'
+        case 'warning':
+          return 'btn-warning'
+        case 'info':
+        default:
+          return 'btn-primary'
+      }
+    })
+
     // 开始拖拽
     const startDrag = (e) => {
-      // 检查点击事件的目标是否是关闭按钮，如果是则不触发拖拽
-      if (e.target.closest('.btn-close')) return
+      // 只有点击header时才触发拖拽
+      if (!e.target.closest('.modal-header')) return
       
       isDragging.value = true
       startX.value = e.clientX
       startY.value = e.clientY
+      
+      const rect = modalDialog.value.getBoundingClientRect()
+      
+      // 如果是第一次拖拽，需要计算当前位置
+      if (currentX.value === 0 && currentY.value === 0) {
+        currentX.value = rect.left + rect.width / 2
+        currentY.value = rect.top + rect.height / 2
+      }
       
       document.addEventListener('mousemove', drag)
       document.addEventListener('mouseup', stopDrag)
@@ -144,15 +244,12 @@ export default {
     const drag = (e) => {
       if (!isDragging.value) return
       
-      // 计算鼠标移动距离
       const deltaX = e.clientX - startX.value
       const deltaY = e.clientY - startY.value
       
-      // 应用移动
       currentX.value += deltaX
       currentY.value += deltaY
       
-      // 更新起始位置
       startX.value = e.clientX
       startY.value = e.clientY
     }
@@ -177,6 +274,10 @@ export default {
       startWidth.value = rect.width
       startHeight.value = rect.height
       
+      const dialogRect = modalDialog.value.getBoundingClientRect()
+      currentX.value = dialogRect.left + dialogRect.width / 2
+      currentY.value = dialogRect.top + dialogRect.height / 2
+      
       document.addEventListener('mousemove', resize)
       document.addEventListener('mouseup', stopResize)
     }
@@ -184,7 +285,6 @@ export default {
     const resize = (e) => {
       if (!isResizing.value) return
       
-      // 计算鼠标移动距离
       const deltaX = e.clientX - startResizeX.value
       const deltaY = e.clientY - startResizeY.value
       
@@ -224,6 +324,94 @@ export default {
       emit('close')
     }
 
+    const handleConfirm = () => {
+      emit('confirm')
+      emit('close')
+    }
+
+    // 显示提示
+    const showTipMessage = (text, duration = 500) => {
+      tipText.value = text
+      showTip.value = true
+      setTimeout(() => {
+        showTip.value = false
+      }, duration)
+    }
+
+    // 复制消息内容
+    const copyMessage = () => {
+      isProcessing.value = true
+      showTip.value = true
+      tipText.value = `${t(`app.${'copy'}`)} now, wait!`
+      
+      navigator.clipboard.writeText(message).then(() => {
+        isProcessing.value = false
+        tipText.value = `√ ${t('app.success')} ${t(`app.${'copy'}`)}`
+        setTimeout(() => {
+          showTip.value = false
+        }, tipDuration)
+      }).catch(err => {
+        isProcessing.value = false
+        showTip.value = false
+        console.error('Failed to copy message:', err)
+      })
+    }
+
+    // 截图功能
+    const captureScreenshot = () => {
+      const modalElement = modalContent.value
+      if (modalElement) {
+        isProcessing.value = true
+        showTip.value = true
+        tipText.value = `${t(`app.${'capture'}`)} now, wait!`
+        
+        // 使用setTimeout确保提示先显示
+        setTimeout(async () => {
+          try {
+            const html2canvas = await loadHtml2Canvas()
+            const canvas = await html2canvas(modalElement)
+            
+            if (captureType === 'copy') {
+              // 复制到内存
+              canvas.toBlob(async (blob) => {
+                try {
+                  await navigator.clipboard.write([
+                    new ClipboardItem({
+                      'image/png': blob
+                    })
+                  ])
+                  isProcessing.value = false
+                  tipText.value = `√ ${t('app.success')} ${t(`app.${'capture'}`)}`
+                  setTimeout(() => {
+                    showTip.value = false
+                  }, tipDuration)
+                } catch (clipboardErr) {
+                  isProcessing.value = false
+                  showTip.value = false
+                  console.error('Failed to copy screenshot to clipboard:', clipboardErr)
+                }
+              })
+            } else {
+              // 下载截图文件
+              const link = document.createElement('a')
+              link.download = `alert-screenshot-${Date.now()}.png`
+              link.href = canvas.toDataURL('image/png')
+              link.click()
+              isProcessing.value = false
+              tipText.value = `√ ${t('app.success')} ${t(`app.${'capture'}`)}`
+              setTimeout(() => {
+                showTip.value = false
+              }, tipDuration)
+            }
+          } catch (err) {
+            isProcessing.value = false
+            showTip.value = false
+            console.error('Failed to capture screenshot:', err)
+          }
+        }, 50)
+      }
+    }
+
     // 处理ESC键关闭
     const handleKeydown = (e) => {
       if (e.key === 'Escape') {
@@ -251,9 +439,23 @@ export default {
       modalContent,
       dialogStyle,
       contentStyle,
+      buttonClass,
+      textAlign,
+      verticalAlign,
+      captureType,
+      tipMaxLength,
+      tipDuration,
+      showTip,
+      tipText,
+      isProcessing,
+      processedMessage,
       startDrag,
       startResize,
-      closeModal
+      closeModal,
+      handleConfirm,
+      copyMessage,
+      captureScreenshot,
+      t
     }
   }
 }
@@ -309,32 +511,44 @@ export default {
   user-select: none;
 }
 
-.modal-title-wrapper {
-  display: flex;
-  align-items: center;
-  flex: 1;
-}
-
-.modal-icon {
-  margin-right: 0.5rem;
-  display: flex;
-  align-items: center;
-}
-
-.default-icon,
-.custom-icon {
-  height: 1.25rem;
-  width: auto;
-  vertical-align: middle;
-  display: inline-block;
-}
-
 .modal-title {
   margin-bottom: 0;
   line-height: 1.5;
   font-size: 1.25rem;
   font-weight: 500;
   color: #212529;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.success-icon {
+  background-color: #198754;
+}
+
+.error-icon {
+  background-color: #dc3545;
+}
+
+.warning-icon {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.info-icon {
+  background-color: #0d6efd;
 }
 
 .btn-close {
@@ -357,8 +571,15 @@ export default {
 .modal-body {
   position: relative;
   flex: 1 1 auto;
-  padding: 1rem;
+  padding: 1.5rem;
   overflow-y: auto;
+  min-height: 100px;
+}
+
+.alert-message {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #212529;
 }
 
 .modal-footer {
@@ -366,7 +587,7 @@ export default {
   flex-wrap: wrap;
   flex-shrink: 0;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   padding: 0.75rem;
   border-top: 1px solid #dee2e6;
   border-bottom-right-radius: calc(0.5rem - 1px);
@@ -444,6 +665,23 @@ export default {
   cursor: sw-resize;
 }
 
+/* 成功提示样式 */
+.success-tip {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #0d6efd;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 0 0 4px 4px;
+  font-size: 16px;
+  font-weight: 600;
+  z-index: 1000;
+  min-width: 120px;
+  text-align: center;
+}
+
 /* Bootstrap 按钮样式 */
 :deep(.btn) {
   display: inline-block;
@@ -456,7 +694,7 @@ export default {
   user-select: none;
   background-color: transparent;
   border: 1px solid transparent;
-  padding: 0.375rem 0.75rem;
+  padding: 0.375rem 1.5rem;
   font-size: 1rem;
   border-radius: 0.25rem;
   transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
@@ -490,58 +728,30 @@ export default {
   border-color: #198754;
 }
 
+:deep(.btn-success:hover) {
+  background-color: #157347;
+  border-color: #146c43;
+}
+
 :deep(.btn-danger) {
   color: #fff;
   background-color: #dc3545;
   border-color: #dc3545;
 }
 
-/* Bootstrap 表单样式 */
-:deep(.form-group) {
-  margin-bottom: 1rem;
+:deep(.btn-danger:hover) {
+  background-color: #bb2d3b;
+  border-color: #b02a37;
 }
 
-:deep(.form-group label) {
-  display: inline-block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
+:deep(.btn-warning) {
   color: #212529;
+  background-color: #ffc107;
+  border-color: #ffc107;
 }
 
-:deep(.form-control) {
-  display: block;
-  width: 100%;
-  padding: 0.375rem 0.75rem;
-  font-size: 1rem;
-  font-weight: 400;
-  line-height: 1.5;
-  color: #212529;
-  background-color: #fff;
-  background-clip: padding-box;
-  border: 1px solid #ced4da;
-  border-radius: 0.25rem;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-  box-sizing: border-box;
-}
-
-:deep(.form-control:focus) {
-  color: #212529;
-  background-color: #fff;
-  border-color: #86b7fe;
-  outline: 0;
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
-
-:deep(.form-control:disabled) {
-  background-color: #e9ecef;
-  opacity: 1;
-}
-
-:deep(select.form-control) {
-  height: 38px;
-}
-
-:deep(textarea.form-control) {
-  resize: vertical;
+:deep(.btn-warning:hover) {
+  background-color: #ffca2c;
+  border-color: #ffc720;
 }
 </style>

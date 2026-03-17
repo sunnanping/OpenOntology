@@ -4,8 +4,12 @@
       <div class="row justify-content-center">
         <div class="col-md-6">
           <div class="card">
-            <div class="card-header">
-              <h3 class="text-center">{{ $t('auth.login') }}</h3>
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <div></div>
+              <h3 class="mb-0">{{ $t('auth.login') }}</h3>
+              <div>
+                <LanguageSwitcher />
+              </div>
             </div>
             <div class="card-body">
               <form @submit.prevent="handleLogin">
@@ -34,6 +38,7 @@
 import { ref, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -68,5 +73,9 @@ const handleLogin = async () => {
   padding-top: 40px;
   padding-bottom: 40px;
   background-color: #f5f5f5;
+}
+
+.card-header {
+  position: relative;
 }
 </style>

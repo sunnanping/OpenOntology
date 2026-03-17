@@ -24,7 +24,9 @@
     "submit": "Submit",
     "back": "Back",
     "next": "Next",
-    "finish": "Finish"
+    "finish": "Finish",
+    "copy": "Copy",
+    "capture": "Capture"
   },
   "nav": {
     "home": "Home",
@@ -367,5 +369,71 @@
     "exportError": "Failed to export",
     "startDate": "Start Date",
     "endDate": "End Date"
+  },
+  "user": {
+    "changeEmail": {
+      "title": "Change Email Address",
+      "currentEmail": "Current Email",
+      "newEmail": "New Email",
+      "password": "Password (for verification)",
+      "button": "Change Email"
+    },
+    "changePassword": {
+      "title": "Change Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "button": "Change Password"
+    },
+    "menu": {
+      "changeEmail": "Change Email Address",
+      "changePassword": "Change Password"
+    }
+  },
+  "project": {
+    "create": {
+      "title": "Create New Project",
+      "name": "Project name",
+      "language": "Language",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter project description",
+      "sources": "Create from existing sources",
+      "selectFile": "Select file",
+      "noFileSelected": "No file selected",
+      "cancel": "Cancel",
+      "submit": "Create New Project",
+      "errors": {
+        "nameRequired": "Please enter project name"
+      }
+    },
+    "list": {
+      "title": "Projects",
+      "createButton": "Create New Project",
+      "ownedByMe": "Owned by Me",
+      "sharedWithMe": "Shared with Me",
+      "trash": "Trash",
+      "searchPlaceholder": "Search projects...",
+      "sortBy": "Sort by:",
+      "sortOptions": {
+        "lastOpened": "Last Opened",
+        "lastModified": "Last Modified",
+        "name": "Name",
+        "owner": "Owner"
+      },
+      "actions": {
+        "openNew": "Open in new window",
+        "moveToTrash": "Move to trash",
+        "restore": "Restore",
+        "deletePermanently": "Delete permanently"
+      },
+      "table": {
+        "projectName": "Project name",
+        "owner": "Owner",
+        "lastOpened": "Last opened",
+        "lastModified": "Last modified",
+        "actions": "Actions"
+      },
+      "noData": "No Data"
+    }
   }
 }

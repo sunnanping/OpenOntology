@@ -1,88 +1,115 @@
 <template>
-  <div class="modal-overlay" @click="closeModal">
-    <div class="modal-content" ref="modalContent" @mousedown="startDrag" @click.stop>
-      <div class="modal-header">
-        <h2>Create New Project</h2>
-        <button class="close-btn" @click="closeModal">&times;</button>
+  <DraggableModal
+    :title="t('project.create.title')"
+    width="600px"
+    @close="closeModal"
+  >
+    <form @submit.prevent="createProject">
+      <div class="form-group">
+        <label for="projectName">{{ t('project.create.name') }}</label>
+        <input type="text" id="projectName" v-model="form.name" required class="form-control">
       </div>
-      <div class="modal-body">
-        <form @submit.prevent="createProject">
-          <div class="form-group">
-            <label for="projectName">Project name</label>
-            <input type="text" id="projectName" v-model="form.name" required class="form-control">
-          </div>
-          
-          <div class="form-group">
-            <label for="language">Language</label>
-            <div class="language-selector">
-              <input 
-                type="text" 
-                id="language" 
-                v-model="selectedLanguage" 
-                @focus="showLanguageDropdown = true"
-                @blur="hideLanguageDropdown"
-                class="form-control"
-              >
-              <div v-if="showLanguageDropdown" class="language-dropdown">
-                <div 
-                  v-for="lang in filteredLanguages" 
-                  :key="lang.code"
-                  class="language-item"
-                  @mousedown="selectLanguage(lang)"
-                >
-                  {{ lang.code }} ({{ lang.name }})
-                </div>
-              </div>
+      
+      <div class="form-group">
+        <label for="language">{{ t('project.create.language') }}</label>
+        <div class="language-selector">
+          <input 
+            type="text" 
+            id="language" 
+            v-model="selectedLanguage" 
+            @focus="showLanguageDropdown = true"
+            @blur="hideLanguageDropdown"
+            class="form-control"
+          >
+          <div v-if="showLanguageDropdown" class="language-dropdown">
+            <div 
+              v-for="lang in filteredLanguages" 
+              :key="lang.code"
+              class="language-item"
+              @mousedown="selectLanguage(lang)"
+            >
+              {{ lang.code }} ({{ lang.name }})
             </div>
           </div>
-          
-          <div class="form-group">
-            <label>Create from existing sources</label>
-            <div class="file-upload">
-              <input 
-                type="file" 
-                id="fileInput" 
-                ref="fileInput"
-                @change="handleFileChange"
-                style="display: none"
-              >
-              <button 
-                type="button" 
-                class="btn btn-secondary"
-                @click="$refs.fileInput.click()"
-              >
-                选择文件
-              </button>
-              <span v-if="selectedFile">{{ selectedFile.name }}</span>
-              <span v-else>未选择文件</span>
-            </div>
-          </div>
-          
-          <div class="form-actions">
-            <button type="button" class="btn btn-secondary" @click="closeModal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Create New Project</button>
-          </div>
-        </form>
+        </div>
       </div>
-    </div>
-  </div>
+      
+      <div class="form-group">
+        <label for="description">{{ t('project.create.description') }}</label>
+        <textarea 
+          id="description" 
+          v-model="form.description" 
+          class="form-control" 
+          rows="4" 
+          :placeholder="t('project.create.descriptionPlaceholder')"
+        ></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label>{{ t('project.create.sources') }}</label>
+        <div class="file-upload">
+          <input 
+            type="file" 
+            id="fileInput" 
+            ref="fileInput"
+            @change="handleFileChange"
+            style="display: none"
+          >
+          <button 
+            type="button" 
+            class="btn btn-secondary"
+            @click="$refs.fileInput.click()"
+          >
+            {{ t('project.create.selectFile') }}
+          </button>
+          <span v-if="selectedFile">{{ selectedFile.name }}</span>
+          <span v-else>{{ t('project.create.noFileSelected') }}</span>
+        </div>
+      </div>
+    </form>
+    
+    <template #footer>
+      <button type="button" class="btn btn-secondary" @click="closeModal">{{ t('project.create.cancel') }}</button>
+      <button type="button" class="btn btn-primary" style="background-color: #9C27B0; border-color: #9C27B0;" @click="createProject">{{ t('project.create.submit') }}</button>
+    </template>
+  </DraggableModal>
+  
+  <!-- Alert Modal -->
+  <AlertModal
+    v-if="showAlert"
+    :title="alertType === 'error' ? t('app.error') : alertType === 'success' ? t('app.success') : alertType === 'warning' ? t('app.warning') : t('app.info')"
+    :message="alertMessage"
+    :type="alertType"
+    @close="closeAlert"
+  />
 </template>
 
 <script>
 import http from '@/utils/http'
+import DraggableModal from '@/components/DraggableModal.vue'
+import AlertModal from '@/components/AlertModal.vue'
+import { useI18n } from 'vue-i18n'
 
 export default {
   name: 'CreateProject',
+  components: {
+    DraggableModal,
+    AlertModal
+  },
   data() {
     return {
       form: {
         name: '',
         language: 'en',
-        namespace: ''
+        namespace: '',
+        description: ''
       },
       selectedLanguage: 'en',
       showLanguageDropdown: false,
       selectedFile: null,
+      showAlert: false,
+      alertMessage: '',
+      alertType: 'error',
       languages: [
         { code: 'en', name: 'English' },
         { code: 'zh', name: 'Chinese' },
@@ -100,12 +127,7 @@ export default {
         { code: 'ar', name: 'Arabic' },
         { code: 'zu', name: 'Zulu' },
         { code: 'za', name: 'Zhuang; Chuang' }
-      ],
-      isDragging: false,
-      startX: 0,
-      startY: 0,
-      offsetX: 0,
-      offsetY: 0
+      ]
     }
   },
   computed: {
@@ -118,36 +140,11 @@ export default {
     }
   },
   methods: {
+    t(key, options) {
+      return this.$t(key, options);
+    },
     closeModal() {
       this.$emit('close');
-    },
-    startDrag(e) {
-      if (e.target.classList.contains('modal-header')) {
-        this.isDragging = true;
-        this.startX = e.clientX;
-        this.startY = e.clientY;
-        
-        const rect = this.$refs.modalContent.getBoundingClientRect();
-        this.offsetX = this.startX - rect.left;
-        this.offsetY = this.startY - rect.top;
-        
-        document.addEventListener('mousemove', this.drag);
-        document.addEventListener('mouseup', this.stopDrag);
-      }
-    },
-    drag(e) {
-      if (this.isDragging) {
-        const x = e.clientX - this.offsetX;
-        const y = e.clientY - this.offsetY;
-        
-        this.$refs.modalContent.style.left = `${x}px`;
-        this.$refs.modalContent.style.top = `${y}px`;
-      }
-    },
-    stopDrag() {
-      this.isDragging = false;
-      document.removeEventListener('mousemove', this.drag);
-      document.removeEventListener('mouseup', this.stopDrag);
     },
     selectLanguage(lang) {
       this.selectedLanguage = lang.code;
@@ -164,6 +161,14 @@ export default {
       this.selectedFile = e.target.files[0];
     },
     async createProject() {
+      // 表单校验
+      if (!this.form.name.trim()) {
+        this.alertMessage = this.t('project.create.errors.nameRequired');
+        this.alertType = 'error';
+        this.showAlert = true;
+        return;
+      }
+      
       try {
         const userStr = localStorage.getItem('user')
         const user = userStr ? JSON.parse(userStr) : {}
@@ -174,6 +179,7 @@ export default {
           formData.append('format', this.getFileFormat(this.selectedFile.name));
           formData.append('ontologyName', this.form.name);
           formData.append('namespace', this.form.namespace || `http://example.org/${this.form.name.toLowerCase().replace(/\s+/g, '-')}`);
+          formData.append('description', this.form.description);
           formData.append('creatorId', user.username);
           
           const response = await http.post('/ontology/import-export/import', formData, {
@@ -188,7 +194,7 @@ export default {
           const response = await http.post('/ontology/create', {
             name: this.form.name,
             namespace: this.form.namespace || `http://example.org/${this.form.name.toLowerCase().replace(/\s+/g, '-')}`,
-            description: '',
+            description: this.form.description,
             format: 'OWL',
             creatorId: user.username
           });
@@ -198,8 +204,15 @@ export default {
         }
       } catch (error) {
         console.error('创建项目失败:', error);
-        alert('创建项目失败: ' + (error.response?.data?.message || '未知错误'));
+        const source = error.response?.config?.url || '服务器';
+        const errorMessage = error.response?.data?.message || '未知错误';
+        this.alertMessage = `来源: ${source}\n创建项目失败: ${errorMessage}`;
+        this.alertType = 'error';
+        this.showAlert = true;
       }
+    },
+    closeAlert() {
+      this.showAlert = false;
     },
     getFileFormat(filename) {
       const extension = filename.split('.').pop().toLowerCase();
@@ -226,72 +239,6 @@ export default {
 </script>
 
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  width: 90%;
-  max-width: 600px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  cursor: move;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
-  border-bottom: 1px solid #e0e0e0;
-  background-color: #f5f5f5;
-  border-radius: 8px 8px 0 0;
-}
-
-.modal-header h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #666;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-}
-
-.close-btn:hover {
-  background-color: #e0e0e0;
-}
-
-.modal-body {
-  padding: 20px;
-  cursor: default;
-}
-
 .form-group {
   margin-bottom: 20px;
 }
@@ -346,48 +293,10 @@ export default {
   gap: 10px;
 }
 
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 30px;
-}
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-
-.btn-primary {
-  background-color: #9C27B0;
-  color: white;
-  font-weight: bold;
-}
-
-.btn:hover {
-  opacity: 0.9;
-}
-
 @media (max-width: 768px) {
-  .modal-content {
-    width: 95%;
-    margin: 10px;
-  }
-  
-  .form-actions {
+  .file-upload {
     flex-direction: column;
-  }
-  
-  .btn {
-    width: 100%;
+    align-items: flex-start;
   }
 }
 </style>

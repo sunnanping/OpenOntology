@@ -2,10 +2,10 @@
   <div class="projects-container">
     <div class="projects-header">
       <div class="header-left">
-        <h1>Projects</h1>
+        <h1>{{ t('project.list.title') }}</h1>
         <el-button type="primary" class="create-btn" @click="showCreateModal = true">
           <el-icon><Plus /></el-icon>
-          Create New Project
+          {{ t('project.list.createButton') }}
         </el-button>
       </div>
       <div class="header-right">
@@ -21,19 +21,19 @@
             <el-dropdown-menu>
               <el-dropdown-item command="profile">
                 <el-icon><User /></el-icon>
-                Profile
+                {{ t('app.profile') }}
               </el-dropdown-item>
               <el-dropdown-item command="changeEmail">
                 <el-icon><Message /></el-icon>
-                Change Email Address
+                {{ t('user.menu.changeEmail') }}
               </el-dropdown-item>
               <el-dropdown-item command="changePassword">
                 <el-icon><Lock /></el-icon>
-                Change Password
+                {{ t('user.menu.changePassword') }}
               </el-dropdown-item>
               <el-dropdown-item divided command="signOut">
                 <el-icon><SwitchButton /></el-icon>
-                Sign Out
+                {{ t('app.logout') }}
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -43,14 +43,14 @@
 
     <div class="projects-content">
       <div class="projects-filters">
-        <el-checkbox v-model="filters.ownedByMe" @change="filterProjects">Owned by Me</el-checkbox>
-        <el-checkbox v-model="filters.sharedWithMe" @change="filterProjects">Shared with Me</el-checkbox>
-        <el-checkbox v-model="filters.trash" @change="filterProjects">Trash</el-checkbox>
+        <el-checkbox v-model="filters.ownedByMe" @change="filterProjects">{{ t('project.list.ownedByMe') }}</el-checkbox>
+        <el-checkbox v-model="filters.sharedWithMe" @change="filterProjects">{{ t('project.list.sharedWithMe') }}</el-checkbox>
+        <el-checkbox v-model="filters.trash" @change="filterProjects">{{ t('project.list.trash') }}</el-checkbox>
         
         <div class="search-box">
           <el-input
             v-model="searchQuery"
-            placeholder="Search projects..."
+            :placeholder="t('project.list.searchPlaceholder')"
             prefix-icon="Search"
             clearable
             @input="filterProjects"
@@ -58,18 +58,18 @@
         </div>
 
         <div class="sort-group">
-          <span>Sort by:</span>
+          <span>{{ t('project.list.sortBy') }}</span>
           <el-select v-model="sortBy" @change="sortProjects" style="width: 150px;">
-            <el-option label="Last Opened" value="lastOpened" />
-            <el-option label="Last Modified" value="lastModified" />
-            <el-option label="Name" value="name" />
-            <el-option label="Owner" value="owner" />
+            <el-option :label="t('project.list.sortOptions.lastOpened')" value="lastOpened" />
+            <el-option :label="t('project.list.sortOptions.lastModified')" value="lastModified" />
+            <el-option :label="t('project.list.sortOptions.name')" value="name" />
+            <el-option :label="t('project.list.sortOptions.owner')" value="owner" />
           </el-select>
         </div>
       </div>
 
       <el-table :data="filteredProjects" style="width: 100%" v-loading="loading">
-        <el-table-column prop="name" label="Project name" min-width="200">
+        <el-table-column prop="name" :label="t('project.list.table.projectName')" min-width="200">
           <template #default="{ row }">
             <div class="project-name">
               <el-icon><Folder /></el-icon>
@@ -77,7 +77,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="owner" label="Owner" width="180">
+        <el-table-column prop="owner" :label="t('project.list.table.owner')" width="180">
           <template #default="{ row }">
             <div class="owner-info">
               <el-avatar :size="24" :style="{ backgroundColor: getAvatarColor(row.owner) }">
@@ -87,17 +87,17 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="lastOpened" label="Last opened" width="150">
+        <el-table-column prop="lastOpened" :label="t('project.list.table.lastOpened')" width="150">
           <template #default="{ row }">
             {{ formatTimeAgo(row.lastOpened) }}
           </template>
         </el-table-column>
-        <el-table-column prop="lastModified" label="Last modified" width="180">
+        <el-table-column prop="lastModified" :label="t('project.list.table.lastModified')" width="180">
           <template #default="{ row }">
             {{ formatDate(row.lastModified) }}
           </template>
         </el-table-column>
-        <el-table-column label="Actions" width="100" fixed="right">
+        <el-table-column :label="t('project.list.table.actions')" width="100" fixed="right">
           <template #default="{ row }">
             <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
               <el-button type="text">
@@ -107,27 +107,27 @@
                 <el-dropdown-menu>
                   <el-dropdown-item command="open">
                     <el-icon><FolderOpened /></el-icon>
-                    Open
+                    {{ t('app.open') }}
                   </el-dropdown-item>
                   <el-dropdown-item command="openNew">
                     <el-icon><Link /></el-icon>
-                    Open in new window
+                    {{ t('project.list.actions.openNew') }}
                   </el-dropdown-item>
                   <el-dropdown-item command="download" divided>
                     <el-icon><Download /></el-icon>
-                    Download
+                    {{ t('app.export') }}
                   </el-dropdown-item>
                   <el-dropdown-item command="trash" v-if="!filters.trash" divided>
                     <el-icon><Delete /></el-icon>
-                    Move to trash
+                    {{ t('project.list.actions.moveToTrash') }}
                   </el-dropdown-item>
                   <el-dropdown-item command="restore" v-if="filters.trash">
                     <el-icon><RefreshLeft /></el-icon>
-                    Restore
+                    {{ t('project.list.actions.restore') }}
                   </el-dropdown-item>
                   <el-dropdown-item command="delete" v-if="filters.trash" divided>
                     <el-icon><Delete /></el-icon>
-                    Delete permanently
+                    {{ t('project.list.actions.deletePermanently') }}
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -156,50 +156,50 @@
     <!-- Change Email Dialog -->
     <DraggableModal
       v-if="showChangeEmailDialog"
-      title="Change Email Address"
+      :title="t('user.changeEmail.title')"
       width="400px"
       @close="showChangeEmailDialog = false"
     >
       <div class="form-group">
-        <label>Current Email</label>
+        <label>{{ t('user.changeEmail.currentEmail') }}</label>
         <input type="text" v-model="emailForm.currentEmail" disabled class="form-control" />
       </div>
       <div class="form-group">
-        <label>New Email</label>
-        <input type="email" v-model="emailForm.newEmail" placeholder="Enter new email address" class="form-control" />
+        <label>{{ t('user.changeEmail.newEmail') }}</label>
+        <input type="email" v-model="emailForm.newEmail" :placeholder="t('user.changeEmail.newEmail')" class="form-control" />
       </div>
       <div class="form-group">
-        <label>Password (for verification)</label>
-        <input type="password" v-model="emailForm.password" placeholder="Enter your password" class="form-control" />
+        <label>{{ t('user.changeEmail.password') }}</label>
+        <input type="password" v-model="emailForm.password" :placeholder="t('user.changeEmail.password')" class="form-control" />
       </div>
       <template #footer>
-        <button class="btn btn-secondary" @click="showChangeEmailDialog = false">Cancel</button>
-        <button class="btn btn-primary" style="background-color: #0d6efd; border-color: #0d6efd;" @click="changeEmail">Change Email</button>
+        <button class="btn btn-secondary" @click="showChangeEmailDialog = false">{{ t('app.cancel') }}</button>
+        <button class="btn btn-primary" style="background-color: #0d6efd; border-color: #0d6efd;" @click="changeEmail">{{ t('user.changeEmail.button') }}</button>
       </template>
     </DraggableModal>
     
     <!-- Change Password Dialog -->
     <DraggableModal
       v-if="showChangePasswordDialog"
-      title="Change Password"
+      :title="t('user.changePassword.title')"
       width="400px"
       @close="showChangePasswordDialog = false"
     >
       <div class="form-group">
-        <label>Current Password</label>
-        <input type="password" v-model="passwordForm.currentPassword" placeholder="Enter current password" class="form-control" />
+        <label>{{ t('user.changePassword.currentPassword') }}</label>
+        <input type="password" v-model="passwordForm.currentPassword" :placeholder="t('user.changePassword.currentPassword')" class="form-control" />
       </div>
       <div class="form-group">
-        <label>New Password</label>
-        <input type="password" v-model="passwordForm.newPassword" placeholder="Enter new password" class="form-control" />
+        <label>{{ t('user.changePassword.newPassword') }}</label>
+        <input type="password" v-model="passwordForm.newPassword" :placeholder="t('user.changePassword.newPassword')" class="form-control" />
       </div>
       <div class="form-group">
-        <label>Confirm New Password</label>
-        <input type="password" v-model="passwordForm.confirmPassword" placeholder="Confirm new password" class="form-control" />
+        <label>{{ t('user.changePassword.confirmPassword') }}</label>
+        <input type="password" v-model="passwordForm.confirmPassword" :placeholder="t('user.changePassword.confirmPassword')" class="form-control" />
       </div>
       <template #footer>
-        <button class="btn btn-secondary" @click="showChangePasswordDialog = false">Cancel</button>
-        <button class="btn btn-primary" style="background-color: #0d6efd; border-color: #0d6efd;" @click="changePassword">Change Password</button>
+        <button class="btn btn-secondary" @click="showChangePasswordDialog = false">{{ t('app.cancel') }}</button>
+        <button class="btn btn-primary" style="background-color: #0d6efd; border-color: #0d6efd;" @click="changePassword">{{ t('user.changePassword.button') }}</button>
       </template>
     </DraggableModal>
   </div>
@@ -213,6 +213,7 @@ import { Plus, Folder, FolderOpened, Download, Delete, MoreFilled, Link, Refresh
 import CreateProject from './CreateProject.vue'
 import DraggableModal from '@/components/DraggableModal.vue'
 import http from '@/utils/http'
+import { useI18n } from 'vue-i18n'
 
 export default {
   name: 'ProjectList',
@@ -236,6 +237,7 @@ export default {
   },
   setup() {
     const router = useRouter()
+    const { t } = useI18n()
     const currentUser = ref({ username: '', role: '' })
     const projects = ref([])
     const loading = ref(false)
@@ -562,6 +564,7 @@ export default {
     })
 
     return {
+      t,
       currentUser,
       projects,
       loading,

@@ -1,0 +1,14 @@
+[Unit]
+Description=Eureka Server Service
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/OpenOntology
+execStart=/bin/bash -c "cd eureka-server && mvn spring-boot:run"
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
