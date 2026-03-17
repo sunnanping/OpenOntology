@@ -87,6 +87,7 @@ export default {
     const startY = ref(0)
     const currentX = ref(0)
     const currentY = ref(0)
+    const isFirstDrag = ref(true)
     
     // 缩放相关
     const isResizing = ref(false)
@@ -147,6 +148,19 @@ export default {
       // 计算鼠标移动距离
       const deltaX = e.clientX - startX.value
       const deltaY = e.clientY - startY.value
+      
+      // 如果是第一次移动，需要先计算对话框的初始位置
+      if (isFirstDrag.value) {
+        const rect = modalDialog.value.getBoundingClientRect()
+        // 计算对话框的中心点位置
+        currentX.value = rect.left + rect.width / 2
+        currentY.value = rect.top + rect.height / 2
+        isFirstDrag.value = false
+        // 更新起始位置，但不应用deltaX和deltaY
+        startX.value = e.clientX
+        startY.value = e.clientY
+        return
+      }
       
       // 应用移动
       currentX.value += deltaX
