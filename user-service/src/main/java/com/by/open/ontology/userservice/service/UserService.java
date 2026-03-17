@@ -100,4 +100,45 @@ public class UserService {
     public void delete(String id) {
         userRepository.deleteById(id);
     }
+
+    public User changeEmail(String username, String newEmail, String password) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        // Verify password
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("Invalid password");
+        }
+
+        // Check if new email is already in use
+        User existingUser = userRepository.findByEmail(newEmail);
+        if (existingUser != null && !existingUser.getId().equals(user.getId())) {
+            throw new RuntimeException("Email already in use");
+        }
+
+        user.setEmail(newEmail);
+        user.setLastModifiedDate(new Date());
+
+        return userRepository.save(user);
+    }
+
+    public User changePassword(String username, String currentPassword, String newPassword) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        // Verify current password
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new RuntimeException("Invalid current password");
+        }
+
+        // Encode and set new password
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setLastModifiedDate(new Date());
+
+        return userRepository.save(user);
+    }
 }

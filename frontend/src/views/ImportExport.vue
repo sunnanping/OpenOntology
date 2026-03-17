@@ -91,23 +91,25 @@
       </el-tabs>
     </el-card>
 
-    <el-dialog
-      v-model="showResult"
-      :title="$t('ontology.importResult')"
-      width="30%"
+    <DraggableModal
+      v-if="showResult"
+      :title="importResult.success ? $t('ontology.importSuccess') : $t('ontology.importFailed')"
+      width="400px"
+      @close="showResult = false"
     >
-      <el-result
-        :icon="importResult.success ? 'success' : 'error'"
-        :title="importResult.success ? $t('ontology.importSuccess') : $t('ontology.importFailed')"
-        :sub-title="importResult.message"
-      >
-        <template #extra v-if="importResult.success">
-          <el-button type="primary" @click="navigateToOntology(importResult.ontologyId)">
-            {{ $t('ontology.viewOntology') }}
-          </el-button>
-        </template>
-      </el-result>
-    </el-dialog>
+      <div class="result-content">
+        <div class="result-icon" :class="importResult.success ? 'success' : 'error'">
+          <el-icon v-if="importResult.success" :size="64" color="#67c23a"><CircleCheckFilled /></el-icon>
+          <el-icon v-else :size="64" color="#f56c6c"><CircleCloseFilled /></el-icon>
+        </div>
+        <div class="result-message">{{ importResult.message }}</div>
+      </div>
+      <template #footer v-if="importResult.success">
+        <button class="btn btn-primary" @click="navigateToOntology(importResult.ontologyId)">
+          {{ $t('ontology.viewOntology') }}
+        </button>
+      </template>
+    </DraggableModal>
   </div>
 </template>
 
@@ -115,6 +117,8 @@
 import { ref, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { CircleCheckFilled, CircleCloseFilled } from '@element-plus/icons-vue'
+import DraggableModal from '@/components/DraggableModal.vue'
 
 const router = useRouter()
 const http = inject('$http') || window.$http
@@ -309,5 +313,42 @@ onMounted(() => {
 
 .el-form {
   max-width: 600px;
+}
+
+/* Result dialog styles */
+.result-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.result-icon {
+  margin-bottom: 16px;
+}
+
+.result-message {
+  text-align: center;
+  color: #606266;
+  font-size: 14px;
+}
+
+/* Button styles */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: #409eff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #66b1ff;
 }
 </style>

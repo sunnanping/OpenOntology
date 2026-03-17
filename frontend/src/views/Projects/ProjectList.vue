@@ -1,23 +1,47 @@
 <template>
   <div class="projects-container">
     <div class="projects-header">
-      <h1>Projects</h1>
-      <div class="user-info">
-        <span class="username">{{ currentUser.username }}</span>
-        <el-avatar :style="{ backgroundColor: getAvatarColor(currentUser.username) }">
-          {{ getAvatarInitial(currentUser.username) }}
-        </el-avatar>
-      </div>
-    </div>
-
-    <div class="projects-content">
-      <div class="projects-toolbar">
-        <el-button v-if="isAdmin" type="primary" @click="showCreateModal = true">
+      <div class="header-left">
+        <h1>Projects</h1>
+        <el-button type="primary" class="create-btn" @click="showCreateModal = true">
           <el-icon><Plus /></el-icon>
           Create New Project
         </el-button>
       </div>
+      <div class="header-right">
+        <el-dropdown trigger="click" @command="handleUserCommand">
+          <div class="user-menu">
+            <el-avatar :size="32" :style="{ backgroundColor: getAvatarColor(currentUser.username) }">
+              {{ getAvatarInitial(currentUser.username) }}
+            </el-avatar>
+            <span class="username">{{ currentUser.username }}</span>
+            <el-icon><ArrowDown /></el-icon>
+          </div>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="profile">
+                <el-icon><User /></el-icon>
+                Profile
+              </el-dropdown-item>
+              <el-dropdown-item command="changeEmail">
+                <el-icon><Message /></el-icon>
+                Change Email Address
+              </el-dropdown-item>
+              <el-dropdown-item command="changePassword">
+                <el-icon><Lock /></el-icon>
+                Change Password
+              </el-dropdown-item>
+              <el-dropdown-item divided command="signOut">
+                <el-icon><SwitchButton /></el-icon>
+                Sign Out
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
+    </div>
 
+    <div class="projects-content">
       <div class="projects-filters">
         <el-checkbox v-model="filters.ownedByMe" @change="filterProjects">Owned by Me</el-checkbox>
         <el-checkbox v-model="filters.sharedWithMe" @change="filterProjects">Shared with Me</el-checkbox>
@@ -128,6 +152,56 @@
       @close="showCreateModal = false"
       @projectCreated="handleProjectCreated"
     />
+    
+    <!-- Change Email Dialog -->
+    <DraggableModal
+      v-if="showChangeEmailDialog"
+      title="Change Email Address"
+      width="400px"
+      @close="showChangeEmailDialog = false"
+    >
+      <div class="form-group">
+        <label>Current Email</label>
+        <input type="text" v-model="emailForm.currentEmail" disabled class="form-control" />
+      </div>
+      <div class="form-group">
+        <label>New Email</label>
+        <input type="email" v-model="emailForm.newEmail" placeholder="Enter new email address" class="form-control" />
+      </div>
+      <div class="form-group">
+        <label>Password (for verification)</label>
+        <input type="password" v-model="emailForm.password" placeholder="Enter your password" class="form-control" />
+      </div>
+      <template #footer>
+        <button class="btn btn-secondary" @click="showChangeEmailDialog = false">Cancel</button>
+        <button class="btn btn-primary" style="background-color: #0d6efd; border-color: #0d6efd;" @click="changeEmail">Change Email</button>
+      </template>
+    </DraggableModal>
+    
+    <!-- Change Password Dialog -->
+    <DraggableModal
+      v-if="showChangePasswordDialog"
+      title="Change Password"
+      width="400px"
+      @close="showChangePasswordDialog = false"
+    >
+      <div class="form-group">
+        <label>Current Password</label>
+        <input type="password" v-model="passwordForm.currentPassword" placeholder="Enter current password" class="form-control" />
+      </div>
+      <div class="form-group">
+        <label>New Password</label>
+        <input type="password" v-model="passwordForm.newPassword" placeholder="Enter new password" class="form-control" />
+      </div>
+      <div class="form-group">
+        <label>Confirm New Password</label>
+        <input type="password" v-model="passwordForm.confirmPassword" placeholder="Confirm new password" class="form-control" />
+      </div>
+      <template #footer>
+        <button class="btn btn-secondary" @click="showChangePasswordDialog = false">Cancel</button>
+        <button class="btn btn-primary" style="background-color: #0d6efd; border-color: #0d6efd;" @click="changePassword">Change Password</button>
+      </template>
+    </DraggableModal>
   </div>
 </template>
 
@@ -135,14 +209,16 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Folder, FolderOpened, Download, Delete, MoreFilled, Link, RefreshLeft, Search } from '@element-plus/icons-vue'
+import { Plus, Folder, FolderOpened, Download, Delete, MoreFilled, Link, RefreshLeft, Search, ArrowDown, User, Message, Lock, SwitchButton } from '@element-plus/icons-vue'
 import CreateProject from './CreateProject.vue'
+import DraggableModal from '@/components/DraggableModal.vue'
 import http from '@/utils/http'
 
 export default {
   name: 'ProjectList',
   components: {
     CreateProject,
+    DraggableModal,
     Plus,
     Folder,
     FolderOpened,
@@ -151,7 +227,12 @@ export default {
     MoreFilled,
     Link,
     RefreshLeft,
-    Search
+    Search,
+    ArrowDown,
+    User,
+    Message,
+    Lock,
+    SwitchButton
   },
   setup() {
     const router = useRouter()
@@ -169,6 +250,20 @@ export default {
     const currentPage = ref(1)
     const pageSize = ref(20)
     const totalProjects = ref(0)
+    
+    // 用户菜单对话框
+    const showChangeEmailDialog = ref(false)
+    const showChangePasswordDialog = ref(false)
+    const emailForm = ref({
+      currentEmail: '',
+      newEmail: '',
+      password: ''
+    })
+    const passwordForm = ref({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    })
 
     const isAdmin = computed(() => currentUser.value.role === 'admin')
 
@@ -313,6 +408,66 @@ export default {
       }
     }
 
+    // 用户菜单命令处理
+    const handleUserCommand = (command) => {
+      switch (command) {
+        case 'profile':
+          router.push('/profile')
+          break
+        case 'changeEmail':
+          showChangeEmailDialog.value = true
+          break
+        case 'changePassword':
+          showChangePasswordDialog.value = true
+          break
+        case 'signOut':
+          handleSignOut()
+          break
+      }
+    }
+
+    const handleSignOut = () => {
+      localStorage.removeItem('user')
+      ElMessage.success('Signed out successfully')
+      router.push('/login')
+    }
+
+    const changeEmail = async () => {
+      try {
+        await http.post('/user/change-email', {
+          username: currentUser.value.username,
+          newEmail: emailForm.value.newEmail,
+          password: emailForm.value.password
+        })
+        ElMessage.success('Email changed successfully')
+        showChangeEmailDialog.value = false
+        emailForm.value = { currentEmail: '', newEmail: '', password: '' }
+      } catch (error) {
+        console.error('Failed to change email:', error)
+        ElMessage.error('Failed to change email')
+      }
+    }
+
+    const changePassword = async () => {
+      if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+        ElMessage.error('New passwords do not match')
+        return
+      }
+      try {
+        await http.post('/user/change-password', {
+          username: currentUser.value.username,
+          currentPassword: passwordForm.value.currentPassword,
+          newPassword: passwordForm.value.newPassword
+        })
+        ElMessage.success('Password changed successfully')
+        showChangePasswordDialog.value = false
+        passwordForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' }
+      } catch (error) {
+        console.error('Failed to change password:', error)
+        ElMessage.error('Failed to change password')
+      }
+    }
+
     const openProject = async (project) => {
       try {
         await http.put(`/projects/update-last-opened/${project.id}`)
@@ -419,6 +574,10 @@ export default {
       totalProjects,
       isAdmin,
       filteredProjects,
+      showChangeEmailDialog,
+      showChangePasswordDialog,
+      emailForm,
+      passwordForm,
       getAvatarColor,
       getAvatarInitial,
       formatTimeAgo,
@@ -427,6 +586,10 @@ export default {
       sortProjects,
       handlePageChange,
       handleCommand,
+      handleUserCommand,
+      handleSignOut,
+      changeEmail,
+      changePassword,
       handleProjectCreated
     }
   }
@@ -447,16 +610,45 @@ export default {
   margin-bottom: 20px;
 }
 
-.projects-header h1 {
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-left h1 {
   font-size: 24px;
   font-weight: bold;
   margin: 0;
 }
 
-.user-info {
+.create-btn {
+  background-color: #9c27b0;
+  border-color: #9c27b0;
+}
+
+.create-btn:hover {
+  background-color: #7b1fa2;
+  border-color: #7b1fa2;
+}
+
+.header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.user-menu:hover {
+  background-color: #f5f5f5;
 }
 
 .username {
@@ -510,5 +702,65 @@ export default {
   margin-top: 20px;
   display: flex;
   justify-content: center;
+}
+
+/* Form styles for DraggableModal */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #409eff;
+}
+
+.form-control:disabled {
+  background-color: #f5f7fa;
+  color: #c0c4cc;
+  cursor: not-allowed;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: #409eff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #66b1ff;
+}
+
+.btn-secondary {
+  background-color: #909399;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #a6a9ad;
 }
 </style>

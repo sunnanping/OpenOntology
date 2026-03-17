@@ -342,33 +342,47 @@
     </div>
     
     <!-- Create Class Dialog -->
-    <el-dialog v-model="createClassDialogVisible" title="Create Classes" width="500px">
-      <el-form label-position="top">
-        <el-form-item label="Class names (one per line)">
-          <el-input
-            v-model="newClassNames"
-            type="textarea"
-            :rows="5"
-            placeholder="Enter one name per line"
-          />
-        </el-form-item>
-        <el-form-item label="Language Tag">
-          <el-input v-model="languageTag" placeholder="Leave blank for no language tag" />
-        </el-form-item>
-      </el-form>
+    <DraggableModal
+      v-if="createClassDialogVisible"
+      title="Create Classes"
+      width="500px"
+      @close="createClassDialogVisible = false"
+    >
+      <div class="form-group">
+        <label>Class names (one per line)</label>
+        <textarea
+          v-model="newClassNames"
+          rows="5"
+          placeholder="Enter one name per line"
+          class="form-control"
+        ></textarea>
+      </div>
+      <div class="form-group">
+        <label>Language Tag</label>
+        <input type="text" v-model="languageTag" placeholder="Leave blank for no language tag" class="form-control" />
+      </div>
       <template #footer>
-        <el-button @click="createClassDialogVisible = false">Cancel</el-button>
-        <el-button type="primary" @click="createClasses">Create</el-button>
+        <button class="btn btn-secondary" @click="createClassDialogVisible = false">Cancel</button>
+        <button class="btn btn-primary" @click="createClasses">Create</button>
       </template>
-    </el-dialog>
+    </DraggableModal>
     
     <!-- Search Dialog -->
-    <el-dialog v-model="searchDialogVisible" title="Search for Class" width="500px">
-      <el-input
-        v-model="searchQuery"
-        placeholder="Enter text to search for"
-        @input="performSearch"
-      />
+    <DraggableModal
+      v-if="searchDialogVisible"
+      title="Search for Class"
+      width="500px"
+      @close="searchDialogVisible = false"
+    >
+      <div class="form-group">
+        <input
+          type="text"
+          v-model="searchQuery"
+          placeholder="Enter text to search for"
+          class="form-control"
+          @input="performSearch"
+        />
+      </div>
       <div class="search-results" v-if="searchResults.length > 0">
         <div
           v-for="result in searchResults"
@@ -380,7 +394,7 @@
           <span>{{ result.name }}</span>
         </div>
       </div>
-    </el-dialog>
+    </DraggableModal>
     
     <!-- Context Menu -->
     <el-dropdown
@@ -406,6 +420,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import http from '@/utils/http'
+import DraggableModal from '@/components/DraggableModal.vue'
 import {
   HomeFilled, Folder, FolderOpened, Connection, User, ChatDotRound,
   DocumentChecked, Clock, Link, Search, ArrowDown, Plus, Delete,
@@ -415,6 +430,7 @@ import {
 export default {
   name: 'ProjectWorkspace',
   components: {
+    DraggableModal,
     HomeFilled, Folder, FolderOpened, Connection, User, ChatDotRound,
     DocumentChecked, Clock, Link, Search, ArrowDown, Plus, Delete,
     Close, Edit, Share, ZoomIn, ZoomOut, RefreshLeft, Document
@@ -1146,5 +1162,59 @@ export default {
 
 .search-result-item:hover {
   background-color: #f5f7fa;
+}
+
+/* Form styles for DraggableModal */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #409eff;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: #409eff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #66b1ff;
+}
+
+.btn-secondary {
+  background-color: #909399;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #a6a9ad;
 }
 </style>

@@ -47,4 +47,14 @@ public class UserController {
     public void delete(@PathVariable String id) {
         userService.delete(id);
     }
+
+    @PostMapping("/change-email")
+    public User changeEmail(@RequestBody ChangeEmailRequest request) {
+        return userService.changeEmail(request.getUsername(), request.getNewEmail(), request.getPassword());
+    }
+
+    @PostMapping("/change-password")
+    public User changePassword(@RequestBody ChangePasswordRequest request) {
+        return userService.changePassword(request.getUsername(), request.getCurrentPassword(), request.getNewPassword());
+    }
 }

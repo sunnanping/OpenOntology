@@ -67,36 +67,34 @@
     </el-card>
 
     <!-- Add/Edit Dialog -->
-    <el-dialog
-      v-model="showAddDialog"
+    <DraggableModal
+      v-if="showAddDialog"
       :title="isEditing ? $t('ontology.editTranslation') : $t('ontology.addTranslation')"
       width="500px"
+      @close="showAddDialog = false"
     >
-      <el-form :model="form" label-width="100px">
-        <el-form-item :label="$t('ontology.language')">
-          <el-select v-model="form.language" :disabled="isEditing" style="width: 100%">
-            <el-option
-              v-for="lang in availableLanguages"
-              :key="lang.code"
-              :label="lang.name"
-              :value="lang.code"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="$t('ontology.value')">
-          <el-input
-            v-model="form.value"
-            type="textarea"
-            :rows="3"
-            :placeholder="$t('ontology.enterValue')"
-          />
-        </el-form-item>
-      </el-form>
+      <div class="form-group">
+        <label>{{ $t('ontology.language') }}</label>
+        <select v-model="form.language" :disabled="isEditing" class="form-control">
+          <option v-for="lang in availableLanguages" :key="lang.code" :value="lang.code">
+            {{ lang.name }}
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>{{ $t('ontology.value') }}</label>
+        <textarea
+          v-model="form.value"
+          rows="3"
+          :placeholder="$t('ontology.enterValue')"
+          class="form-control"
+        ></textarea>
+      </div>
       <template #footer>
-        <el-button @click="showAddDialog = false">{{ $t('app.cancel') }}</el-button>
-        <el-button type="primary" @click="saveTranslation">{{ $t('app.save') }}</el-button>
+        <button class="btn btn-secondary" @click="showAddDialog = false">{{ $t('app.cancel') }}</button>
+        <button class="btn btn-primary" @click="saveTranslation">{{ $t('app.save') }}</button>
       </template>
-    </el-dialog>
+    </DraggableModal>
   </div>
 </template>
 
@@ -106,6 +104,7 @@ import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import axios from 'axios'
 import TranslationTooltip from './TranslationTooltip.vue'
+import DraggableModal from './DraggableModal.vue'
 
 const props = defineProps({
   entityRef: {
@@ -280,5 +279,63 @@ watch(() => props.entityRef, () => {
 
 .translation-card {
   margin-bottom: 20px;
+}
+
+/* Form styles for DraggableModal */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #409eff;
+}
+
+select.form-control {
+  height: 40px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: #409eff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #66b1ff;
+}
+
+.btn-secondary {
+  background-color: #909399;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #a6a9ad;
 }
 </style>
