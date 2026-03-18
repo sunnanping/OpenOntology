@@ -604,160 +604,7 @@ public class Translation {
 
 ## 通用组件
 
-### 1. DraggableModal (可移动模态框)
-
-**文件路径**：`frontend/src/components/DraggableModal.vue`
-
-**功能描述**：
-基于 Bootstrap 5 的模态框组件，支持通过标题栏拖拽移动。
-
-**特性**：
-- 支持通过标题栏拖拽移动对话框
-- 第一次移动时自动获取当前位置，无漂移现象
-- 关闭按钮阻止拖拽事件冒泡
-- 支持 ESC 键关闭
-- 响应式宽度设置
-
-**Props**：
-
-| 属性 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| title | String | '' | 对话框标题 |
-| width | String | '500px' | 对话框宽度 |
-| icon | String | '' | 自定义图标路径 |
-| showDefaultIcon | Boolean | true | 是否显示默认图标 |
-
-**Events**：
-
-| 事件 | 说明 |
-|------|------|
-| close | 关闭对话框时触发 |
-
-**使用示例**：
-```vue
-<template>
-  <DraggableModal
-    title="创建新项目"
-    :width="'500px'"
-    @close="handleClose"
-  >
-    <form>
-      <div class="form-group">
-        <label>项目名称</label>
-        <input type="text" class="form-control" />
-      </div>
-    </form>
-    <template #footer>
-      <button class="btn btn-primary" @click="handleSubmit">确认</button>
-      <button class="btn btn-secondary" @click="handleClose">取消</button>
-    </template>
-  </DraggableModal>
-</template>
-
-<script>
-import DraggableModal from '@/components/DraggableModal.vue'
-
-export default {
-  components: { DraggableModal },
-  methods: {
-    handleClose() {
-      this.$emit('close')
-    },
-    handleSubmit() {
-      // 提交逻辑
-    }
-  }
-}
-</script>
-```
-
----
-
-### 2. LanguageSwitcher (语言切换器)
-
-**文件路径**：`frontend/src/components/LanguageSwitcher.vue`
-
-**功能描述**：
-提供多语言切换功能，支持12种语言。
-
-**特性**：
-- 下拉菜单选择语言
-- 自动保存用户语言偏好
-- 实时切换界面语言
-
-**Props**：
-
-| 属性 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| size | String | 'default' | 按钮大小(small/default/large) |
-| type | String | 'primary' | 按钮类型 |
-
-**使用示例**：
-```vue
-<template>
-  <LanguageSwitcher size="small" type="text" />
-</template>
-```
-
----
-
-### 3. TreeNode (递归树形组件)
-
-**文件路径**：`frontend/src/components/TreeNode.vue`
-
-**功能描述**：
-支持任意层级的递归树形结构展示，用于类层次结构。
-
-**特性**：
-- 递归渲染子节点
-- 支持展开/折叠
-- 支持选中状态
-- 支持右键菜单
-- 支持拖拽排序
-
-**Props**：
-
-| 属性 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| node | Object | required | 节点数据 |
-| level | Number | 0 | 节点层级 |
-| selectedId | String | '' | 当前选中节点ID |
-
-**Events**：
-
-| 事件 | 说明 |
-|------|------|
-| select | 选中节点时触发 |
-| expand | 展开节点时触发 |
-| collapse | 折叠节点时触发 |
-| contextmenu | 右键点击时触发 |
-
----
-
-### 4. TranslationEditor (翻译编辑器)
-
-**文件路径**：`frontend/src/components/TranslationEditor.vue`
-
-**功能描述**：
-用于编辑和管理多语言翻译内容。
-
-**特性**：
-- 多语言输入框
-- 翻译建议
-- 翻译确认
-- 翻译历史查看
-
-**Props**：
-
-| 属性 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| translationKey | String | required | 翻译键 |
-| sourceText | String | '' | 源文本 |
-| languages | Array | [] | 支持的语言列表 |
-
----
-
-### 5. AlertModal (警告/提示模态框)
+### 1. AlertModal (警告/提示模态框)
 
 **文件路径**：`frontend/src/components/AlertModal.vue`
 
@@ -846,6 +693,159 @@ export default {
 - 示例：`"来源: 系统错误\n详情: 连接超时"` 会显示为：
   - **来源:** 系统错误
   - **详情:** 连接超时
+
+---
+
+### 2. DraggableModal (可移动模态框)
+
+**文件路径**：`frontend/src/components/DraggableModal.vue`
+
+**功能描述**：
+基于 Bootstrap 5 的模态框组件，支持通过标题栏拖拽移动。
+
+**特性**：
+- 支持通过标题栏拖拽移动对话框
+- 第一次移动时自动获取当前位置，无漂移现象
+- 关闭按钮阻止拖拽事件冒泡
+- 支持 ESC 键关闭
+- 响应式宽度设置
+
+**Props**：
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| title | String | '' | 对话框标题 |
+| width | String | '500px' | 对话框宽度 |
+| icon | String | '' | 自定义图标路径 |
+| showDefaultIcon | Boolean | true | 是否显示默认图标 |
+
+**Events**：
+
+| 事件 | 说明 |
+|------|------|
+| close | 关闭对话框时触发 |
+
+**使用示例**：
+```vue
+<template>
+  <DraggableModal
+    title="创建新项目"
+    :width="'500px'"
+    @close="handleClose"
+  >
+    <form>
+      <div class="form-group">
+        <label>项目名称</label>
+        <input type="text" class="form-control" />
+      </div>
+    </form>
+    <template #footer>
+      <button class="btn btn-primary" @click="handleSubmit">确认</button>
+      <button class="btn btn-secondary" @click="handleClose">取消</button>
+    </template>
+  </DraggableModal>
+</template>
+
+<script>
+import DraggableModal from '@/components/DraggableModal.vue'
+
+export default {
+  components: { DraggableModal },
+  methods: {
+    handleClose() {
+      this.$emit('close')
+    },
+    handleSubmit() {
+      // 提交逻辑
+    }
+  }
+}
+</script>
+```
+
+---
+
+### 3. LanguageSwitcher (语言切换器)
+
+**文件路径**：`frontend/src/components/LanguageSwitcher.vue`
+
+**功能描述**：
+提供多语言切换功能，支持12种语言。
+
+**特性**：
+- 下拉菜单选择语言
+- 自动保存用户语言偏好
+- 实时切换界面语言
+
+**Props**：
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| size | String | 'default' | 按钮大小(small/default/large) |
+| type | String | 'primary' | 按钮类型 |
+
+**使用示例**：
+```vue
+<template>
+  <LanguageSwitcher size="small" type="text" />
+</template>
+```
+
+---
+
+### 4. TranslationEditor (翻译编辑器)
+
+**文件路径**：`frontend/src/components/TranslationEditor.vue`
+
+**功能描述**：
+用于编辑和管理多语言翻译内容。
+
+**特性**：
+- 多语言输入框
+- 翻译建议
+- 翻译确认
+- 翻译历史查看
+
+**Props**：
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| translationKey | String | required | 翻译键 |
+| sourceText | String | '' | 源文本 |
+| languages | Array | [] | 支持的语言列表 |
+
+---
+
+### 5. TreeNode (递归树形组件)
+
+**文件路径**：`frontend/src/components/TreeNode.vue`
+
+**功能描述**：
+支持任意层级的递归树形结构展示，用于类层次结构。
+
+**特性**：
+- 递归渲染子节点
+- 支持展开/折叠
+- 支持选中状态
+- 支持右键菜单
+- 支持拖拽排序
+
+**Props**：
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| node | Object | required | 节点数据 |
+| level | Number | 0 | 节点层级 |
+| selectedId | String | '' | 当前选中节点ID |
+
+**Events**：
+
+| 事件 | 说明 |
+|------|------|
+| select | 选中节点时触发 |
+| expand | 展开节点时触发 |
+| collapse | 折叠节点时触发 |
+| contextmenu | 右键点击时触发 |
 
 ---
 
