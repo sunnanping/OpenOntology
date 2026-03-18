@@ -757,6 +757,98 @@ export default {
 
 ---
 
+### 5. AlertModal (警告/提示模态框)
+
+**文件路径**：`frontend/src/components/AlertModal.vue`
+
+**功能描述**：
+基于 Bootstrap 5 的警告/提示模态框组件，支持拖拽移动、缩放、复制消息、截图等功能。
+
+**特性**：
+- 支持多种提示类型（success、error、warning、info）
+- 支持通过标题栏拖拽移动对话框
+- 支持8个方向缩放对话框
+- 支持复制消息内容到剪贴板
+- 支持截图功能（复制到内存或下载文件）
+- 消息内容自动将冒号前内容加粗显示
+- 支持水平和垂直对齐方式自定义
+- 支持 ESC 键关闭
+- 操作成功提示（蓝底白字）
+
+**Props**：
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| title | String | '提示' | 对话框标题 |
+| message | String | required | 提示消息内容 |
+| type | String | 'info' | 提示类型（success/error/warning/info） |
+| confirmText | String | '确定' | 确认按钮文本 |
+| width | String | '400px' | 对话框宽度 |
+| minWidth | Number | 300 | 最小宽度 |
+| minHeight | Number | 150 | 最小高度 |
+| textAlign | String | 'left' | 文本水平对齐（left/center/right） |
+| verticalAlign | String | 'center' | 文本垂直对齐（top/center/bottom） |
+| captureType | String | 'copy' | 截图方式（copy/download） |
+| tipMaxLength | Number | 10 | 提示文本最大长度 |
+| tipDuration | Number | 500 | 提示显示时长（毫秒） |
+
+**Events**：
+
+| 事件 | 说明 |
+|------|------|
+| close | 关闭对话框时触发 |
+| confirm | 点击确认按钮时触发 |
+
+**方法**：
+
+| 方法 | 说明 |
+|------|------|
+| copyMessage | 复制消息内容到剪贴板 |
+| captureScreenshot | 截图功能（支持复制到内存或下载） |
+| showTipMessage | 显示操作成功提示 |
+
+**使用示例**：
+```vue
+<template>
+  <AlertModal
+    title="错误提示"
+    message="来源: 创建项目失败\n错误信息: 项目名称已存在"
+    type="error"
+    :width="'500px'"
+    textAlign="left"
+    verticalAlign="center"
+    captureType="copy"
+    @close="handleClose"
+    @confirm="handleConfirm"
+  />
+</template>
+
+<script>
+import AlertModal from '@/components/AlertModal.vue'
+
+export default {
+  components: { AlertModal },
+  methods: {
+    handleClose() {
+      this.showAlert = false
+    },
+    handleConfirm() {
+      // 确认处理逻辑
+    }
+  }
+}
+</script>
+```
+
+**消息格式说明**：
+- 消息内容支持换行符（\n）
+- 冒号（:或：）前的内容会自动加粗显示
+- 示例：`"来源: 系统错误\n详情: 连接超时"` 会显示为：
+  - **来源:** 系统错误
+  - **详情:** 连接超时
+
+---
+
 ## API接口汇总
 
 ### 接口前缀说明
