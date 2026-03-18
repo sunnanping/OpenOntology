@@ -2,12 +2,10 @@
   <div class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0, 0, 0, 0.5);">
     <div 
       class="modal-dialog"
-      ref="modalDialog"
       :style="dialogStyle"
     >
       <div 
         class="modal-content"
-        ref="modalContent"
         :style="contentStyle"
       >
         <div class="modal-header" @mousedown="startDrag">
@@ -18,24 +16,14 @@
             </div>
             <h5 class="modal-title">{{ title }}</h5>
           </div>
-          <button type="button" class="btn-close" @mousedown.stop @click="closeModal" aria-label="Close"></button>
+          <button type="button" class="btn-close" @click="closeModal" @mousedown.stop aria-label="Close"></button>
         </div>
-        <div class="modal-body" @mousedown.stop>
+        <div class="modal-body">
           <slot></slot>
         </div>
-        <div class="modal-footer" v-if="$slots.footer" @mousedown.stop>
+        <div class="modal-footer" v-if="$slots.footer">
           <slot name="footer"></slot>
         </div>
-        
-        <!-- 拉伸缩放手柄 -->
-        <div class="resize-handle resize-e" @mousedown="startResize($event, 'e')"></div>
-        <div class="resize-handle resize-w" @mousedown="startResize($event, 'w')"></div>
-        <div class="resize-handle resize-n" @mousedown="startResize($event, 'n')"></div>
-        <div class="resize-handle resize-s" @mousedown="startResize($event, 's')"></div>
-        <div class="resize-handle resize-ne" @mousedown="startResize($event, 'ne')"></div>
-        <div class="resize-handle resize-nw" @mousedown="startResize($event, 'nw')"></div>
-        <div class="resize-handle resize-se" @mousedown="startResize($event, 'se')"></div>
-        <div class="resize-handle resize-sw" @mousedown="startResize($event, 'sw')"></div>
       </div>
     </div>
   </div>
@@ -55,18 +43,6 @@ export default {
       type: String,
       default: '500px'
     },
-    minWidth: {
-      type: Number,
-      default: 300
-    },
-    minHeight: {
-      type: Number,
-      default: 200
-    },
-    closeOnClickOverlay: {
-      type: Boolean,
-      default: true
-    },
     icon: {
       type: String,
       default: ''
@@ -78,8 +54,7 @@ export default {
   },
   emits: ['close'],
   setup(props, { emit }) {
-    const modalDialog = ref(null)
-    const modalContent = ref(null)
+    const currentWidth = ref(parseInt(props.width))
     
     // 拖拽相关
     const isDragging = ref(false)
@@ -87,51 +62,23 @@ export default {
     const startY = ref(0)
     const currentX = ref(0)
     const currentY = ref(0)
-    const isFirstDrag = ref(true)
-    
-    // 缩放相关
-    const isResizing = ref(false)
-    const resizeDirection = ref('')
-    const currentWidth = ref(parseInt(props.width))
-    const currentHeight = ref(0)
-    const startWidth = ref(0)
-    const startHeight = ref(0)
-    const startResizeX = ref(0)
-    const startResizeY = ref(0)
 
-    const dialogStyle = computed(() => {
-      // 只有当用户开始拖拽后，才使用绝对定位
-      if (currentX.value !== 0 || currentY.value !== 0) {
-        return {
-          position: 'absolute',
-          left: `${currentX.value}px`,
-          top: `${currentY.value}px`,
-          transform: 'none',
-          margin: '0',
-          maxWidth: 'none'
-        }
-      }
-      // 初始状态保持居中
-      return {
-        position: 'absolute',
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-        margin: '0',
-        maxWidth: 'none'
-      }
-    })
+    const dialogStyle = computed(() => ({
+      position: 'absolute',
+      left: currentX.value === 0 ? '50%' : `${currentX.value}px`,
+      top: currentY.value === 0 ? '50%' : `${currentY.value}px`,
+      transform: currentX.value === 0 && currentY.value === 0 ? 'translate(-50%, -50%)' : 'none',
+      margin: '0',
+      maxWidth: 'none'
+    }))
 
     const contentStyle = computed(() => ({
-      width: `${currentWidth.value}px`,
-      height: currentHeight.value > 0 ? `${currentHeight.value}px` : 'auto',
-      minWidth: `${props.minWidth}px`,
-      minHeight: `${props.minHeight}px`
+      width: `${currentWidth.value}px`
     }))
 
     // 开始拖拽
     const startDrag = (e) => {
-      // 检查点击事件的目标是否是关闭按钮，如果是则不触发拖拽
+      // 如果点击的是关闭按钮，不启动拖拽
       if (e.target.closest('.btn-close')) return
       
       isDragging.value = true
@@ -142,96 +89,35 @@ export default {
       document.addEventListener('mouseup', stopDrag)
     }
 
+    // 拖拽中
     const drag = (e) => {
       if (!isDragging.value) return
       
-      // 计算鼠标移动距离
+      // 如果是第一次移动，获取对话框当前的中心位置
+      if (currentX.value === 0 && currentY.value === 0) {
+        const dialog = document.querySelector('.modal-dialog')
+        if (dialog) {
+          const rect = dialog.getBoundingClientRect()
+          currentX.value = rect.left + rect.width / 2
+          currentY.value = rect.top + rect.height / 2
+        }
+      }
+      
       const deltaX = e.clientX - startX.value
       const deltaY = e.clientY - startY.value
       
-      // 如果是第一次移动，需要先计算对话框的初始位置
-      if (isFirstDrag.value) {
-        const rect = modalDialog.value.getBoundingClientRect()
-        // 计算对话框的中心点位置
-        currentX.value = rect.left + rect.width / 2
-        currentY.value = rect.top + rect.height / 2
-        isFirstDrag.value = false
-        // 更新起始位置，但不应用deltaX和deltaY
-        startX.value = e.clientX
-        startY.value = e.clientY
-        return
-      }
-      
-      // 应用移动
       currentX.value += deltaX
       currentY.value += deltaY
       
-      // 更新起始位置
       startX.value = e.clientX
       startY.value = e.clientY
     }
 
+    // 停止拖拽
     const stopDrag = () => {
       isDragging.value = false
       document.removeEventListener('mousemove', drag)
       document.removeEventListener('mouseup', stopDrag)
-    }
-
-    // 开始缩放
-    const startResize = (e, direction) => {
-      e.preventDefault()
-      e.stopPropagation()
-      
-      isResizing.value = true
-      resizeDirection.value = direction
-      startResizeX.value = e.clientX
-      startResizeY.value = e.clientY
-      
-      const rect = modalContent.value.getBoundingClientRect()
-      startWidth.value = rect.width
-      startHeight.value = rect.height
-      
-      document.addEventListener('mousemove', resize)
-      document.addEventListener('mouseup', stopResize)
-    }
-
-    const resize = (e) => {
-      if (!isResizing.value) return
-      
-      // 计算鼠标移动距离
-      const deltaX = e.clientX - startResizeX.value
-      const deltaY = e.clientY - startResizeY.value
-      
-      let newWidth = startWidth.value
-      let newHeight = startHeight.value
-      
-      // 根据方向调整大小
-      if (resizeDirection.value.includes('e')) {
-        newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
-      }
-      if (resizeDirection.value.includes('w')) {
-        const widthChange = startWidth.value - Math.max(props.minWidth, startWidth.value - deltaX)
-        newWidth = startWidth.value - widthChange
-        currentX.value += widthChange / 2
-      }
-      if (resizeDirection.value.includes('s')) {
-        newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
-      }
-      if (resizeDirection.value.includes('n')) {
-        const heightChange = startHeight.value - Math.max(props.minHeight, startHeight.value - deltaY)
-        newHeight = startHeight.value - heightChange
-        currentY.value += heightChange / 2
-      }
-      
-      currentWidth.value = newWidth
-      currentHeight.value = newHeight
-    }
-
-    const stopResize = () => {
-      isResizing.value = false
-      resizeDirection.value = ''
-      document.removeEventListener('mousemove', resize)
-      document.removeEventListener('mouseup', stopResize)
     }
 
     const closeModal = () => {
@@ -249,10 +135,6 @@ export default {
       document.addEventListener('keydown', handleKeydown)
       // 禁止背景滚动
       document.body.style.overflow = 'hidden'
-      // 初始化高度
-      if (modalContent.value) {
-        currentHeight.value = modalContent.value.offsetHeight
-      }
     })
 
     onUnmounted(() => {
@@ -261,12 +143,9 @@ export default {
     })
 
     return {
-      modalDialog,
-      modalContent,
       dialogStyle,
       contentStyle,
       startDrag,
-      startResize,
       closeModal
     }
   }
@@ -386,76 +265,6 @@ export default {
   border-bottom-right-radius: calc(0.5rem - 1px);
   border-bottom-left-radius: calc(0.5rem - 1px);
   gap: 0.5rem;
-}
-
-/* 拉伸缩放手柄样式 */
-.resize-handle {
-  position: absolute;
-  z-index: 10;
-}
-
-.resize-e {
-  top: 0;
-  right: -5px;
-  width: 10px;
-  height: 100%;
-  cursor: e-resize;
-}
-
-.resize-w {
-  top: 0;
-  left: -5px;
-  width: 10px;
-  height: 100%;
-  cursor: w-resize;
-}
-
-.resize-n {
-  top: -5px;
-  left: 0;
-  width: 100%;
-  height: 10px;
-  cursor: n-resize;
-}
-
-.resize-s {
-  bottom: -5px;
-  left: 0;
-  width: 100%;
-  height: 10px;
-  cursor: s-resize;
-}
-
-.resize-ne {
-  top: -5px;
-  right: -5px;
-  width: 15px;
-  height: 15px;
-  cursor: ne-resize;
-}
-
-.resize-nw {
-  top: -5px;
-  left: -5px;
-  width: 15px;
-  height: 15px;
-  cursor: nw-resize;
-}
-
-.resize-se {
-  bottom: -5px;
-  right: -5px;
-  width: 15px;
-  height: 15px;
-  cursor: se-resize;
-}
-
-.resize-sw {
-  bottom: -5px;
-  left: -5px;
-  width: 15px;
-  height: 15px;
-  cursor: sw-resize;
 }
 
 /* Bootstrap 按钮样式 */
