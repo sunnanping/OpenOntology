@@ -292,10 +292,16 @@ export default {
       startWidth.value = rect.width
       startHeight.value = rect.height
       
-      // 记录初始左上角位置
+      // 记录初始左上角位置（基于屏幕坐标）
       const dialogRect = modalDialog.value.getBoundingClientRect()
       startCenterX.value = dialogRect.left
       startCenterY.value = dialogRect.top
+      
+      // 如果是第一次操作，直接使用计算好的绝对位置
+      if (currentX.value === 0 && currentY.value === 0) {
+        currentX.value = dialogRect.left
+        currentY.value = dialogRect.top
+      }
       
       document.addEventListener('mousemove', resize)
       document.addEventListener('mouseup', stopResize)
@@ -311,13 +317,6 @@ export default {
       let newHeight = startHeight.value
       let newX = currentX.value
       let newY = currentY.value
-      
-      // 如果是第一次操作，获取对话框当前的左上角位置
-      if (currentX.value === 0 && currentY.value === 0) {
-        const dialogRect = modalDialog.value.getBoundingClientRect()
-        newX = dialogRect.left
-        newY = dialogRect.top
-      }
       
       // 根据方向调整大小
       switch (resizeDirection.value) {
