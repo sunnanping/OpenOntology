@@ -656,6 +656,8 @@ public class Translation {
 | showTipMessage | 显示操作成功提示 |
 
 **使用示例**：
+
+**基本使用（默认禁用缩放）**：
 ```vue
 <template>
   <AlertModal
@@ -682,6 +684,34 @@ export default {
     },
     handleConfirm() {
       // 确认处理逻辑
+    }
+  }
+}
+</script>
+```
+
+**启用缩放功能**：
+```vue
+<template>
+  <AlertModal
+    title="可缩放提示"
+    message="此对话框支持调整大小\n可通过边角拖拽调整"
+    type="info"
+    :width="'600px'"
+    :resizable="true"
+    textAlign="center"
+    @close="handleClose"
+  />
+</template>
+
+<script>
+import AlertModal from '@/components/AlertModal.vue'
+
+export default {
+  components: { AlertModal },
+  methods: {
+    handleClose() {
+      this.showAlert = false
     }
   }
 }
