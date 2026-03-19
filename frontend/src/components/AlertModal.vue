@@ -318,17 +318,21 @@ export default {
       
       // 根据方向调整大小
       if (resizeDirection.value.includes('e')) {
+        // 右侧缩放：左侧不动，宽度变化
         newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
       }
       if (resizeDirection.value.includes('w')) {
-        newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
+        // 左侧缩放：右侧不动，宽度变化
+        newWidth = Math.max(props.minWidth, startWidth.value - deltaX)
         currentX.value = startCenterX.value - (startWidth.value - newWidth) / 2
       }
       if (resizeDirection.value.includes('s')) {
+        // 底部缩放：顶部不动，高度变化
         newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
       }
       if (resizeDirection.value.includes('n')) {
-        newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
+        // 顶部缩放：底部不动，高度变化
+        newHeight = Math.max(props.minHeight, startHeight.value - deltaY)
         currentY.value = startCenterY.value - (startHeight.value - newHeight) / 2
       }
       
