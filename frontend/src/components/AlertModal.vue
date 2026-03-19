@@ -171,7 +171,12 @@ export default {
         if (colonIndex !== -1) {
           const beforeColon = line.substring(0, colonIndex + 1)
           const afterColon = line.substring(colonIndex + 1)
-          return `<strong>${beforeColon}</strong>${afterColon}`
+          
+          // 检查冒号前的内容是否已经包含HTML加粗标签
+          const hasBoldTag = /<strong[^>]*>.*<\/strong>/i.test(beforeColon)
+          if (!hasBoldTag) {
+            return `<strong>${beforeColon}</strong>${afterColon}`
+          }
         }
         return line
       }).join('\n')
