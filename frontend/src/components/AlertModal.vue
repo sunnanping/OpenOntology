@@ -290,9 +290,12 @@ export default {
       startWidth.value = rect.width
       startHeight.value = rect.height
       
-      const dialogRect = modalDialog.value.getBoundingClientRect()
-      currentX.value = dialogRect.left + dialogRect.width / 2
-      currentY.value = dialogRect.top + dialogRect.height / 2
+      // 如果是第一次操作，获取对话框当前的中心位置
+      if (currentX.value === 0 && currentY.value === 0) {
+        const dialogRect = modalDialog.value.getBoundingClientRect()
+        currentX.value = dialogRect.left + dialogRect.width / 2
+        currentY.value = dialogRect.top + dialogRect.height / 2
+      }
       
       document.addEventListener('mousemove', resize)
       document.addEventListener('mouseup', stopResize)
