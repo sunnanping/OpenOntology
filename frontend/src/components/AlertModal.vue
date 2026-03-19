@@ -44,7 +44,7 @@
             :class="['btn', buttonClass]" 
             @click="handleConfirm"
           >
-            {{ confirmText }}
+            {{ displayConfirmText }}
           </button>
         </div>
         
@@ -107,7 +107,7 @@ export default {
     },
     confirmText: {
       type: String,
-      default: '确定'
+      default: ''
     },
     width: {
       type: String,
@@ -146,12 +146,12 @@ export default {
     },
     resizable: {
       type: Boolean,
-      default: false
+      default: true
     }
   },
   emits: ['close', 'confirm'],
   setup(props, { emit }) {
-    const { textAlign, message, captureType, tipMaxLength, tipDuration, verticalAlign, resizable } = props
+    const { textAlign, message, captureType, tipMaxLength, tipDuration, verticalAlign, resizable, confirmText } = props
     const modalDialog = ref(null)
     const modalContent = ref(null)
     const { t } = useI18n()
@@ -222,6 +222,10 @@ export default {
         default:
           return 'btn-primary'
       }
+    })
+
+    const displayConfirmText = computed(() => {
+      return confirmText || t('app.confirm')
     })
 
     // 开始拖拽
@@ -451,6 +455,7 @@ export default {
       dialogStyle,
       contentStyle,
       buttonClass,
+      displayConfirmText,
       textAlign,
       verticalAlign,
       captureType,

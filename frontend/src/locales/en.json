@@ -403,7 +403,7 @@
       "cancel": "Cancel",
       "submit": "Create New Project",
       "errors": {
-        "nameRequired": "Please enter project name"
+        "nameRequired": "Project name missing\nPlease enter a project name"
       }
     },
     "list": {
