@@ -253,11 +253,11 @@ export default {
     const drag = (e) => {
       if (!isDragging.value) return
       
-      // 如果是第一次移动，获取对话框当前的中心位置
+      // 如果是第一次移动，获取对话框当前的左上角位置
       if (currentX.value === 0 && currentY.value === 0) {
         const rect = modalDialog.value.getBoundingClientRect()
-        currentX.value = rect.left + rect.width / 2
-        currentY.value = rect.top + rect.height / 2
+        currentX.value = rect.left
+        currentY.value = rect.top
       }
       
       const deltaX = e.clientX - startX.value
