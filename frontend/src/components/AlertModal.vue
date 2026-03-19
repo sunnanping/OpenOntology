@@ -198,7 +198,7 @@ export default {
       position: 'absolute',
       left: currentX.value === 0 ? '50%' : `${currentX.value}px`,
       top: currentY.value === 0 ? '50%' : `${currentY.value}px`,
-      transform: currentX.value === 0 && currentY.value === 0 ? 'translate(-50%, -50%)' : 'none',
+      transform: 'translate(-50%, -50%)',
       margin: '0',
       maxWidth: 'none'
     }))
