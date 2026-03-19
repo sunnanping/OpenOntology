@@ -235,20 +235,19 @@ export default {
       startX.value = e.clientX
       startY.value = e.clientY
       
-      const rect = modalDialog.value.getBoundingClientRect()
-      
-      // 如果是第一次拖拽，需要计算当前位置
-      if (currentX.value === 0 && currentY.value === 0) {
-        currentX.value = rect.left + rect.width / 2
-        currentY.value = rect.top + rect.height / 2
-      }
-      
       document.addEventListener('mousemove', drag)
       document.addEventListener('mouseup', stopDrag)
     }
 
     const drag = (e) => {
       if (!isDragging.value) return
+      
+      // 如果是第一次移动，获取对话框当前的中心位置
+      if (currentX.value === 0 && currentY.value === 0) {
+        const rect = modalDialog.value.getBoundingClientRect()
+        currentX.value = rect.left + rect.width / 2
+        currentY.value = rect.top + rect.height / 2
+      }
       
       const deltaX = e.clientX - startX.value
       const deltaY = e.clientY - startY.value
