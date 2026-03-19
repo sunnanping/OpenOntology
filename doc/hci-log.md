@@ -309,6 +309,37 @@
 - **遗留问题/待优化**:
   - 无
 
+### 交互 #13: DraggableModal组件移动功能Bug修复
+- **需求类型**: Bug修复
+- **需求内容**: 修复DraggableModal组件移动时的漂移问题（与AlertModal相同的错误）
+- **需求提交人**: 用户
+- **需求提出时间**: 2026-03-19
+- **完成时间**: 2026-03-19
+- **思考主要内容**:
+  - 参考AlertModal组件的错误分析
+  - 应用相同的修复方案到DraggableModal组件
+  - 确保两个组件的定位逻辑一致
+- **任务拆分**:
+  1. 分析DraggableModal组件的dialogStyle计算属性
+  2. 修正dialogStyle计算属性，始终使用transform: translate(-50%, -50%)
+  3. 测试和验证修复效果
+  4. 本地git提交
+  5. 更新hci-log.md文档
+- **错误分析**:
+  
+  **错误：第1次使用组件时，移动时出现漂移现象**
+  - **错误现象**: 点击时不漂移，但开始移动时对话框会向右下角漂移，第2次以后的移动都正常
+  - **根本原因分析**:
+    - 定位逻辑错误：当第一次移动时，代码计算对话框的中心位置并设置到currentX和currentY
+    - CSS变换丢失：在dialogStyle计算属性中，当currentX和currentY不为0时，transform被设置为'none'
+    - 坐标系统不匹配：从居中定位（left: 50%, top: 50%, transform: translate(-50%, -50%)）突然切换到绝对定位（left: 中心位置, top: 中心位置, transform: none）
+    - 定位偏移：由于left和top是相对于左上角的，而设置的值是中心位置，导致对话框向右下角偏移
+  - **解决思路**:
+    - 修正dialogStyle计算属性，始终使用transform: translate(-50%, -50%)
+    - 确保无论currentX和currentY是什么值，对话框都会以设置的left和top为中心进行定位
+- **遗留问题/待优化**:
+  - 无
+
 ### 交互 #12: AlertModal组件移动功能Bug修复
 - **需求类型**: Bug修复
 - **需求内容**: 修复AlertModal组件移动时的漂移问题，包括点击漂移和移动漂移两个错误
