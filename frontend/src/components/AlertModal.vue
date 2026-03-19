@@ -198,6 +198,8 @@ export default {
     const startHeight = ref(0)
     const startResizeX = ref(0)
     const startResizeY = ref(0)
+    const startCenterX = ref(0)
+    const startCenterY = ref(0)
 
     const dialogStyle = computed(() => ({
       position: 'absolute',
@@ -290,11 +292,15 @@ export default {
       startWidth.value = rect.width
       startHeight.value = rect.height
       
+      // 记录初始中心点位置
+      const dialogRect = modalDialog.value.getBoundingClientRect()
+      startCenterX.value = dialogRect.left + dialogRect.width / 2
+      startCenterY.value = dialogRect.top + dialogRect.height / 2
+      
       // 如果是第一次操作，获取对话框当前的中心位置
       if (currentX.value === 0 && currentY.value === 0) {
-        const dialogRect = modalDialog.value.getBoundingClientRect()
-        currentX.value = dialogRect.left + dialogRect.width / 2
-        currentY.value = dialogRect.top + dialogRect.height / 2
+        currentX.value = startCenterX.value
+        currentY.value = startCenterY.value
       }
       
       document.addEventListener('mousemove', resize)
@@ -317,7 +323,7 @@ export default {
       if (resizeDirection.value.includes('w')) {
         const widthChange = startWidth.value - Math.max(props.minWidth, startWidth.value - deltaX)
         newWidth = startWidth.value - widthChange
-        currentX.value += widthChange / 2
+        currentX.value = startCenterX.value - widthChange / 2
       }
       if (resizeDirection.value.includes('s')) {
         newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
@@ -325,7 +331,7 @@ export default {
       if (resizeDirection.value.includes('n')) {
         const heightChange = startHeight.value - Math.max(props.minHeight, startHeight.value - deltaY)
         newHeight = startHeight.value - heightChange
-        currentY.value += heightChange / 2
+        currentY.value = startCenterY.value - heightChange / 2
       }
       
       currentWidth.value = newWidth
