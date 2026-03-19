@@ -375,7 +375,11 @@ export default {
         setTimeout(async () => {
           try {
             const html2canvas = await loadHtml2Canvas()
-            const canvas = await html2canvas(modalElement)
+            const canvas = await html2canvas(modalElement, {
+              ignoreElements: (element) => {
+                return element.classList.contains('success-tip')
+              }
+            })
             
             if (captureType === 'copy') {
               // 复制到内存
