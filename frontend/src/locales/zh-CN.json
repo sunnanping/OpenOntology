@@ -403,7 +403,7 @@
       "cancel": "取消",
       "submit": "创建新项目",
       "errors": {
-        "nameRequired": "请输入项目名称"
+        "nameRequired": "项目名称缺失\n请输入项目名称"
       }
     },
     "list": {

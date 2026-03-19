@@ -163,7 +163,10 @@ export default {
     async createProject() {
       // 表单校验
       if (!this.form.name.trim()) {
-        this.alertMessage = `<strong>Project name missing</strong>\n${this.t('project.create.errors.nameRequired').split('\n')[1]}`;
+        const errorLines = this.t('project.create.errors.nameRequired').split('\n');
+        const title = errorLines[0] || 'Project name missing';
+        const message = errorLines[1] || '';
+        this.alertMessage = `<strong>${title}</strong>\n${message}`;
         this.alertType = 'error';
         this.showAlert = true;
         return;
