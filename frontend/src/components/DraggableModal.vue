@@ -6,6 +6,7 @@
     >
       <div 
         class="modal-content"
+        ref="modalContent"
         :style="contentStyle"
       >
         <div class="modal-header" @mousedown="startDrag">
@@ -24,6 +25,16 @@
         <div class="modal-footer" v-if="$slots.footer">
           <slot name="footer"></slot>
         </div>
+        
+        <!-- 拉伸缩放手柄 -->
+        <div v-if="resizable" class="resize-handle resize-e" @mousedown="startResize($event, 'e')"></div>
+        <div v-if="resizable" class="resize-handle resize-w" @mousedown="startResize($event, 'w')"></div>
+        <div v-if="resizable" class="resize-handle resize-n" @mousedown="startResize($event, 'n')"></div>
+        <div v-if="resizable" class="resize-handle resize-s" @mousedown="startResize($event, 's')"></div>
+        <div v-if="resizable" class="resize-handle resize-ne" @mousedown="startResize($event, 'ne')"></div>
+        <div v-if="resizable" class="resize-handle resize-nw" @mousedown="startResize($event, 'nw')"></div>
+        <div v-if="resizable" class="resize-handle resize-se" @mousedown="startResize($event, 'se')"></div>
+        <div v-if="resizable" class="resize-handle resize-sw" @mousedown="startResize($event, 'sw')"></div>
       </div>
     </div>
   </div>
@@ -50,11 +61,25 @@ export default {
     showDefaultIcon: {
       type: Boolean,
       default: true
+    },
+    resizable: {
+      type: Boolean,
+      default: true
+    },
+    minWidth: {
+      type: Number,
+      default: 300
+    },
+    minHeight: {
+      type: Number,
+      default: 200
     }
   },
   emits: ['close'],
   setup(props, { emit }) {
+    const modalContent = ref(null)
     const currentWidth = ref(parseInt(props.width))
+    const currentHeight = ref(0)
     
     // 拖拽相关
     const isDragging = ref(false)
@@ -62,6 +87,14 @@ export default {
     const startY = ref(0)
     const currentX = ref(0)
     const currentY = ref(0)
+    
+    // 缩放相关
+    const isResizing = ref(false)
+    const resizeDirection = ref('')
+    const startWidth = ref(0)
+    const startHeight = ref(0)
+    const startResizeX = ref(0)
+    const startResizeY = ref(0)
 
     const dialogStyle = computed(() => ({
       position: 'absolute',
@@ -73,7 +106,10 @@ export default {
     }))
 
     const contentStyle = computed(() => ({
-      width: `${currentWidth.value}px`
+      width: `${currentWidth.value}px`,
+      height: currentHeight.value > 0 ? `${currentHeight.value}px` : 'auto',
+      minWidth: `${props.minWidth}px`,
+      minHeight: `${props.minHeight}px`
     }))
 
     // 开始拖拽
@@ -120,6 +156,70 @@ export default {
       document.removeEventListener('mouseup', stopDrag)
     }
 
+    // 开始缩放
+    const startResize = (e, direction) => {
+      if (!props.resizable) return
+      
+      e.preventDefault()
+      e.stopPropagation()
+      
+      isResizing.value = true
+      resizeDirection.value = direction
+      startResizeX.value = e.clientX
+      startResizeY.value = e.clientY
+      
+      const rect = modalContent.value.getBoundingClientRect()
+      startWidth.value = rect.width
+      startHeight.value = rect.height
+      
+      const dialogRect = document.querySelector('.modal-dialog').getBoundingClientRect()
+      currentX.value = dialogRect.left + dialogRect.width / 2
+      currentY.value = dialogRect.top + dialogRect.height / 2
+      
+      document.addEventListener('mousemove', resize)
+      document.addEventListener('mouseup', stopResize)
+    }
+
+    // 缩放中
+    const resize = (e) => {
+      if (!isResizing.value) return
+      
+      const deltaX = e.clientX - startResizeX.value
+      const deltaY = e.clientY - startResizeY.value
+      
+      let newWidth = startWidth.value
+      let newHeight = startHeight.value
+      
+      // 根据方向调整大小
+      if (resizeDirection.value.includes('e')) {
+        newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
+      }
+      if (resizeDirection.value.includes('w')) {
+        const widthChange = startWidth.value - Math.max(props.minWidth, startWidth.value - deltaX)
+        newWidth = startWidth.value - widthChange
+        currentX.value += widthChange / 2
+      }
+      if (resizeDirection.value.includes('s')) {
+        newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
+      }
+      if (resizeDirection.value.includes('n')) {
+        const heightChange = startHeight.value - Math.max(props.minHeight, startHeight.value - deltaY)
+        newHeight = startHeight.value - heightChange
+        currentY.value += heightChange / 2
+      }
+      
+      currentWidth.value = newWidth
+      currentHeight.value = newHeight
+    }
+
+    // 停止缩放
+    const stopResize = () => {
+      isResizing.value = false
+      resizeDirection.value = ''
+      document.removeEventListener('mousemove', resize)
+      document.removeEventListener('mouseup', stopResize)
+    }
+
     const closeModal = () => {
       emit('close')
     }
@@ -135,6 +235,10 @@ export default {
       document.addEventListener('keydown', handleKeydown)
       // 禁止背景滚动
       document.body.style.overflow = 'hidden'
+      // 初始化高度
+      if (modalContent.value) {
+        currentHeight.value = modalContent.value.offsetHeight
+      }
     })
 
     onUnmounted(() => {
@@ -143,9 +247,12 @@ export default {
     })
 
     return {
+      modalContent,
       dialogStyle,
       contentStyle,
+      resizable: props.resizable,
       startDrag,
+      startResize,
       closeModal
     }
   }
@@ -265,6 +372,76 @@ export default {
   border-bottom-right-radius: calc(0.5rem - 1px);
   border-bottom-left-radius: calc(0.5rem - 1px);
   gap: 0.5rem;
+}
+
+/* 拉伸缩放手柄样式 */
+.resize-handle {
+  position: absolute;
+  z-index: 10;
+}
+
+.resize-e {
+  top: 0;
+  right: -5px;
+  width: 10px;
+  height: 100%;
+  cursor: e-resize;
+}
+
+.resize-w {
+  top: 0;
+  left: -5px;
+  width: 10px;
+  height: 100%;
+  cursor: w-resize;
+}
+
+.resize-n {
+  top: -5px;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  cursor: n-resize;
+}
+
+.resize-s {
+  bottom: -5px;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  cursor: s-resize;
+}
+
+.resize-ne {
+  top: -5px;
+  right: -5px;
+  width: 15px;
+  height: 15px;
+  cursor: ne-resize;
+}
+
+.resize-nw {
+  top: -5px;
+  left: -5px;
+  width: 15px;
+  height: 15px;
+  cursor: nw-resize;
+}
+
+.resize-se {
+  bottom: -5px;
+  right: -5px;
+  width: 15px;
+  height: 15px;
+  cursor: se-resize;
+}
+
+.resize-sw {
+  bottom: -5px;
+  left: -5px;
+  width: 15px;
+  height: 15px;
+  cursor: sw-resize;
 }
 
 /* Bootstrap 按钮样式 */
