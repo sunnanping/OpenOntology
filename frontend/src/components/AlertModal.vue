@@ -246,19 +246,22 @@ export default {
       startX.value = e.clientX
       startY.value = e.clientY
       
-      // 如果是第一次操作，直接使用计算好的绝对位置
-      if (currentX.value === 0 && currentY.value === 0) {
-        const rect = modalDialog.value.getBoundingClientRect()
-        currentX.value = rect.left
-        currentY.value = rect.top
-      }
-      
       document.addEventListener('mousemove', drag)
       document.addEventListener('mouseup', stopDrag)
     }
 
     const drag = (e) => {
       if (!isDragging.value) return
+      
+      // 如果是第一次移动，获取对话框当前的左上角位置
+      if (currentX.value === 0 && currentY.value === 0) {
+        const rect = modalDialog.value.getBoundingClientRect()
+        currentX.value = rect.left
+        currentY.value = rect.top
+        // 重新计算startX和startY，确保第一次移动的deltaX和deltaY为0
+        startX.value = e.clientX
+        startY.value = e.clientY
+      }
       
       const deltaX = e.clientX - startX.value
       const deltaY = e.clientY - startY.value
@@ -297,18 +300,22 @@ export default {
       startCenterX.value = dialogRect.left
       startCenterY.value = dialogRect.top
       
-      // 如果是第一次操作，直接使用计算好的绝对位置
-      if (currentX.value === 0 && currentY.value === 0) {
-        currentX.value = dialogRect.left
-        currentY.value = dialogRect.top
-      }
-      
       document.addEventListener('mousemove', resize)
       document.addEventListener('mouseup', stopResize)
     }
 
     const resize = (e) => {
       if (!isResizing.value) return
+      
+      // 如果是第一次操作，获取对话框当前的左上角位置
+      if (currentX.value === 0 && currentY.value === 0) {
+        const dialogRect = modalDialog.value.getBoundingClientRect()
+        currentX.value = dialogRect.left
+        currentY.value = dialogRect.top
+        // 重新计算startResizeX和startResizeY，确保第一次缩放的delta为0
+        startResizeX.value = e.clientX
+        startResizeY.value = e.clientY
+      }
       
       const deltaX = e.clientX - startResizeX.value
       const deltaY = e.clientY - startResizeY.value
