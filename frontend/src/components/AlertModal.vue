@@ -228,6 +228,8 @@ export default {
     const startDrag = (e) => {
       // 只有点击header时才触发拖拽
       if (!e.target.closest('.modal-header')) return
+      // 点击关闭按钮时不触发拖拽
+      if (e.target.closest('.btn-close')) return
       
       isDragging.value = true
       startX.value = e.clientX
