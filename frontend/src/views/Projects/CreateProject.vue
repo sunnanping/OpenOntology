@@ -163,7 +163,7 @@ export default {
     async createProject() {
       // 表单校验
       if (!this.form.name.trim()) {
-        this.alertMessage = this.t('project.create.errors.nameRequired');
+        this.alertMessage = `<strong>Project name missing</strong>\n${this.t('project.create.errors.nameRequired').split('\n')[1]}`;
         this.alertType = 'error';
         this.showAlert = true;
         return;
