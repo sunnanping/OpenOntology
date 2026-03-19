@@ -638,6 +638,7 @@ public class Translation {
 | captureType | String | 'copy' | 截图方式（copy/download） |
 | tipMaxLength | Number | 10 | 提示文本最大长度 |
 | tipDuration | Number | 500 | 提示显示时长（毫秒） |
+| resizable | Boolean | false | 是否启用缩放功能 |
 
 **Events**：
 

@@ -54,14 +54,14 @@
         </div>
         
         <!-- 拉伸缩放手柄 -->
-        <div class="resize-handle resize-e" @mousedown="startResize($event, 'e')"></div>
-        <div class="resize-handle resize-w" @mousedown="startResize($event, 'w')"></div>
-        <div class="resize-handle resize-n" @mousedown="startResize($event, 'n')"></div>
-        <div class="resize-handle resize-s" @mousedown="startResize($event, 's')"></div>
-        <div class="resize-handle resize-ne" @mousedown="startResize($event, 'ne')"></div>
-        <div class="resize-handle resize-nw" @mousedown="startResize($event, 'nw')"></div>
-        <div class="resize-handle resize-se" @mousedown="startResize($event, 'se')"></div>
-        <div class="resize-handle resize-sw" @mousedown="startResize($event, 'sw')"></div>
+        <div v-if="resizable" class="resize-handle resize-e" @mousedown="startResize($event, 'e')"></div>
+        <div v-if="resizable" class="resize-handle resize-w" @mousedown="startResize($event, 'w')"></div>
+        <div v-if="resizable" class="resize-handle resize-n" @mousedown="startResize($event, 'n')"></div>
+        <div v-if="resizable" class="resize-handle resize-s" @mousedown="startResize($event, 's')"></div>
+        <div v-if="resizable" class="resize-handle resize-ne" @mousedown="startResize($event, 'ne')"></div>
+        <div v-if="resizable" class="resize-handle resize-nw" @mousedown="startResize($event, 'nw')"></div>
+        <div v-if="resizable" class="resize-handle resize-se" @mousedown="startResize($event, 'se')"></div>
+        <div v-if="resizable" class="resize-handle resize-sw" @mousedown="startResize($event, 'sw')"></div>
       </div>
     </div>
   </div>
@@ -143,11 +143,15 @@ export default {
     tipDuration: {
       type: Number,
       default: 500
+    },
+    resizable: {
+      type: Boolean,
+      default: false
     }
   },
   emits: ['close', 'confirm'],
   setup(props, { emit }) {
-    const { textAlign, message, captureType, tipMaxLength, tipDuration, verticalAlign } = props
+    const { textAlign, message, captureType, tipMaxLength, tipDuration, verticalAlign, resizable } = props
     const modalDialog = ref(null)
     const modalContent = ref(null)
     const { t } = useI18n()
@@ -262,6 +266,8 @@ export default {
 
     // 开始缩放
     const startResize = (e, direction) => {
+      if (!resizable) return
+      
       e.preventDefault()
       e.stopPropagation()
       
@@ -445,6 +451,7 @@ export default {
       captureType,
       tipMaxLength,
       tipDuration,
+      resizable,
       showTip,
       tipText,
       isProcessing,
