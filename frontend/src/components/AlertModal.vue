@@ -205,7 +205,7 @@ export default {
       position: 'absolute',
       left: currentX.value === 0 ? '50%' : `${currentX.value}px`,
       top: currentY.value === 0 ? '50%' : `${currentY.value}px`,
-      transform: currentX.value === 0 || currentY.value === 0 ? 'translate(-50%, -50%)' : 'none',
+      transform: 'translate(-50%, -50%)',
       margin: '0',
       maxWidth: 'none'
     }))
@@ -253,11 +253,11 @@ export default {
     const drag = (e) => {
       if (!isDragging.value) return
       
-      // 如果是第一次移动，获取对话框当前的左上角位置
+      // 如果是第一次移动，获取对话框当前的中心位置
       if (currentX.value === 0 && currentY.value === 0) {
         const rect = modalDialog.value.getBoundingClientRect()
-        currentX.value = rect.left
-        currentY.value = rect.top
+        currentX.value = rect.left + rect.width / 2
+        currentY.value = rect.top + rect.height / 2
         // 重新计算startX和startY，确保第一次移动的deltaX和deltaY为0
         startX.value = e.clientX
         startY.value = e.clientY
@@ -295,10 +295,10 @@ export default {
       startWidth.value = rect.width
       startHeight.value = rect.height
       
-      // 记录初始左上角位置（基于屏幕坐标）
+      // 记录初始中心位置（基于屏幕坐标）
       const dialogRect = modalDialog.value.getBoundingClientRect()
-      startCenterX.value = dialogRect.left
-      startCenterY.value = dialogRect.top
+      startCenterX.value = dialogRect.left + dialogRect.width / 2
+      startCenterY.value = dialogRect.top + dialogRect.height / 2
       
       document.addEventListener('mousemove', resize)
       document.addEventListener('mouseup', stopResize)
@@ -307,11 +307,11 @@ export default {
     const resize = (e) => {
       if (!isResizing.value) return
       
-      // 如果是第一次操作，获取对话框当前的左上角位置
+      // 如果是第一次操作，获取对话框当前的中心位置
       if (currentX.value === 0 && currentY.value === 0) {
         const dialogRect = modalDialog.value.getBoundingClientRect()
-        currentX.value = dialogRect.left
-        currentY.value = dialogRect.top
+        currentX.value = dialogRect.left + dialogRect.width / 2
+        currentY.value = dialogRect.top + dialogRect.height / 2
         // 重新计算startResizeX和startResizeY，确保第一次缩放的delta为0
         startResizeX.value = e.clientX
         startResizeY.value = e.clientY
@@ -335,8 +335,8 @@ export default {
         case 'w':
           // 左侧缩放：左侧宽度变化，右侧不动
           newWidth = Math.max(props.minWidth, startWidth.value - deltaX)
-          // 右侧不动，需要调整左侧位置
-          newX = startCenterX.value + deltaX
+          // 右侧不动，需要调整中心位置
+          newX = startCenterX.value - (startWidth.value - newWidth) / 2
           break
         case 's':
           // 底部缩放：顶部不动，底部高度变化
@@ -346,22 +346,22 @@ export default {
         case 'n':
           // 顶部缩放：顶部高度变化，底部高度不变化
           newHeight = Math.max(props.minHeight, startHeight.value - deltaY)
-          // 底部不动，需要调整顶部位置
-          newY = startCenterY.value + deltaY
+          // 底部不动，需要调整中心位置
+          newY = startCenterY.value - (startHeight.value - newHeight) / 2
           break
         case 'ne':
           // 右上角缩放：左侧和底部不动，宽度和高度同时变化
           newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
           newHeight = Math.max(props.minHeight, startHeight.value - deltaY)
-          // 左侧和底部不动，只调整顶部位置
-          newY = startCenterY.value + deltaY
+          // 左侧和底部不动，需要调整中心位置
+          newY = startCenterY.value - (startHeight.value - newHeight) / 2
           break
         case 'sw':
           // 左下角缩放：右侧和顶部不动，宽度和高度同时变化
           newWidth = Math.max(props.minWidth, startWidth.value - deltaX)
           newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
-          // 右侧和顶部不动，只调整左侧位置
-          newX = startCenterX.value + deltaX
+          // 右侧和顶部不动，需要调整中心位置
+          newX = startCenterX.value - (startWidth.value - newWidth) / 2
           break
         case 'se':
           // 右下角缩放：左侧和顶部不动，宽度和高度同时变化
@@ -373,9 +373,9 @@ export default {
           // 左上角缩放：右侧和底部不动，宽度和高度同时变化
           newWidth = Math.max(props.minWidth, startWidth.value - deltaX)
           newHeight = Math.max(props.minHeight, startHeight.value - deltaY)
-          // 右侧和底部不动，需要调整左侧和顶部位置
-          newX = startCenterX.value + deltaX
-          newY = startCenterY.value + deltaY
+          // 右侧和底部不动，需要调整中心位置
+          newX = startCenterX.value - (startWidth.value - newWidth) / 2
+          newY = startCenterY.value - (startHeight.value - newHeight) / 2
           break
       }
       
