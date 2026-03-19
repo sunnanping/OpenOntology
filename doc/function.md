@@ -946,8 +946,51 @@ export default {
 
 ---
 
+## 配置说明
+
+### 翻译 API 配置
+
+在 `i18n-service/src/main/resources/application.yml` 中配置翻译 API 密钥：
+
+```yaml
+translation:
+  google:
+    api-key: ${GOOGLE_TRANSLATE_API_KEY:}
+  deepl:
+    api-key: ${DEEPL_API_KEY:}
+  microsoft:
+    api-key: ${MICROSOFT_TRANSLATE_API_KEY:}
+  baidu:
+    app-id: ${BAIDU_TRANSLATE_APP_ID:}
+    secret-key: ${BAIDU_TRANSLATE_SECRET_KEY:}
+  aliyun:
+    access-key-id: ${ALIYUN_ACCESS_KEY_ID:}
+    access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET:}
+  youdao:
+    app-id: ${YOUDAO_APP_ID:}
+    app-secret: ${YOUDAO_APP_SECRET:}
+  tencent:
+    secret-id: ${TENCENT_SECRET_ID:}
+    secret-key: ${TENCENT_SECRET_KEY:}
+    region: ${TENCENT_REGION:ap-beijing}
+```
+
+### MongoDB 配置
+
+在各服务的 `application.yml` 中配置 MongoDB 连接：
+
+```yaml
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/openontology
+```
+
+---
+
 ## 文档更新记录
 
 | 日期 | 版本 | 更新内容 |
 |------|------|----------|
+| 2026-03-19 | v1.1 | 新增配置说明章节 |
 | 2026-03-18 | v1.0 | 初始版本，系统架构和微服务模块功能说明 |
