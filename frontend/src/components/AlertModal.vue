@@ -317,27 +317,57 @@ export default {
       let newHeight = startHeight.value
       
       // 根据方向调整大小
-      if (resizeDirection.value.includes('e')) {
-        // 右侧缩放：左侧不动，宽度变化
-        newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
-        // 左侧不动，不需要调整位置
-      }
-      if (resizeDirection.value.includes('w')) {
-        // 左侧缩放：右侧不动，宽度变化
-        newWidth = Math.max(props.minWidth, startWidth.value - deltaX)
-        // 右侧不动，需要调整位置
-        currentX.value = startCenterX.value + (startWidth.value - newWidth) / 2
-      }
-      if (resizeDirection.value.includes('s')) {
-        // 底部缩放：顶部不动，高度变化
-        newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
-        // 顶部不动，不需要调整位置
-      }
-      if (resizeDirection.value.includes('n')) {
-        // 顶部缩放：底部不动，高度变化
-        newHeight = Math.max(props.minHeight, startHeight.value - deltaY)
-        // 底部不动，需要调整位置
-        currentY.value = startCenterY.value + (startHeight.value - newHeight) / 2
+      switch (resizeDirection.value) {
+        case 'e':
+          // 右侧缩放：左侧不动，宽度变化
+          newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
+          // 左侧不动，不需要调整位置
+          break
+        case 'w':
+          // 左侧缩放：右侧不动，宽度变化
+          newWidth = Math.max(props.minWidth, startWidth.value - deltaX)
+          // 右侧不动，需要调整位置
+          currentX.value = startCenterX.value + (startWidth.value - newWidth) / 2
+          break
+        case 's':
+          // 底部缩放：顶部不动，高度变化
+          newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
+          // 顶部不动，不需要调整位置
+          break
+        case 'n':
+          // 顶部缩放：底部不动，高度变化
+          newHeight = Math.max(props.minHeight, startHeight.value - deltaY)
+          // 底部不动，需要调整位置
+          currentY.value = startCenterY.value + (startHeight.value - newHeight) / 2
+          break
+        case 'ne':
+          // 右上角缩放：左侧和底部不动，宽度和高度同时变化
+          newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
+          newHeight = Math.max(props.minHeight, startHeight.value - deltaY)
+          // 左侧和底部不动，只调整顶部位置
+          currentY.value = startCenterY.value + (startHeight.value - newHeight) / 2
+          break
+        case 'sw':
+          // 左下角缩放：右侧和顶部不动，宽度和高度同时变化
+          newWidth = Math.max(props.minWidth, startWidth.value - deltaX)
+          newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
+          // 右侧和顶部不动，只调整左侧位置
+          currentX.value = startCenterX.value + (startWidth.value - newWidth) / 2
+          break
+        case 'se':
+          // 右下角缩放：左侧和顶部不动，宽度和高度同时变化
+          newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
+          newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
+          // 左侧和顶部不动，不需要调整位置
+          break
+        case 'nw':
+          // 左上角缩放：右侧和底部不动，宽度和高度同时变化
+          newWidth = Math.max(props.minWidth, startWidth.value - deltaX)
+          newHeight = Math.max(props.minHeight, startHeight.value - deltaY)
+          // 右侧和底部不动，需要调整左侧和顶部位置
+          currentX.value = startCenterX.value + (startWidth.value - newWidth) / 2
+          currentY.value = startCenterY.value + (startHeight.value - newHeight) / 2
+          break
       }
       
       currentWidth.value = newWidth
