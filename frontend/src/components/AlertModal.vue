@@ -320,20 +320,24 @@ export default {
       if (resizeDirection.value.includes('e')) {
         // 右侧缩放：左侧不动，宽度变化
         newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
+        // 左侧不动，不需要调整位置
       }
       if (resizeDirection.value.includes('w')) {
         // 左侧缩放：右侧不动，宽度变化
         newWidth = Math.max(props.minWidth, startWidth.value - deltaX)
-        currentX.value = startCenterX.value - (startWidth.value - newWidth) / 2
+        // 右侧不动，需要调整位置
+        currentX.value = startCenterX.value + (startWidth.value - newWidth) / 2
       }
       if (resizeDirection.value.includes('s')) {
         // 底部缩放：顶部不动，高度变化
         newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
+        // 顶部不动，不需要调整位置
       }
       if (resizeDirection.value.includes('n')) {
         // 顶部缩放：底部不动，高度变化
         newHeight = Math.max(props.minHeight, startHeight.value - deltaY)
-        currentY.value = startCenterY.value - (startHeight.value - newHeight) / 2
+        // 底部不动，需要调整位置
+        currentY.value = startCenterY.value + (startHeight.value - newHeight) / 2
       }
       
       currentWidth.value = newWidth
