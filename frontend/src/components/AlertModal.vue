@@ -321,7 +321,7 @@ export default {
         newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
       }
       if (resizeDirection.value.includes('w')) {
-        newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
+        newWidth = Math.max(props.minWidth, startWidth.value - deltaX)
         const widthChange = startWidth.value - newWidth
         currentX.value = startCenterX.value - widthChange / 2
       }
@@ -329,7 +329,7 @@ export default {
         newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
       }
       if (resizeDirection.value.includes('n')) {
-        newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
+        newHeight = Math.max(props.minHeight, startHeight.value - deltaY)
         const heightChange = startHeight.value - newHeight
         currentY.value = startCenterY.value - heightChange / 2
       }
