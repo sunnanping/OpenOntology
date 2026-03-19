@@ -307,17 +307,17 @@ export default {
       const deltaX = e.clientX - startResizeX.value
       const deltaY = e.clientY - startResizeY.value
       
-      // 如果是第一次操作，获取对话框当前的左上角位置
-      if (currentX.value === 0 && currentY.value === 0) {
-        const dialogRect = modalDialog.value.getBoundingClientRect()
-        currentX.value = dialogRect.left
-        currentY.value = dialogRect.top
-      }
-      
       let newWidth = startWidth.value
       let newHeight = startHeight.value
       let newX = currentX.value
       let newY = currentY.value
+      
+      // 如果是第一次操作，获取对话框当前的左上角位置
+      if (currentX.value === 0 && currentY.value === 0) {
+        const dialogRect = modalDialog.value.getBoundingClientRect()
+        newX = dialogRect.left
+        newY = dialogRect.top
+      }
       
       // 根据方向调整大小
       switch (resizeDirection.value) {
