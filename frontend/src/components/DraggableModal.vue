@@ -95,6 +95,8 @@ export default {
     const startHeight = ref(0)
     const startResizeX = ref(0)
     const startResizeY = ref(0)
+    const startCenterX = ref(0)
+    const startCenterY = ref(0)
 
     const dialogStyle = computed(() => ({
       position: 'absolute',
@@ -173,8 +175,13 @@ export default {
       startHeight.value = rect.height
       
       const dialogRect = document.querySelector('.modal-dialog').getBoundingClientRect()
-      currentX.value = dialogRect.left + dialogRect.width / 2
-      currentY.value = dialogRect.top + dialogRect.height / 2
+      startCenterX.value = dialogRect.left + dialogRect.width / 2
+      startCenterY.value = dialogRect.top + dialogRect.height / 2
+      
+      if (currentX.value === 0 && currentY.value === 0) {
+        currentX.value = startCenterX.value
+        currentY.value = startCenterY.value
+      }
       
       document.addEventListener('mousemove', resize)
       document.addEventListener('mouseup', stopResize)
@@ -184,32 +191,88 @@ export default {
     const resize = (e) => {
       if (!isResizing.value) return
       
+      // 如果是第一次操作，获取对话框当前的中心位置
+      if (currentX.value === 0 && currentY.value === 0) {
+        const dialogRect = document.querySelector('.modal-dialog').getBoundingClientRect()
+        currentX.value = dialogRect.left + dialogRect.width / 2
+        currentY.value = dialogRect.top + dialogRect.height / 2
+        // 重新计算startResizeX和startResizeY，确保第一次缩放的delta为0
+        startResizeX.value = e.clientX
+        startResizeY.value = e.clientY
+      }
+      
       const deltaX = e.clientX - startResizeX.value
       const deltaY = e.clientY - startResizeY.value
       
       let newWidth = startWidth.value
       let newHeight = startHeight.value
+      let newX = currentX.value
+      let newY = currentY.value
       
       // 根据方向调整大小
-      if (resizeDirection.value.includes('e')) {
-        newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
-      }
-      if (resizeDirection.value.includes('w')) {
-        const widthChange = startWidth.value - Math.max(props.minWidth, startWidth.value - deltaX)
-        newWidth = startWidth.value - widthChange
-        currentX.value += widthChange / 2
-      }
-      if (resizeDirection.value.includes('s')) {
-        newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
-      }
-      if (resizeDirection.value.includes('n')) {
-        const heightChange = startHeight.value - Math.max(props.minHeight, startHeight.value - deltaY)
-        newHeight = startHeight.value - heightChange
-        currentY.value += heightChange / 2
+      switch (resizeDirection.value) {
+        case 'e':
+          // 右侧缩放：左侧不动，右侧宽度变化
+          newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
+          // 左侧不动，需要调整中心位置
+          newX = startCenterX.value + deltaX / 2
+          break
+        case 'w':
+          // 左侧缩放：左侧宽度变化，右侧不动
+          newWidth = Math.max(props.minWidth, startWidth.value - deltaX)
+          // 右侧不动，需要调整中心位置，确保右侧边缘位置不变
+          newX = startCenterX.value + deltaX / 2
+          break
+        case 's':
+          // 底部缩放：顶部不动，底部高度变化
+          newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
+          // 顶部不动，需要调整中心位置
+          newY = startCenterY.value + deltaY / 2
+          break
+        case 'n':
+          // 顶部缩放：顶部高度变化，底部高度不变化
+          newHeight = Math.max(props.minHeight, startHeight.value - deltaY)
+          // 底部不动，需要调整中心位置，确保底部边缘位置不变
+          newY = startCenterY.value + deltaY / 2
+          break
+        case 'ne':
+          // 右上角缩放：左侧和底部不动，宽度和高度同时变化
+          newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
+          newHeight = Math.max(props.minHeight, startHeight.value - deltaY)
+          // 左侧和底部不动，需要调整中心位置
+          newX = startCenterX.value + deltaX / 2
+          newY = startCenterY.value + deltaY / 2
+          break
+        case 'sw':
+          // 左下角缩放：右侧和顶部不动，宽度和高度同时变化
+          newWidth = Math.max(props.minWidth, startWidth.value - deltaX)
+          newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
+          // 右侧和顶部不动，需要调整中心位置
+          newX = startCenterX.value + deltaX / 2
+          newY = startCenterY.value + deltaY / 2
+          break
+        case 'se':
+          // 右下角缩放：左侧和顶部不动，宽度和高度同时变化
+          newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
+          newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
+          // 左侧和顶部不动，需要调整中心位置
+          newX = startCenterX.value + deltaX / 2
+          newY = startCenterY.value + deltaY / 2
+          break
+        case 'nw':
+          // 左上角缩放：右侧和底部不动，宽度和高度同时变化
+          newWidth = Math.max(props.minWidth, startWidth.value - deltaX)
+          newHeight = Math.max(props.minHeight, startHeight.value - deltaY)
+          // 右侧和底部不动，需要调整中心位置
+          newX = startCenterX.value + deltaX / 2
+          newY = startCenterY.value + deltaY / 2
+          break
       }
       
       currentWidth.value = newWidth
       currentHeight.value = newHeight
+      currentX.value = newX
+      currentY.value = newY
     }
 
     // 停止缩放
