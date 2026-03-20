@@ -345,6 +345,12 @@ export default {
           // 底部不动，需要调整中心位置，确保底部边缘位置不变
           newY = startCenterY.value + deltaY / 2
           break
+        case 's':
+          // 底部缩放：顶部不动，底部高度变化
+          newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
+          // 顶部不动，需要调整中心位置
+          newY = startCenterY.value + deltaY / 2
+          break
         case 'ne':
           // 右上角缩放：左侧和底部不动，宽度和高度同时变化
           newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
@@ -358,6 +364,14 @@ export default {
           newWidth = Math.max(props.minWidth, startWidth.value - deltaX)
           newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
           // 右侧和顶部不动，需要调整中心位置
+          newX = startCenterX.value + deltaX / 2
+          newY = startCenterY.value + deltaY / 2
+          break
+        case 'se':
+          // 右下角缩放：左侧和顶部不动，宽度和高度同时变化
+          newWidth = Math.max(props.minWidth, startWidth.value + deltaX)
+          newHeight = Math.max(props.minHeight, startHeight.value + deltaY)
+          // 左侧和顶部不动，需要调整中心位置
           newX = startCenterX.value + deltaX / 2
           newY = startCenterY.value + deltaY / 2
           break
