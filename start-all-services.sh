@@ -31,13 +31,7 @@ cd ../user-service && mvn spring-boot:run &
 cd ../gateway && mvn spring-boot:run &
 
  echo "启动 Ontology Service..."
-cd ../ontology-service && mvn spring-boot:run &
-
- echo "启动 Class Service..."
-cd ../class-service && mvn spring-boot:run &
-
- echo "启动 Property Service..."
-cd ../property-service && mvn spring-boot:run &
+cd ../ontology-service/ontology-service-app && mvn spring-boot:run &
 
  echo "启动 Instance Service..."
 cd ../instance-service && mvn spring-boot:run &

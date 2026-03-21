@@ -10,47 +10,64 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>ontology-service</artifactId>
+    <packaging>pom</packaging>
     <name>ontology-service</name>
-    <description>Ontology service for OpenOntology</description>
+    <description>Ontology service for OpenOntology - Multi-module architecture</description>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-mongodb</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>net.sourceforge.owlapi</groupId>
-            <artifactId>owlapi-api</artifactId>
-            <version>5.1.20</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sourceforge.owlapi</groupId>
-            <artifactId>owlapi-apibinding</artifactId>
-            <version>5.1.20</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sourceforge.owlapi</groupId>
-            <artifactId>owlapi-impl</artifactId>
-            <version>5.1.20</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sourceforge.owlapi</groupId>
-            <artifactId>owlapi-parsers</artifactId>
-            <version>5.1.20</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sourceforge.owlapi</groupId>
-            <artifactId>owlapi-distribution</artifactId>
-            <version>5.1.20</version>
-        </dependency>
-    </dependencies>
+    <modules>
+        <module>ontology-service-core</module>
+        <module>project-module</module>
+        <module>class-module</module>
+        <module>property-module</module>
+        <module>individual-module</module>
+        <module>ontology-service-app</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>2021.0.1</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-web</artifactId>
+                <version>2.6.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-mongodb</artifactId>
+                <version>2.6.3</version>
+            </dependency>
+            <dependency>
+                <groupId>net.sourceforge.owlapi</groupId>
+                <artifactId>owlapi-api</artifactId>
+                <version>5.1.20</version>
+            </dependency>
+            <dependency>
+                <groupId>net.sourceforge.owlapi</groupId>
+                <artifactId>owlapi-apibinding</artifactId>
+                <version>5.1.20</version>
+            </dependency>
+            <dependency>
+                <groupId>net.sourceforge.owlapi</groupId>
+                <artifactId>owlapi-impl</artifactId>
+                <version>5.1.20</version>
+            </dependency>
+            <dependency>
+                <groupId>net.sourceforge.owlapi</groupId>
+                <artifactId>owlapi-parsers</artifactId>
+                <version>5.1.20</version>
+            </dependency>
+            <dependency>
+                <groupId>net.sourceforge.owlapi</groupId>
+                <artifactId>owlapi-distribution</artifactId>
+                <version>5.1.20</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
 </project>

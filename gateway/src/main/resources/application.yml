@@ -21,13 +21,17 @@ spring:
           predicates:
             - Path=/api/classes/**
         - id: class-service
-          uri: lb://class-service
+          uri: lb://ontology-service
           predicates:
             - Path=/api/class/**
         - id: property-service
-          uri: lb://property-service
+          uri: lb://ontology-service
           predicates:
             - Path=/api/property/**
+        - id: individual-service
+          uri: lb://ontology-service
+          predicates:
+            - Path=/api/individual/**
         - id: instance-service
           uri: lb://instance-service
           predicates:

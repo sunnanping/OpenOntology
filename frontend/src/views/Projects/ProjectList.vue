@@ -474,8 +474,8 @@ export default {
       try {
         await http.put(`/projects/update-last-opened/${project.id}`)
         router.push({
-          path: '/editor',
-          query: { p: project.id, v: 'Classes' }
+          path: '/class-editor',
+          query: { projectId: project.id }
         })
       } catch (error) {
         console.error('Failed to open project:', error)

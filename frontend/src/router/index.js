@@ -27,6 +27,11 @@ const routes = [
     component: () => import('../views/Class.vue')
   },
   {
+    path: '/class-editor',
+    name: 'ClassEditor',
+    component: () => import('../views/ClassEditor.vue')
+  },
+  {
     path: '/property',
     name: 'Property',
     component: () => import('../views/Property.vue')
