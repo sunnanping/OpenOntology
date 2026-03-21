@@ -43,11 +43,7 @@
         <module>user-service</module>
         <module>admin-service</module>
         <module>ontology-service</module>
-        <module>instance-service</module>
-        <module>reasoning-service</module>
         <module>collaboration-service</module>
-        <module>version-service</module>
-        <module>search-service</module>
     </modules>
 
     <build>

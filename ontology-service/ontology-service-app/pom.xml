@@ -40,6 +40,26 @@
             <version>1.0.0</version>
         </dependency>
         <dependency>
+            <groupId>com.by.ontology</groupId>
+            <artifactId>instance-module</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.by.ontology</groupId>
+            <artifactId>version-module</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.by.ontology</groupId>
+            <artifactId>reasoning-module</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.by.ontology</groupId>
+            <artifactId>search-module</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>

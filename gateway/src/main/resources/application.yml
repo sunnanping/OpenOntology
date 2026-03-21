@@ -33,11 +33,11 @@ spring:
           predicates:
             - Path=/api/individual/**
         - id: instance-service
-          uri: lb://instance-service
+          uri: lb://ontology-service
           predicates:
             - Path=/api/instance/**
         - id: reasoning-service
-          uri: lb://reasoning-service
+          uri: lb://ontology-service
           predicates:
             - Path=/api/reasoning/**
         - id: collaboration-service
@@ -45,11 +45,11 @@ spring:
           predicates:
             - Path=/api/collaboration/**
         - id: version-service
-          uri: lb://version-service
+          uri: lb://ontology-service
           predicates:
             - Path=/api/version/**
         - id: search-service
-          uri: lb://search-service
+          uri: lb://ontology-service
           predicates:
             - Path=/api/search/**
 

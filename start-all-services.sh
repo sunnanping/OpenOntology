@@ -33,23 +33,11 @@ cd ../gateway && mvn spring-boot:run &
  echo "启动 Ontology Service..."
 cd ../ontology-service/ontology-service-app && mvn spring-boot:run &
 
- echo "启动 Instance Service..."
-cd ../instance-service && mvn spring-boot:run &
-
- echo "启动 Reasoning Service..."
-cd ../reasoning-service && mvn spring-boot:run &
-
- echo "启动 Search Service..."
-cd ../search-service && mvn spring-boot:run &
-
  echo "启动 Collaboration Service..."
 cd ../collaboration-service && mvn spring-boot:run &
 
  echo "启动 I18n Service..."
 cd ../i18n-service && mvn spring-boot:run &
-
- echo "启动 Version Service..."
-cd ../version-service && mvn spring-boot:run &
 
  echo "启动 Admin Service..."
 cd ../admin-service && mvn spring-boot:run &
