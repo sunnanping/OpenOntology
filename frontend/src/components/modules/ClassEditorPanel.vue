@@ -254,6 +254,7 @@
       <div 
         class="right-panels"
         v-show="!isMobileView || (activeMobilePanel === 'comments' || activeMobilePanel === 'feed')"
+        :style="isMobileView ? {} : { width: rightPanelWidth + 'px' }"
       >
         <div 
           v-show="showComments && (isMobileView ? activeMobilePanel === 'comments' : true)" 
@@ -553,10 +554,11 @@ const showClassDetails = ref(true)
 const showComments = ref(true)
 const showProjectFeed = ref(true)
 
-// 面板宽度
-const leftPanelWidth = ref(260)
-const middlePanelWidth = ref(380)
-const commentsHeight = ref(280)
+// 面板宽度（默认占比：Class Hierarchy 1/4, Class 2/4, 右侧面板 1/4）
+const leftPanelWidth = ref(0)
+const middlePanelWidth = ref(0)
+const rightPanelWidth = ref(0)
+const commentsHeight = ref(0)
 
 // Class详情面板当前Tab
 const activeClassTab = ref('details')
@@ -637,26 +639,22 @@ const availableClasses = computed(() => classHierarchy.value)
 
 // 监听窗口大小变化
 const handleResize = () => {
-  windowWidth.value = window.innerWidth
   windowHeight.value = window.innerHeight
   
-  if (windowWidth.value < 768) {
-    leftPanelWidth.value = 200
-    middlePanelWidth.value = 300
-    commentsHeight.value = 200
-  } else if (windowWidth.value < 1200) {
-    leftPanelWidth.value = 220
-    middlePanelWidth.value = 350
-    commentsHeight.value = 250
-  } else if (windowWidth.value < 1600) {
-    leftPanelWidth.value = 260
-    middlePanelWidth.value = 400
-    commentsHeight.value = 280
-  } else {
-    leftPanelWidth.value = 300
-    middlePanelWidth.value = 450
-    commentsHeight.value = 320
+  // 获取父容器的实际宽度
+  const panelsWrapper = document.querySelector('.panels-wrapper')
+  if (panelsWrapper) {
+    const availableWidth = panelsWrapper.clientWidth
+    windowWidth.value = availableWidth
+    
+    // 计算面板宽度（占比：Class Hierarchy 1/4, Class 2/4, 右侧面板 1/4）
+    leftPanelWidth.value = Math.floor(availableWidth * 0.25)
+    middlePanelWidth.value = Math.floor(availableWidth * 0.5)
+    rightPanelWidth.value = availableWidth - leftPanelWidth.value - middlePanelWidth.value
   }
+  
+  // Comments 高度默认占右侧面板的 1/2
+  commentsHeight.value = Math.floor((windowHeight.value - 120) * 0.5)
 }
 
 // 初始化加载
@@ -942,11 +940,13 @@ const handleAddRelationship = async () => {
 // 调整大小功能
 const startResizeLeft = (e) => {
   const startX = e.clientX
-  const startWidth = leftPanelWidth.value
+  const startLeftWidth = leftPanelWidth.value
+  const startMiddleWidth = middlePanelWidth.value
   
   const handleMouseMove = (e) => {
     const deltaX = e.clientX - startX
-    leftPanelWidth.value = Math.max(150, startWidth + deltaX)
+    leftPanelWidth.value = startLeftWidth + deltaX
+    middlePanelWidth.value = startMiddleWidth - deltaX
   }
   
   const handleMouseUp = () => {
@@ -960,11 +960,13 @@ const startResizeLeft = (e) => {
 
 const startResizeMiddle = (e) => {
   const startX = e.clientX
-  const startWidth = middlePanelWidth.value
+  const startMiddleWidth = middlePanelWidth.value
+  const startRightWidth = rightPanelWidth.value
   
   const handleMouseMove = (e) => {
     const deltaX = e.clientX - startX
-    middlePanelWidth.value = Math.max(250, startWidth + deltaX)
+    middlePanelWidth.value = startMiddleWidth + deltaX
+    rightPanelWidth.value = startRightWidth - deltaX
   }
   
   const handleMouseUp = () => {
@@ -982,7 +984,7 @@ const startResize = (e) => {
   
   const handleMouseMove = (e) => {
     const deltaY = e.clientY - startY
-    commentsHeight.value = Math.max(100, startHeight + deltaY)
+    commentsHeight.value = startHeight + deltaY
   }
   
   const handleMouseUp = () => {
@@ -1252,8 +1254,7 @@ const initGraph = () => {
 }
 
 .class-hierarchy-panel {
-  min-width: 200px;
-  max-width: 400px;
+  flex-shrink: 0;
 }
 
 .tree-node {
@@ -1275,8 +1276,7 @@ const initGraph = () => {
 }
 
 .class-details-panel {
-  min-width: 300px;
-  max-width: 600px;
+  flex-shrink: 0;
 }
 
 .detail-section {
@@ -1432,8 +1432,7 @@ const initGraph = () => {
 .right-panels {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-width: 200px;
+  flex-shrink: 0;
   overflow: hidden;
 }
 

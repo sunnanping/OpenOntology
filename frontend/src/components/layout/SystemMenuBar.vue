@@ -1,21 +1,24 @@
 <template>
   <nav class="top-menu-bar navbar navbar-expand navbar-dark">
     <div class="container-fluid menu-container">
-      <!-- 左侧：项目Logo和名称 -->
+      <!-- 最左侧：项目Logo和名称 + Home -->
       <div class="menu-left navbar-brand-wrapper">
         <a class="menu-brand navbar-brand" href="#">
           <i class="bi bi-grid-3x3-gap"></i>
           <span class="project-name d-none d-sm-inline">{{ projectName }}</span>
           <span class="project-name d-inline d-sm-none">{{ projectName ? projectName.substring(0, 10) : 'Project' }}</span>
         </a>
-        <a class="menu-link nav-link" href="#" @click.prevent="handleGoHome">
+        <a class="menu-link nav-link home-link" href="#" @click.prevent="handleGoHome">
           <i class="bi bi-house-door"></i> 
           <span class="d-none d-md-inline">Home</span>
         </a>
       </div>
       
-      <!-- 中间：系统菜单 - 使用Bootstrap响应式类 -->
-      <div class="menu-center navbar-nav-wrapper d-none d-lg-flex">
+      <!-- 中间：空白区域，占据剩余空间 -->
+      <div class="menu-spacer"></div>
+      
+      <!-- 右侧：系统菜单（Display、Project、Share，位于用户账号左侧）- 使用Bootstrap响应式类 -->
+      <div class="menu-system navbar-nav-wrapper d-none d-lg-flex">
         <ul class="navbar-nav">
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -46,7 +49,7 @@
         </ul>
       </div>
       
-      <!-- 右侧：用户信息和帮助 -->
+      <!-- 最右侧：用户信息和帮助 -->
       <div class="menu-right">
         <!-- 移动端菜单切换按钮 -->
         <button class="navbar-toggler d-lg-none mobile-menu-btn" type="button" @click="toggleMobileMenu">
@@ -98,10 +101,21 @@
           <i class="bi bi-folder"></i> Project
         </a>
         <a href="#" @click.prevent class="mobile-menu-item">
-          <i class="bi bi-person-circle"></i> {{ currentUser?.username || 'User' }}
+          <i class="bi bi-share"></i> Share
+        </a>
+        <div class="mobile-menu-divider"></div>
+        <a href="#" @click.prevent="handleProfile" class="mobile-menu-item">
+          <i class="bi bi-person"></i> Profile
         </a>
         <a href="#" @click.prevent="handleLogout" class="mobile-menu-item">
           <i class="bi bi-box-arrow-right"></i> Logout
+        </a>
+        <div class="mobile-menu-divider"></div>
+        <a href="#" @click.prevent="handleDocumentation" class="mobile-menu-item">
+          <i class="bi bi-book"></i> Documentation
+        </a>
+        <a href="#" @click.prevent="handleAbout" class="mobile-menu-item">
+          <i class="bi bi-info-circle"></i> About
         </a>
       </div>
     </div>
@@ -189,10 +203,11 @@ const handleAbout = () => {
 
 <style scoped>
 .top-menu-bar {
-  height: 36px;
   background: linear-gradient(180deg, #4a90d9 0%, #357abd 100%);
-  border-bottom: 1px solid #2a6299;
-  flex-shrink: 0;
+  height: 36px;
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1030;
 }
 
 .menu-container {
@@ -205,11 +220,15 @@ const handleAbout = () => {
 }
 
 .menu-left,
-.menu-center,
+.menu-system,
 .menu-right {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.menu-spacer {
+  flex: 1;
 }
 
 .menu-brand {
@@ -254,9 +273,45 @@ const handleAbout = () => {
   font-size: 12px;
 }
 
-.menu-center {
-  flex: 1;
-  justify-content: center;
+.home-link {
+  margin-left: 8px;
+}
+
+.menu-system {
+  display: flex;
+  align-items: center;
+}
+
+.menu-system .navbar-nav {
+  display: flex;
+  flex-direction: row;
+  gap: 2px;
+}
+
+.menu-system .nav-link {
+  color: white;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.menu-system .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.menu-system .dropdown-menu {
+  font-size: 12px;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.menu-system .dropdown-item {
+  padding: 6px 12px;
+}
+
+.menu-system .dropdown-item:hover {
+  background-color: #f5f5f5;
 }
 
 .menu-item {
@@ -303,7 +358,7 @@ const handleAbout = () => {
   background: none;
   border: none;
   color: white;
-  font-size: 18px;
+  font-size: 20px;
   cursor: pointer;
   padding: 4px;
 }
@@ -331,49 +386,61 @@ const handleAbout = () => {
 
 .mobile-menu-item i {
   font-size: 18px;
-  color: #4a90d9;
+  color: #666;
   width: 24px;
   text-align: center;
 }
 
+.mobile-menu-divider {
+  height: 1px;
+  background-color: #e0e0e0;
+  margin: 8px 16px;
+}
+
 .mobile-menu-btn {
-  background: transparent;
-  border: none;
   color: white;
-  font-size: 20px;
+  border: none;
   padding: 4px 8px;
-  cursor: pointer;
+  font-size: 16px;
+  background: transparent;
 }
 
-@media (max-width: 768px) {
-  .top-menu-bar {
-    height: 44px;
-  }
-  
-  .menu-brand {
-    font-size: 14px;
-  }
-  
-  .menu-brand i {
-    font-size: 18px;
+.mobile-menu-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Bootstrap overrides */
+.navbar-nav .nav-link {
+  color: white;
+}
+
+.navbar-nav .dropdown-toggle::after {
+  margin-left: 4px;
+  vertical-align: middle;
+  border-top-color: white;
+}
+
+.dropdown-menu-end {
+  right: 0;
+  left: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1199px) {
+  .menu-system {
+    display: none !important;
   }
 }
 
-@media (max-width: 576px) {
-  .top-menu-bar {
-    height: 40px;
+@media (max-width: 767px) {
+  .menu-right .menu-item.d-none.d-md-block {
+    display: none !important;
   }
-  
-  .menu-container {
-    padding: 0 8px;
-  }
-  
-  .menu-brand {
-    padding: 4px 6px;
-  }
-  
-  .menu-brand i {
-    font-size: 16px;
+}
+
+@media (max-width: 575px) {
+  .menu-right .menu-item.d-none.d-sm-block {
+    display: none !important;
   }
 }
 </style>
