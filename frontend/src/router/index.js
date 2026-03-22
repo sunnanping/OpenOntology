@@ -130,6 +130,13 @@ const routes = [
           projectId: route.query.p,
           viewType: route.query.v || 'Classes'
         })
+      },
+      {
+        path: '/operate/:projectId',
+        name: 'LoadOperatePage',
+        component: () => import('../views/LoadOperatePage.vue'),
+        props: true,
+        meta: { requiresAuth: true }
       }
 ]
 

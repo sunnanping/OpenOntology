@@ -225,7 +225,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import axios from 'axios'
+import http from '@/utils/http'
 
 const sessions = ref([])
 const ontologies = ref([])
@@ -251,7 +251,7 @@ onMounted(async () => {
 
 const loadSessions = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/collaboration/session/findAll')
+    const response = await http.get('/collaboration/session/findAll')
     sessions.value = response.data
   } catch (error) {
     console.error('Failed to load sessions:', error)
@@ -260,7 +260,7 @@ const loadSessions = async () => {
 
 const loadOntologies = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/ontology/findAll')
+    const response = await http.get('/ontology/findAll')
     ontologies.value = response.data
   } catch (error) {
     console.error('Failed to load ontologies:', error)
@@ -269,7 +269,7 @@ const loadOntologies = async () => {
 
 const createSession = async () => {
   try {
-    const response = await axios.post('http://localhost:8080/api/collaboration/session/create', {
+    const response = await http.post('/collaboration/session/create', {
       ...newSession.value,
       createdBy: 'current-user',
       participants: []
@@ -291,7 +291,7 @@ const refreshSession = async () => {
   if (!selectedSession.value) return
   
   try {
-    const response = await axios.get(`http://localhost:8080/api/collaboration/session/findById/${selectedSession.value.id}`)
+    const response = await http.get(`/collaboration/session/findById/${selectedSession.value.id}`)
     selectedSession.value = response.data
     await loadComments(selectedSession.value.id)
   } catch (error) {
@@ -303,7 +303,7 @@ const endSession = async (sessionId) => {
   if (!confirm('Are you sure you want to end this session?')) return
   
   try {
-    const response = await axios.post(`http://localhost:8080/api/collaboration/session/end/${sessionId}`)
+    const response = await http.post(`/collaboration/session/end/${sessionId}`)
     const index = sessions.value.findIndex(s => s.id === sessionId)
     if (index !== -1) {
       sessions.value[index] = response.data
@@ -319,7 +319,7 @@ const addParticipant = async (sessionId, userId) => {
   if (!userId) return
   
   try {
-    const response = await axios.post(`http://localhost:8080/api/collaboration/session/${sessionId}/addParticipant/${userId}`)
+    const response = await http.post(`/collaboration/session/${sessionId}/addParticipant/${userId}`)
     selectedSession.value = response.data
     newParticipantId.value = ''
   } catch (error) {
@@ -330,7 +330,7 @@ const addParticipant = async (sessionId, userId) => {
 
 const removeParticipant = async (sessionId, userId) => {
   try {
-    const response = await axios.delete(`http://localhost:8080/api/collaboration/session/${sessionId}/removeParticipant/${userId}`)
+    const response = await http.delete(`/collaboration/session/${sessionId}/removeParticipant/${userId}`)
     selectedSession.value = response.data
   } catch (error) {
     console.error('Failed to remove participant:', error)
@@ -340,7 +340,7 @@ const removeParticipant = async (sessionId, userId) => {
 
 const loadComments = async (sessionId) => {
   try {
-    const response = await axios.get(`http://localhost:8080/api/collaboration/comment/findBySessionId/${sessionId}`)
+    const response = await http.get(`/collaboration/comment/findBySessionId/${sessionId}`)
     comments.value = response.data
   } catch (error) {
     console.error('Failed to load comments:', error)
@@ -351,7 +351,7 @@ const addComment = async () => {
   if (!selectedSession.value || !newComment.value.content) return
   
   try {
-    const response = await axios.post('http://localhost:8080/api/collaboration/comment/create', {
+    const response = await http.post('/collaboration/comment/create', {
       ...newComment.value,
       sessionId: selectedSession.value.id,
       ontologyId: selectedSession.value.ontologyId,
@@ -374,7 +374,7 @@ const deleteComment = async (commentId) => {
   if (!confirm('Are you sure you want to delete this comment?')) return
   
   try {
-    await axios.delete(`http://localhost:8080/api/collaboration/comment/delete/${commentId}`)
+    await http.delete(`/collaboration/comment/delete/${commentId}`)
     comments.value = comments.value.filter(c => c.id !== commentId)
   } catch (error) {
     console.error('Failed to delete comment:', error)

@@ -184,7 +184,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import http from '@/utils/http'
 
 const ontologies = ref([])
 const versions = ref([])
@@ -202,7 +202,7 @@ onMounted(async () => {
 
 const loadOntologies = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/ontology/findAll')
+    const response = await http.get('/ontology/findAll')
     ontologies.value = response.data
   } catch (error) {
     console.error('Failed to load ontologies:', error)
@@ -218,7 +218,7 @@ const loadVersions = async () => {
   if (!selectedOntologyId.value) return
   
   try {
-    const response = await axios.get(`http://localhost:8080/api/version/findByOntologyId/${selectedOntologyId.value}`)
+    const response = await http.get(`/version/findByOntologyId/${selectedOntologyId.value}`)
     versions.value = response.data
   } catch (error) {
     console.error('Failed to load versions:', error)
@@ -232,7 +232,7 @@ const createVersion = async () => {
   }
   
   try {
-    const response = await axios.post('http://localhost:8080/api/version/create', {
+    const response = await http.post('/version/create', {
       ...newVersion.value,
       createdBy: 'current-user',
       createdByName: 'Current User',
@@ -255,7 +255,7 @@ const rollbackVersion = async (versionId) => {
   if (!confirm('Are you sure you want to rollback to this version? This will create a new version with the snapshot data.')) return
   
   try {
-    const response = await axios.post(`http://localhost:8080/api/version/rollback/${selectedOntologyId.value}/${versionId}`)
+    const response = await http.post(`/version/rollback/${selectedOntologyId.value}/${versionId}`)
     versions.value.unshift(response.data)
     alert('Rollback successful')
   } catch (error) {
@@ -268,7 +268,7 @@ const deleteVersion = async (versionId) => {
   if (!confirm('Are you sure you want to delete this version?')) return
   
   try {
-    await axios.delete(`http://localhost:8080/api/version/delete/${versionId}`)
+    await http.delete(`/version/delete/${versionId}`)
     versions.value = versions.value.filter(v => v.id !== versionId)
   } catch (error) {
     console.error('Failed to delete version:', error)

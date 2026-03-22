@@ -262,7 +262,7 @@
 
 <script setup>
 import { ref, onMounted, reactive } from 'vue'
-import axios from 'axios'
+import http from '@/utils/http'
 
 const ontologies = ref([])
 const classes = ref([])
@@ -286,7 +286,7 @@ onMounted(async () => {
 
 const loadOntologies = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/ontology/findAll')
+    const response = await http.get('/ontology/findAll')
     ontologies.value = response.data
   } catch (error) {
     console.error('Failed to load ontologies:', error)
@@ -298,9 +298,9 @@ const loadOntologyData = async () => {
   
   try {
     const [classesRes, propertiesRes, instancesRes] = await Promise.all([
-      axios.get(`http://localhost:8080/api/class/findAll`),
-      axios.get(`http://localhost:8080/api/property/findAll`),
-      axios.get(`http://localhost:8080/api/instance/findAll`)
+      http.get('/class/findAll'),
+      http.get('/property/findAll'),
+      http.get('/instance/findAll')
     ])
     
     classes.value = classesRes.data.filter(c => c.ontologyId === selectedOntologyId.value)
@@ -498,18 +498,18 @@ const updateElement = async () => {
     let url = ''
     switch (selectedElementType.value) {
       case 'class':
-        url = `http://localhost:8080/api/class/update/${selectedElement.value.id}`
+        url = `/class/update/${selectedElement.value.id}`
         break
       case 'property':
-        url = `http://localhost:8080/api/property/update/${selectedElement.value.id}`
+        url = `/property/update/${selectedElement.value.id}`
         break
       case 'instance':
-        url = `http://localhost:8080/api/instance/update/${selectedElement.value.id}`
+        url = `/instance/update/${selectedElement.value.id}`
         break
     }
     
     if (url) {
-      await axios.put(url, selectedElement.value)
+      await http.put(url, selectedElement.value)
     }
   } catch (error) {
     console.error('Failed to update element:', error)
@@ -523,18 +523,18 @@ const deleteElement = async () => {
     let url = ''
     switch (selectedElementType.value) {
       case 'class':
-        url = `http://localhost:8080/api/class/delete/${selectedElement.value.id}`
+        url = `/class/delete/${selectedElement.value.id}`
         break
       case 'property':
-        url = `http://localhost:8080/api/property/delete/${selectedElement.value.id}`
+        url = `/property/delete/${selectedElement.value.id}`
         break
       case 'instance':
-        url = `http://localhost:8080/api/instance/delete/${selectedElement.value.id}`
+        url = `/instance/delete/${selectedElement.value.id}`
         break
     }
     
     if (url) {
-      await axios.delete(url)
+      await http.delete(url)
       nodes.value = nodes.value.filter(n => n.id !== selectedElement.value.id)
       selectedElement.value = null
       selectedElementType.value = ''

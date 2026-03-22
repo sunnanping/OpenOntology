@@ -5,11 +5,16 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 
 @SpringBootApplication(scanBasePackages = {
+    "com.by.open.ontology.ontologyservice",
     "com.by.open.ontology.ontologyservice.core",
     "com.by.open.ontology.ontologyservice.projectmodule",
     "com.by.open.ontology.ontologyservice.classmodule",
     "com.by.open.ontology.ontologyservice.propertymodule",
-    "com.by.open.ontology.ontologyservice.individualmodule"
+    "com.by.open.ontology.ontologyservice.individualmodule",
+    "com.by.open.ontology.ontologyservice.instancemodule",
+    "com.by.open.ontology.ontologyservice.versionmodule",
+    "com.by.open.ontology.ontologyservice.reasoningmodule",
+    "com.by.open.ontology.ontologyservice.searchmodule"
 })
 @EnableEurekaClient
 public class OntologyServiceApplication {

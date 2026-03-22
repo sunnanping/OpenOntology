@@ -137,7 +137,7 @@
 
 <script setup>
 import { ref, onMounted, computed, h, defineComponent } from 'vue'
-import axios from 'axios'
+import http from '@/utils/http'
 
 const ontologies = ref([])
 const classes = ref([])
@@ -201,7 +201,7 @@ onMounted(async () => {
 
 const loadOntologies = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/ontology/findAll')
+    const response = await http.get('/ontology/findAll')
     ontologies.value = response.data
   } catch (error) {
     console.error('Failed to load ontologies:', error)
@@ -212,7 +212,7 @@ const loadClassHierarchy = async () => {
   if (!selectedOntologyId.value) return
   
   try {
-    const response = await axios.get('http://localhost:8080/api/class/findAll')
+    const response = await http.get('/class/findAll')
     classes.value = response.data.filter(c => c.ontologyId === selectedOntologyId.value)
   } catch (error) {
     console.error('Failed to load classes:', error)
@@ -380,7 +380,7 @@ const getNodeDepth = (nodeId) => {
 
 const getInstanceCount = async (nodeId) => {
   try {
-    const response = await axios.get('http://localhost:8080/api/instance/findAll')
+    const response = await http.get('/instance/findAll')
     return response.data.filter(i => i.classId === nodeId).length
   } catch (error) {
     return 0

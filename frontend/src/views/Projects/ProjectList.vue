@@ -363,10 +363,11 @@ export default {
           currentUser.value.role = user.role || 'user'
         }
 
-        const response = await http.get('/projects/available', {
-          params: { username: currentUser.value.username }
-        })
-        projects.value = response.data || []
+        const response = await http.get('/ontology/findByCreatorId/' + currentUser.value.username)
+        projects.value = (response.data || []).map(project => ({
+          ...project,
+          owner: project.creatorId || project.owner
+        }))
       } catch (error) {
         console.error('Failed to load projects:', error)
         ElMessage.error('Failed to load projects')
@@ -472,10 +473,11 @@ export default {
 
     const openProject = async (project) => {
       try {
-        await http.put(`/projects/update-last-opened/${project.id}`)
+        await http.put(`/ontology/update-last-opened/${project.id}`)
         router.push({
-          path: '/class-editor',
-          query: { projectId: project.id }
+          name: 'LoadOperatePage',
+          params: { projectId: project.id },
+          query: { module: 'classes' }
         })
       } catch (error) {
         console.error('Failed to open project:', error)
@@ -485,7 +487,7 @@ export default {
 
     const openInNewWindow = async (project) => {
       try {
-        await http.put(`/projects/update-last-opened/${project.id}`)
+        await http.put(`/ontology/update-last-opened/${project.id}`)
         window.open(`/editor?p=${project.id}&v=Classes`, '_blank')
       } catch (error) {
         console.error('Failed to open project:', error)
@@ -494,7 +496,7 @@ export default {
     }
 
     const downloadProject = (project) => {
-      window.location.href = `/api/projects/download/${project.id}?format=OWL`
+      window.location.href = `/api/ontology/import-export/export/${project.id}?format=OWL`
     }
 
     const moveToTrash = async (project) => {
@@ -509,7 +511,7 @@ export default {
           }
         )
         
-        await http.put(`/projects/move-to-trash/${project.id}`)
+        await http.put(`/ontology/move-to-trash/${project.id}`)
         ElMessage.success('Project moved to trash')
         await loadProjects()
       } catch (error) {
@@ -522,7 +524,7 @@ export default {
 
     const restoreProject = async (project) => {
       try {
-        await http.put(`/projects/restore/${project.id}`)
+        await http.put(`/ontology/restore/${project.id}`)
         ElMessage.success('Project restored')
         await loadProjects()
       } catch (error) {
@@ -543,7 +545,7 @@ export default {
           }
         )
         
-        await http.delete(`/projects/delete/${project.id}`)
+        await http.delete(`/ontology/delete/${project.id}`)
         ElMessage.success('Project deleted permanently')
         await loadProjects()
       } catch (error) {

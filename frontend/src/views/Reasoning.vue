@@ -205,7 +205,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import axios from 'axios'
+import http from '@/utils/http'
 
 const tasks = ref([])
 const ontologies = ref([])
@@ -228,7 +228,7 @@ onMounted(async () => {
 
 const loadTasks = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/reasoning/findAll')
+    const response = await http.get('/reasoning/findAll')
     tasks.value = response.data
   } catch (error) {
     console.error('Failed to load tasks:', error)
@@ -237,7 +237,7 @@ const loadTasks = async () => {
 
 const loadOntologies = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/ontology/findAll')
+    const response = await http.get('/ontology/findAll')
     ontologies.value = response.data
   } catch (error) {
     console.error('Failed to load ontologies:', error)
@@ -250,7 +250,7 @@ const createTask = async () => {
       ...newTask.value,
       rules: rulesText.value.split('\n').filter(r => r.trim())
     }
-    const response = await axios.post('http://localhost:8080/api/reasoning/create', taskData)
+    const response = await http.post('/reasoning/create', taskData)
     tasks.value.push(response.data)
     newTask.value = {
       name: '',
@@ -267,7 +267,7 @@ const createTask = async () => {
 
 const executeTask = async (taskId) => {
   try {
-    const response = await axios.post(`http://localhost:8080/api/reasoning/execute/${taskId}`)
+    const response = await http.post(`/reasoning/execute/${taskId}`)
     const index = tasks.value.findIndex(t => t.id === taskId)
     if (index !== -1) {
       tasks.value[index] = response.data
@@ -282,7 +282,7 @@ const deleteTask = async (taskId) => {
   if (!confirm('Are you sure you want to delete this task?')) return
   
   try {
-    await axios.delete(`http://localhost:8080/api/reasoning/delete/${taskId}`)
+    await http.delete(`/reasoning/delete/${taskId}`)
     tasks.value = tasks.value.filter(t => t.id !== taskId)
   } catch (error) {
     console.error('Failed to delete task:', error)

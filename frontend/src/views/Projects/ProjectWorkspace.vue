@@ -505,11 +505,8 @@ export default {
     // 获取项目详情
     const loadProjectDetails = async () => {
       try {
-        const response = await http.get(`/projects/available`, {
-          params: { username: currentUser.value }
-        })
-        const projects = response.data || []
-        const project = projects.find(p => p.id === projectId.value)
+        const response = await http.get('/ontology/findById/' + projectId.value)
+        const project = response.data
         if (project) {
           projectName.value = project.name
         }

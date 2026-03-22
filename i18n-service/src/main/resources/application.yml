@@ -6,7 +6,7 @@ spring:
     name: i18n-service
   data:
     mongodb:
-      uri: mongodb://localhost:27017/openontology
+      uri: mongodb://localhost:27017/webprotege
       auto-index-creation: true
 
 eureka:

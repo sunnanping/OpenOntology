@@ -205,7 +205,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import http from '@/utils/http'
 
 const router = useRouter()
 const searchQuery = ref('')
@@ -224,7 +224,7 @@ onMounted(async () => {
 
 const loadOntologies = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/ontology/findAll')
+    const response = await http.get('/ontology/findAll')
     ontologies.value = response.data
   } catch (error) {
     console.error('Failed to load ontologies:', error)
@@ -247,7 +247,7 @@ const performSearch = async () => {
       params.append('entityType', selectedEntityType.value)
     }
     
-    const response = await axios.get(`http://localhost:8080/api/search/query?${params.toString()}`)
+    const response = await http.get(`/search/query?${params.toString()}`)
     results.value = response.data
   } catch (error) {
     console.error('Search failed:', error)
@@ -267,7 +267,7 @@ const searchByName = async () => {
   hasSearched.value = true
   
   try {
-    const response = await axios.get(`http://localhost:8080/api/search/byname?name=${encodeURIComponent(searchQuery.value)}`)
+    const response = await http.get(`/search/byname?name=${encodeURIComponent(searchQuery.value)}`)
     results.value = response.data
   } catch (error) {
     console.error('Search by name failed:', error)
@@ -287,7 +287,7 @@ const searchByIri = async () => {
   hasSearched.value = true
   
   try {
-    const response = await axios.get(`http://localhost:8080/api/search/byiri?iri=${encodeURIComponent(searchQuery.value)}`)
+    const response = await http.get(`/search/byiri?iri=${encodeURIComponent(searchQuery.value)}`)
     results.value = response.data
   } catch (error) {
     console.error('Search by IRI failed:', error)
