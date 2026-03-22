@@ -477,7 +477,11 @@ export default {
         router.push({
           name: 'LoadOperatePage',
           params: { projectId: project.id },
-          query: { module: 'classes' }
+          query: { module: 'classes' },
+          state: {
+            projectDataRecord: project,
+            currentUser: currentUser.value
+          }
         })
       } catch (error) {
         console.error('Failed to open project:', error)
@@ -488,7 +492,14 @@ export default {
     const openInNewWindow = async (project) => {
       try {
         await http.put(`/ontology/update-last-opened/${project.id}`)
-        window.open(`/editor?p=${project.id}&v=Classes`, '_blank')
+        const url = router.resolve({
+          name: 'LoadOperatePage',
+          params: { projectId: project.id },
+          query: { module: 'classes' }
+        }).href
+        sessionStorage.setItem(`project_${project.id}`, JSON.stringify(project))
+        sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
+        window.open(url, '_blank')
       } catch (error) {
         console.error('Failed to open project:', error)
         ElMessage.error('Failed to open project')

@@ -91,7 +91,7 @@ onMounted(async () => {
     currentUser.value = JSON.parse(userStr)
   }
   
-  // 获取项目信息
+  // 获取项目信息（优先从路由 state，其次 sessionStorage，最后 API）
   await loadProjectInfo()
   
   // 获取可用模块（目前静态，后期从后端获取）
@@ -107,13 +107,45 @@ onMounted(async () => {
   
   loadModule(currentModule.value)
 })
-
+/**
+ * 实现三级数据获取策略：
+- 优先从路由 state 获取（正常跳转场景）
+- 其次从 sessionStorage 获取（新窗口打开场景）
+- 最后从 API 查询（后备方案，处理页面刷新等场景）
+ */
 // 加载项目信息
 const loadProjectInfo = async () => {
+  // 方案 1: 从路由 state 获取（正常跳转）
+  const navigationState = window.history.state
+  if (navigationState.projectDataRecord) {
+    projectInfo.value = navigationState.projectDataRecord
+    if (navigationState.currentUser) {
+      currentUser.value = navigationState.currentUser
+    }
+    console.log('Loaded project info from router state:', projectInfo.value)
+    return
+  }
+  
+  // 方案 2: 从 sessionStorage 获取（新窗口打开）
+  const cachedProject = sessionStorage.getItem(`project_${projectId.value}`)
+  const cachedUser = sessionStorage.getItem('currentUser')
+  if (cachedProject) {
+    projectInfo.value = JSON.parse(cachedProject)
+    if (cachedUser) {
+      currentUser.value = JSON.parse(cachedUser)
+    }
+    console.log('Loaded project info from sessionStorage:', projectInfo.value)
+    // 清理 sessionStorage
+    sessionStorage.removeItem(`project_${projectId.value}`)
+    return
+  }
+  
+  // 方案 3: 从 API 查询（后备方案，处理页面刷新等场景）
   try {
     const http = window.$http
     const response = await http.get(`/ontology/findById/${projectId.value}`)
     projectInfo.value = response.data || {}
+    console.log('Loaded project info from API:', projectInfo.value)
   } catch (error) {
     console.error('Failed to load project info:', error)
     projectInfo.value = { name: 'error' }
