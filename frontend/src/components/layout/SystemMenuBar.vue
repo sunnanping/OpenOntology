@@ -138,6 +138,10 @@ const props = defineProps({
   projectInfo: {
     type: Object,
     default: () => ({})
+  },
+  projectDataRecord: {
+    type: Object,
+    default: () => null
   }
 })
 

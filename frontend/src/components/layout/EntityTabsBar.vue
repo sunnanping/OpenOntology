@@ -43,6 +43,10 @@ const props = defineProps({
   activeTab: {
     type: String,
     default: 'classes'
+  },
+  projectDataRecord: {
+    type: Object,
+    default: () => null
   }
 })
 

@@ -473,15 +473,22 @@ export default {
 
     const openProject = async (project) => {
       try {
+        console.log('=== openProject called ===')
+        console.log('Project:', project)
+        console.log('currentUser.value:', currentUser.value)
+        
+        // 更新最后打开时间
         await http.put(`/ontology/update-last-opened/${project.id}`)
+        
+        // 将 projectDataRecord 存储到 sessionStorage
+        sessionStorage.setItem(`project_${project.id}`, JSON.stringify(project))
+        sessionStorage.setItem('currentUser', JSON.stringify(currentUser.value))
+        
+        // 跳转到 LoadOperatePage
         router.push({
           name: 'LoadOperatePage',
           params: { projectId: project.id },
-          query: { module: 'classes' },
-          state: {
-            projectDataRecord: project,
-            currentUser: currentUser.value
-          }
+          query: { module: 'classes' }
         })
       } catch (error) {
         console.error('Failed to open project:', error)

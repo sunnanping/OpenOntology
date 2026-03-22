@@ -512,10 +512,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, inject, watch, nextTick } from 'vue'
+import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import * as echarts from 'echarts'
-
-const http = inject('$http') || window.$http
+import http from '@/utils/http'
 
 const props = defineProps({
   projectId: {
@@ -525,6 +524,10 @@ const props = defineProps({
   projectInfo: {
     type: Object,
     default: () => ({})
+  },
+  projectDataRecord: {
+    type: Object,
+    default: () => null
   },
   userInfo: {
     type: Object,
@@ -675,7 +678,9 @@ onMounted(async () => {
 // 加载类层次结构
 const loadClassHierarchy = async () => {
   try {
-    const response = await http.get(`/class/findByProjectId/${props.projectId}`)
+    // 使用 projectDataRecord 中的 id 作为 ontologyId，如果没有则使用 projectId
+    const ontologyId = props.projectDataRecord?.id || props.projectId
+    const response = await http.get(`/class/findByOntologyId/${ontologyId}`)
     classHierarchy.value = response.data || []
     treeData.value = buildTreeData(classHierarchy.value)
   } catch (error) {
@@ -732,8 +737,9 @@ const loadClassDetails = async (classId) => {
     emit('class-selected', selectedClass.value)
     
     // 加载类变更历史
-    const changesResponse = await http.get(`/change/findByEntityId/${classId}`)
-    classChanges.value = changesResponse.data || []
+    // 注意：暂时注释掉这个调用，因为我们还没有实现 change 相关的 API
+    // const changesResponse = await http.get(`/change/findByEntityId/${classId}`)
+    // classChanges.value = changesResponse.data || []
   } catch (error) {
     console.error('Failed to load class details:', error)
   }
@@ -899,9 +905,9 @@ const handleAddParent = async () => {
   if (!selectedClass.value || !newParent.value) return
   
   try {
-    await http.post('/class/addParent', {
+    await http.post('/class/addSuperClass', {
       classId: selectedClass.value.id,
-      parentId: newParent.value
+      superClassId: newParent.value
     })
     showAddParentModal.value = false
     newParent.value = ''

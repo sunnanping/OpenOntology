@@ -24,6 +24,7 @@
       :is="currentModuleComponent"
       :project-id="projectId"
       :project-info="projectInfo"
+      :project-data-record="projectDataRecord"
       :user-info="currentUser"
       @class-selected="handleClassSelected"
       @class-created="handleClassCreated"
@@ -33,8 +34,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, defineAsyncComponent, shallowRef } from 'vue'
+import { ref, computed, onMounted, watch, defineAsyncComponent, shallowRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import http from '@/utils/http'
 import SystemMenuBar from '@/components/layout/SystemMenuBar.vue'
 import EntityTabsBar from '@/components/layout/EntityTabsBar.vue'
 
@@ -47,8 +49,10 @@ const projectId = ref(route.params.projectId || route.query.projectId || '1')
 // 状态
 const currentUser = ref({})
 const projectInfo = ref({})
+const projectDataRecord = ref(null)
 const activeTab = ref('classes')
 const currentModule = ref('ClassEditorPanel')
+const isInitialized = ref(false)
 
 // 可用的标签（目前静态加载，后期从后端获取）
 const availableTabs = ref([
@@ -83,8 +87,15 @@ const loadModule = (moduleName) => {
   }
 }
 
-// 初始化
-onMounted(async () => {
+// 初始化函数
+const initializePage = async () => {
+  if (isInitialized.value) {
+    console.log('Page already initialized, skipping...')
+    return
+  }
+  
+  console.log('Initializing page, projectId:', projectId.value)
+  
   // 获取用户信息
   const userStr = localStorage.getItem('user')
   if (userStr) {
@@ -106,31 +117,46 @@ onMounted(async () => {
   }
   
   loadModule(currentModule.value)
+  
+  isInitialized.value = true
+}
+
+// 初始化
+onMounted(async () => {
+  console.log('=== onMounted called ===')
+  console.log('Current projectId:', projectId.value)
+  console.log('Route params:', route.params)
+  console.log('window.history.state:', window.history.state)
+  await initializePage()
 })
+
+// 监听路由变化（处理 projectId 变化的情况）
+watch(() => route.params.projectId, (newProjectId, oldProjectId) => {
+  console.log('=== watch triggered ===')
+  console.log('Old projectId:', oldProjectId)
+  console.log('New projectId:', newProjectId)
+  console.log('Current projectId.value:', projectId.value)
+  if (newProjectId && newProjectId !== projectId.value) {
+    console.log('ProjectId changed, reinitializing...')
+    projectId.value = newProjectId
+    isInitialized.value = false
+    initializePage()
+  }
+}, { immediate: false })
 /**
- * 实现三级数据获取策略：
-- 优先从路由 state 获取（正常跳转场景）
-- 其次从 sessionStorage 获取（新窗口打开场景）
+ * 实现数据获取策略：
+- 优先从 sessionStorage 获取（正常跳转和新窗口打开场景）
 - 最后从 API 查询（后备方案，处理页面刷新等场景）
  */
 // 加载项目信息
 const loadProjectInfo = async () => {
-  // 方案 1: 从路由 state 获取（正常跳转）
-  const navigationState = window.history.state
-  if (navigationState.projectDataRecord) {
-    projectInfo.value = navigationState.projectDataRecord
-    if (navigationState.currentUser) {
-      currentUser.value = navigationState.currentUser
-    }
-    console.log('Loaded project info from router state:', projectInfo.value)
-    return
-  }
-  
-  // 方案 2: 从 sessionStorage 获取（新窗口打开）
+  // 方案 1: 从 sessionStorage 获取
   const cachedProject = sessionStorage.getItem(`project_${projectId.value}`)
   const cachedUser = sessionStorage.getItem('currentUser')
   if (cachedProject) {
-    projectInfo.value = JSON.parse(cachedProject)
+    const projectData = JSON.parse(cachedProject)
+    projectDataRecord.value = projectData
+    projectInfo.value = projectData
     if (cachedUser) {
       currentUser.value = JSON.parse(cachedUser)
     }
@@ -140,14 +166,16 @@ const loadProjectInfo = async () => {
     return
   }
   
-  // 方案 3: 从 API 查询（后备方案，处理页面刷新等场景）
+  // 方案 2: 从 API 查询（后备方案，处理页面刷新等场景）
   try {
-    const http = window.$http
     const response = await http.get(`/ontology/findById/${projectId.value}`)
-    projectInfo.value = response.data || {}
+    const projectData = response.data || {}
+    projectDataRecord.value = projectData
+    projectInfo.value = projectData
     console.log('Loaded project info from API:', projectInfo.value)
   } catch (error) {
     console.error('Failed to load project info:', error)
+    projectDataRecord.value = { name: 'error' }
     projectInfo.value = { name: 'error' }
   }
 }
