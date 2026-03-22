@@ -6,11 +6,11 @@
 
     <groupId>com.by.ontology</groupId>
     <artifactId>openontology</artifactId>
-    <version>1.0.0</version>
+    <version>0.1.9</version>
     <packaging>pom</packaging>
 
     <name>OpenOntology</name>
-    <description>OpenOntology - 基于 Spring Cloud 的本体管理系统</description>
+    <description>OpenOntology - 基于 Spring Cloud 的本体管理系�?/description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>

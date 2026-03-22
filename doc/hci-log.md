@@ -2,7 +2,7 @@
 
 ## 项目信息
 - 项目名称: OpenOntology
-- 项目版本: v0.1.8
+- 项目版本: v0.1.9
 - 项目路径: d:\project\trae\java\OpenOntology
 - 记录时间: 2026-03-20
 
