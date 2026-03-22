@@ -994,3 +994,511 @@ spring:
 |------|------|----------|
 | 2026-03-19 | v1.1 | 新增配置说明章节 |
 | 2026-03-18 | v1.0 | 初始版本，系统架构和微服务模块功能说明 |
+| 2026-03-22 | v1.1 | 添加前端组件架构，三层布局组件，模块化设计 |
+
+---
+
+## 前端组件架构
+
+### 整体架构设计
+
+前端采用组件化架构设计，参考 WebProtege 的 UI/UX 模式，实现了三层布局结构：
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    第一层：系统菜单 (SystemMenuBar)           │
+│  ┌─────────┐ ┌─────────┐ ┌──────────────┐ ┌────────────┐  │
+│  │ 项目Logo │ │  Home   │ │  系统菜单     │ │ 用户/帮助   │  │
+│  └─────────┘ └─────────┘ └──────────────┘ └────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│              第二层：实体类型标签栏 (EntityTabsBar)           │
+│  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐  │
+│  │Class │ │Prop  │ │Ind   │ │Cmt   │ │Chg   │ │His   │  │
+│  └──────┘ └──────┘ └──────┘ └──────┘ └──────┘ └──────┘  │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │                   Add tab                            │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│              第三层：动态模块组件 (Modules)                   │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────────┐   │
+│  │ Class        │ │ Class        │ │ Comments         │   │
+│  │ Hierarchy    │ │ Details      │ │                  │   │
+│  │              │ │              │ │                  │   │
+│  │              │ │              │ ├──────────────────┤   │
+│  │              │ │              │ │ Project Feed     │   │
+│  └──────────────┘ └──────────────┘ └──────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 技术栈
+
+| 技术 | 版本 | 用途 |
+|------|------|------|
+| Vue | 3.x | 前端框架 |
+| Bootstrap | 5.x | UI 组件库 |
+| Element Plus | Latest | UI 组件库（Tree、Scrollbar等） |
+| ECharts | 5.x | 数据可视化（Entity Graph） |
+| Vue Router | 4.x | 路由管理 |
+| Axios | Latest | HTTP 请求 |
+| Vite | 4.x | 构建工具 |
+
+---
+
+### 核心组件
+
+#### 1. LoadOperatePage (容器页面)
+
+**文件路径**：`frontend/src/views/LoadOperatePage.vue`
+
+**功能描述**：
+容器页面，整合三层布局组件，负责动态加载不同的功能模块。根据传入的项目ID和模块类型，加载对应的编辑器组件。
+
+**Props**：
+```javascript
+{
+  projectId: String,      // 项目ID（从路由参数获取）
+  projectInfo: Object,    // 项目信息
+  userInfo: Object,       // 用户信息
+  module: String          // 模块类型（classes、properties、individuals等）
+}
+```
+
+**事件**：
+- `class-selected`: 类被选中
+- `class-created`: 类被创建
+- `class-deleted`: 类被删除
+
+**路由配置**：
+```javascript
+{
+  path: '/operate/:projectId',
+  name: 'LoadOperatePage',
+  component: () => import('../views/LoadOperatePage.vue'),
+  props: true,
+  meta: { requiresAuth: true }
+}
+```
+
+**可用模块**：
+- `ClassEditorPanel`: 类编辑器
+- `PropertyEditorPanel`: 属性编辑器
+- `IndividualEditorPanel`: 实例编辑器
+- `CommentManagerPanel`: 评论管理器
+- `ChangesViewerPanel`: 变更查看器
+- `HistoryViewerPanel`: 历史查看器
+
+---
+
+#### 2. SystemMenuBar (系统菜单)
+
+**文件路径**：`frontend/src/components/layout/SystemMenuBar.vue`
+
+**功能描述**：
+第一层系统菜单组件，提供项目导航、系统功能、用户管理等功能。
+
+**Props**：
+```javascript
+{
+  projectName: String,    // 项目名称（动态传入，替换硬编码的xyz）
+  currentUser: Object,    // 当前用户信息
+  projectInfo: Object     // 项目信息
+}
+```
+
+**主要功能**：
+- 项目Logo和名称显示
+- Home 导航
+- Display 菜单（Theme、Language）
+- Project 菜单（Settings、Share）
+- Share 功能
+- 用户信息下拉菜单（Profile、Logout）
+- Help 菜单（Documentation、About）
+- 移动端响应式菜单
+
+**响应式设计**：
+- 桌面端（≥992px）：完整菜单显示
+- 平板端（768px-992px）：简化菜单显示
+- 移动端（<768px）：汉堡菜单
+
+---
+
+#### 3. EntityTabsBar (实体类型标签栏)
+
+**文件路径**：`frontend/src/components/layout/EntityTabsBar.vue`
+
+**功能描述**：
+第二层实体类型标签栏组件，提供不同类型实体的快速切换。
+
+**Props**：
+```javascript
+{
+  tabs: Array,           // 标签列表
+  activeTab: String      // 当前激活的标签ID
+}
+```
+
+**事件**：
+- `tab-change`: 标签切换
+- `add-tab`: 添加新标签
+
+**默认标签**：
+```javascript
+[
+  { id: 'classes', label: 'Classes', shortLabel: 'Cls', icon: 'bi bi-diagram-3', module: 'ClassEditorPanel' },
+  { id: 'properties', label: 'Properties', shortLabel: 'Prop', icon: 'bi bi-link-45deg', module: 'PropertyEditorPanel' },
+  { id: 'individuals', label: 'Individuals', shortLabel: 'Ind', icon: 'bi bi-people', module: 'IndividualEditorPanel' },
+  { id: 'comments', label: 'Comments', shortLabel: 'Cmt', icon: 'bi bi-chat-left-text', module: 'CommentManagerPanel' },
+  { id: 'changes', label: 'Changes by Entity', shortLabel: 'Chg', icon: 'bi bi-clock-history', module: 'ChangesViewerPanel' },
+  { id: 'history', label: 'History', shortLabel: 'His', icon: 'bi bi-journal-text', module: 'HistoryViewerPanel' }
+]
+```
+
+**特性**：
+- 使用 ElementUI Scrollbar 实现横向滚动
+- 响应式标签显示（桌面端显示完整标签，移动端显示简短标签）
+- 动态标签高亮
+- 支持添加自定义标签
+
+---
+
+#### 4. ClassEditorPanel (类编辑器面板)
+
+**文件路径**：`frontend/src/components/modules/ClassEditorPanel.vue`
+
+**功能描述**：
+第三层类编辑器面板，包含四个可调整大小的子面板：Class Hierarchy、Class Details、Comments、Project Feed。
+
+**Props**：
+```javascript
+{
+  projectId: String,      // 项目ID
+  projectInfo: Object,    // 项目信息
+  userInfo: Object        // 用户信息
+}
+```
+
+**事件**：
+- `class-selected`: 类被选中
+- `class-created`: 类被创建
+- `class-deleted`: 类被删除
+
+**子面板**：
+
+1. **Class Hierarchy 面板**
+   - 显示类层次结构树
+   - 支持创建、删除、搜索类
+   - 使用 ElementUI Tree 组件
+   - 支持过滤功能
+   - 可调整宽度（左右拖拽，无限制）
+
+2. **Class Details 面板**
+   - 显示选中类的详细信息
+   - 包含三个标签页：Details、Entity Graph、Changes
+   - Details 标签：显示类的注释、父类、子类、属性、关系等
+   - Entity Graph 标签：使用 ECharts 显示实体关系图
+   - Changes 标签：显示类的变更历史
+   - 可调整宽度（左右拖拽，无限制）
+
+3. **Comments 面板**
+   - 显示实体评论
+   - 支持添加新评论
+   - 支持过滤功能
+   - 可调整高度（上下拖拽，无限制）
+
+4. **Project Feed 面板**
+   - 显示项目活动记录
+   - 实时更新项目变更
+   - 自动填充剩余空间
+
+**面板调整功能**：
+- 左右拖拽调整 Class Hierarchy 和 Class Details 面板宽度（无最小/最大限制）
+- 左右拖拽调整 Class Details 和右侧面板宽度（无最小/最大限制）
+- 上下拖拽调整 Comments 和 Project Feed 面板高度（无最小/最大限制）
+
+**移动端适配**：
+- 小于 992px 时切换为移动端视图
+- 显示移动端面板切换标签
+- 每次只显示一个面板
+- 支持面板间快速切换
+
+**主要功能**：
+- 创建类（Create Class）
+- 删除类（Delete Class）
+- 搜索类（Search Class）
+- 过滤类（Filter Classes）
+- 查看类详情（View Class Details）
+- 查看实体图（View Entity Graph）
+- 查看变更历史（View Changes）
+- 添加评论（Add Comment）
+- 添加注释（Add Annotation）
+- 添加父类（Add Parent）
+- 添加关系（Add Relationship）
+
+---
+
+#### 5. PropertyEditorPanel (属性编辑器面板)
+
+**文件路径**：`frontend/src/components/modules/PropertyEditorPanel.vue`
+
+**功能描述**：
+属性编辑器面板，用于管理对象属性、数据属性和注释属性。
+
+**状态**：占位组件，待实现
+
+---
+
+#### 6. IndividualEditorPanel (实例编辑器面板)
+
+**文件路径**：`frontend/src/components/modules/IndividualEditorPanel.vue`
+
+**功能描述**：
+实例编辑器面板，用于管理本体实例。
+
+**状态**：占位组件，待实现
+
+---
+
+#### 7. CommentManagerPanel (评论管理面板)
+
+**文件路径**：`frontend/src/components/modules/CommentManagerPanel.vue`
+
+**功能描述**：
+评论管理面板，用于管理和查看所有评论。
+
+**状态**：占位组件，待实现
+
+---
+
+#### 8. ChangesViewerPanel (变更查看面板)
+
+**文件路径**：`frontend/src/components/modules/ChangesViewerPanel.vue`
+
+**功能描述**：
+变更查看面板，用于查看按实体分组的变更历史。
+
+**状态**：占位组件，待实现
+
+---
+
+#### 9. HistoryViewerPanel (历史查看面板)
+
+**文件路径**：`frontend/src/components/modules/HistoryViewerPanel.vue`
+
+**功能描述**：
+历史查看面板，用于查看项目完整历史记录。
+
+**状态**：占位组件，待实现
+
+---
+
+### 路由配置
+
+**文件路径**：`frontend/src/router/index.js`
+
+**主要路由**：
+
+| 路径 | 组件 | 说明 |
+|------|------|------|
+| `/` | Home | 首页 |
+| `/login` | Login | 登录页 |
+| `/projects/list` | ProjectList | 项目列表 |
+| `/operate/:projectId` | LoadOperatePage | 操作页面（容器） |
+| `/class-editor` | ClassEditor | 类编辑器（旧版，已弃用） |
+
+**路由守卫**：
+- `requiresAuth`: 需要登录认证
+- `requiresAdmin`: 需要管理员权限
+
+---
+
+### API 集成
+
+**HTTP 客户端**：
+- 使用 Axios 进行 HTTP 请求
+- 全局配置：`window.$http`
+- 依赖注入：`inject('$http')`
+
+**主要 API 调用**：
+
+| 功能 | 方法 | 路径 |
+|------|------|------|
+| 获取项目信息 | GET | `/api/ontology/findById/{projectId}` |
+| 更新最后打开时间 | PUT | `/api/ontology/update-last-opened/{projectId}` |
+| 获取类层次结构 | GET | `/api/class/hierarchy/{ontologyId}` |
+| 创建类 | POST | `/api/class/create` |
+| 更新类 | PUT | `/api/class/update` |
+| 删除类 | DELETE | `/api/class/delete/{id}` |
+| 获取评论 | GET | `/api/collaboration/comments/{entityId}` |
+| 添加评论 | POST | `/api/collaboration/comments` |
+| 获取项目活动 | GET | `/api/collaboration/activities/{ontologyId}` |
+
+---
+
+### 响应式设计
+
+**断点**：
+- 超大屏（≥1400px）：xl
+- 大屏（≥1200px）：lg
+- 中屏（≥992px）：md
+- 小屏（≥768px）：sm
+- 超小屏（<768px）：xs
+
+**适配策略**：
+1. **系统菜单**：
+   - 桌面端：完整菜单显示
+   - 平板端：简化菜单，隐藏部分文字
+   - 移动端：汉堡菜单，点击展开
+
+2. **实体标签栏**：
+   - 桌面端：显示完整标签名
+   - 平板端：显示完整标签名，支持横向滚动
+   - 移动端：显示简短标签名（3个字符），支持横向滚动
+
+3. **编辑器面板**：
+   - 桌面端：四面板并排显示，支持拖拽调整
+   - 平板端：四面板并排显示，支持拖拽调整
+   - 移动端：单面板显示，顶部标签切换
+
+---
+
+### 样式规范
+
+**颜色主题**：
+- 主色：`#4a90d9`（蓝色）
+- 成功：`#28a745`（绿色）
+- 警告：`#ffc107`（黄色）
+- 危险：`#dc3545`（红色）
+- 信息：`#17a2b8`（青色）
+- 背景：`#f8f9fa`（浅灰）
+- 边框：`#dee2e6`（灰色）
+- 文字：`#212529`（深灰）
+
+**字体**：
+- 系统字体：`-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`
+- 代码字体：`"SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace`
+
+**间距**：
+- 基础间距：8px
+- 小间距：4px
+- 中间距：16px
+- 大间距：24px
+
+**圆角**：
+- 小圆角：4px
+- 中圆角：6px
+- 大圆角：8px
+
+---
+
+### 性能优化
+
+**代码分割**：
+- 使用 Vue Router 的懒加载
+- 使用 `defineAsyncComponent` 动态加载模块组件
+
+**缓存策略**：
+- 使用 Vue 的 `shallowRef` 避免深层响应式
+- 使用 `computed` 缓存计算结果
+
+**渲染优化**：
+- 使用 `v-show` 替代 `v-if` 减少销毁重建
+- 使用 `key` 优化列表渲染
+- 使用 `v-once` 静态内容
+
+**资源优化**：
+- 按需引入 Element Plus 组件
+- 使用 Vite 的 Tree Shaking
+- 图片懒加载
+
+---
+
+### 开发指南
+
+**组件开发流程**：
+1. 在 `frontend/src/components/modules/` 下创建新组件
+2. 在 `LoadOperatePage.vue` 中注册组件
+3. 在 `availableTabs` 中添加标签配置
+4. 在 `moduleComponents` 中添加组件映射
+5. 实现组件的 Props 和 Events
+6. 添加响应式设计
+7. 编写单元测试
+
+**样式开发规范**：
+1. 使用 Scoped CSS 避免样式污染
+2. 使用 Bootstrap 5 的工具类
+3. 遵循 BEM 命名规范
+4. 使用 CSS 变量管理主题色
+5. 添加响应式断点
+
+**调试技巧**：
+1. 使用 Vue DevTools 调试组件
+2. 使用 Chrome DevTools 调试样式
+3. 使用 Network 面板调试 API
+4. 使用 Console 查看错误日志
+
+---
+
+### 已知问题
+
+1. **占位组件未实现**：
+   - PropertyEditorPanel
+   - IndividualEditorPanel
+   - CommentManagerPanel
+   - ChangesViewerPanel
+   - HistoryViewerPanel
+
+2. **动态模块加载**：
+   - 目前使用静态加载，需要改为从后端获取可用模块列表
+   - 需要实现基于权限的模块加载
+
+3. **实时协作**：
+   - WebSocket 连接未实现
+   - 实时评论更新未实现
+   - 实时项目活动更新未实现
+
+4. **Entity Graph**：
+   - ECharts 图表初始化需要优化
+   - 大数据量下的性能需要优化
+
+---
+
+### 未来规划
+
+1. **功能完善**：
+   - 实现所有占位组件
+   - 实现动态模块加载
+   - 实现实时协作功能
+
+2. **性能优化**：
+   - 优化大数据量下的渲染性能
+   - 实现虚拟滚动
+   - 优化 ECharts 图表性能
+
+3. **用户体验**：
+   - 添加快捷键支持
+   - 添加拖拽排序
+   - 添加撤销/重做功能
+
+4. **国际化**：
+   - 实现多语言支持
+   - 集成翻译服务
+
+5. **测试**：
+   - 添加单元测试
+   - 添加集成测试
+   - 添加 E2E 测试
+
+---
+
+## 更新历史
+
+| 日期 | 版本 | 说明 |
+|------|------|------|
+| 2026-03-18 | v1.0 | 初始版本，系统架构和微服务模块功能说明 |
+| 2026-03-22 | v1.1 | 添加前端组件架构，三层布局组件，模块化设计 |

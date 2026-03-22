@@ -116,7 +116,7 @@ const loadProjectInfo = async () => {
     projectInfo.value = response.data || {}
   } catch (error) {
     console.error('Failed to load project info:', error)
-    projectInfo.value = { name: 'xyz' }
+    projectInfo.value = { name: 'error' }
   }
 }
 

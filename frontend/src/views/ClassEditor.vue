@@ -7,8 +7,8 @@
         <div class="menu-left navbar-brand-wrapper">
           <a class="menu-brand navbar-brand" href="#">
             <i class="bi bi-grid-3x3-gap"></i>
-            <span class="project-name d-none d-sm-inline">{{ projectName || 'xyz' }}</span>
-            <span class="project-name d-inline d-sm-none">{{ projectName ? projectName.substring(0, 10) : 'xyz' }}</span>
+            <span class="project-name d-none d-sm-inline">{{ projectName || 'error' }}</span>
+            <span class="project-name d-inline d-sm-none">{{ projectName ? projectName.substring(0, 10) : 'error' }}</span>
           </a>
           <a class="menu-link nav-link" href="#" @click.prevent="goHome">
             <i class="bi bi-house-door"></i> 
@@ -738,7 +738,7 @@ const loadProjectInfo = async () => {
     }
   } catch (error) {
     console.error('Failed to load project info:', error)
-    projectName.value = 'xyz'
+    projectName.value = 'error'
   }
 }
 

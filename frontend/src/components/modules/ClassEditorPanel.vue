@@ -946,7 +946,7 @@ const startResizeLeft = (e) => {
   
   const handleMouseMove = (e) => {
     const deltaX = e.clientX - startX
-    leftPanelWidth.value = startWidth + deltaX
+    leftPanelWidth.value = Math.max(150, startWidth + deltaX)
   }
   
   const handleMouseUp = () => {
@@ -964,7 +964,7 @@ const startResizeMiddle = (e) => {
   
   const handleMouseMove = (e) => {
     const deltaX = e.clientX - startX
-    middlePanelWidth.value = startWidth + deltaX
+    middlePanelWidth.value = Math.max(250, startWidth + deltaX)
   }
   
   const handleMouseUp = () => {
@@ -982,7 +982,7 @@ const startResize = (e) => {
   
   const handleMouseMove = (e) => {
     const deltaY = e.clientY - startY
-    commentsHeight.value = startHeight + deltaY
+    commentsHeight.value = Math.max(100, startHeight + deltaY)
   }
   
   const handleMouseUp = () => {
