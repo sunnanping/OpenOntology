@@ -86,6 +86,10 @@
             @node-expand="handleNodeExpand"
             @node-collapse="handleNodeCollapse"
             @node-contextmenu="handleNodeContextMenu"
+            :draggable="true"
+            :allow-drop="allowDrop"
+            :allow-drag="allowDrag"
+            @node-drop="handleNodeDrop"
             node-key="id"
             default-expand-all
             highlight-current
@@ -1080,6 +1084,9 @@ const watchOption = ref('none')
 // 剪枝状态
 const prunedNodes = ref([])
 
+// 拖拽相关状态
+const draggingNode = ref(null)
+
 // 表单数据
 const createClassForm = ref({
   name: '',
@@ -1214,14 +1221,51 @@ const loadClassHierarchy = async () => {
   }
 }
 
-// 构建树形数据
+// 构建树形数据 - 将扁平化的类数据转换为嵌套的树形结构
 const buildTreeData = (classes) => {
   if (!classes || classes.length === 0) {
     const defaultRoot = [{ id: 'owl:Thing', name: 'owl:Thing', children: [] }]
-    classHierarchy.value = defaultRoot
     return defaultRoot
   }
-  return classes
+  
+  // 创建类ID到类对象的映射
+  const classMap = new Map()
+  classes.forEach(cls => {
+    classMap.set(cls.id, {
+      ...cls,
+      children: []
+    })
+  })
+  
+  // 构建树形结构
+  const roots = []
+  
+  classes.forEach(cls => {
+    const node = classMap.get(cls.id)
+    
+    // 检查是否有父类
+    if (cls.superClasses && cls.superClasses.length > 0) {
+      const parentId = cls.superClasses[0]
+      const parentNode = classMap.get(parentId)
+      
+      if (parentNode) {
+        parentNode.children.push(node)
+      } else {
+        // 父类不存在，作为根节点
+        roots.push(node)
+      }
+    } else {
+      // 没有父类，作为根节点
+      roots.push(node)
+    }
+  })
+  
+  // 如果没有根节点，添加默认的owl:Thing
+  if (roots.length === 0) {
+    return [{ id: 'owl:Thing', name: 'owl:Thing', children: [] }]
+  }
+  
+  return roots
 }
 
 // 加载评论
@@ -1888,6 +1932,107 @@ const startResize = (e) => {
 const formatDate = (date) => {
   if (!date) return ''
   return new Date(date).toLocaleString()
+}
+
+// 允许拖拽
+const allowDrag = (draggingNode) => {
+  // 不允许拖拽根节点 owl:Thing
+  return draggingNode.data.id !== 'owl:Thing'
+}
+
+// 允许放置
+const allowDrop = (draggingNode, dropNode, type) => {
+  // 只能作为子节点放置，不允许作为前一个或后一个兄弟节点
+  if (type !== 'inner') {
+    return false
+  }
+  
+  // 不能放置到自己身上
+  if (draggingNode.data.id === dropNode.data.id) {
+    return false
+  }
+  
+  // 检查循环依赖
+  if (checkCycleDependency(draggingNode.data, dropNode.data)) {
+    return false
+  }
+  
+  return true
+}
+
+// 检查循环依赖 - 从整个树中检查目标是否是拖拽节点的后代
+const checkCycleDependency = (draggingNodeData, targetNodeData) => {
+  // 递归查找节点
+  const findNodeById = (nodes, id) => {
+    for (const node of nodes) {
+      if (node.id === id) {
+        return node
+      }
+      if (node.children && node.children.length > 0) {
+        const found = findNodeById(node.children, id)
+        if (found) {
+          return found
+        }
+      }
+    }
+    return null
+  }
+  
+  // 检查是否是后代
+  const isDescendant = (parent, targetId) => {
+    if (!parent.children || parent.children.length === 0) {
+      return false
+    }
+    for (const child of parent.children) {
+      if (child.id === targetId) {
+        return true
+      }
+      if (isDescendant(child, targetId)) {
+        return true
+      }
+    }
+    return false
+  }
+  
+  // 在整个树中找到拖拽节点的完整结构
+  const fullDraggingNode = findNodeById(treeData.value, draggingNodeData.id)
+  
+  if (!fullDraggingNode) {
+    return false
+  }
+  
+  // 检查目标节点是否是拖拽节点的后代
+  return isDescendant(fullDraggingNode, targetNodeData.id)
+}
+
+// 处理节点放置
+const handleNodeDrop = async (draggingNode, dropNode, dropType, event) => {
+  if (dropType !== 'inner') {
+    return
+  }
+  
+  try {
+    const ontologyId = props.projectDataRecord?.id || props.projectId
+    await http.post('/class/move', {
+      classId: draggingNode.data.id,
+      newParentId: dropNode.data.id,
+      ontologyId: ontologyId
+    })
+    
+    // 重新加载类层次结构
+    await loadClassHierarchy()
+    
+    // 选中被移动的节点
+    handleNodeClick(draggingNode.data)
+    
+    alert(`Class "${draggingNode.data.name}" moved successfully`)
+  } catch (error) {
+    console.error('Failed to move class:', error)
+    alert('Failed to move class')
+    
+    // 失败时重新加载以恢复原状
+    await loadClassHierarchy()
+  }
 }
 
 // 初始化ECharts
@@ -2691,5 +2836,28 @@ const initGraph = () => {
 
 .search-result-item:last-child {
   border-bottom: none;
+}
+
+/* Tree拖拽样式 */
+:deep(.el-tree--highlight-current .el-tree-node.is-current > .el-tree-node__content) {
+  background-color: #4a90d9;
+  color: white;
+}
+
+:deep(.el-tree-node__content.is-drop-inner) {
+  background-color: rgba(74, 144, 217, 0.2) !important;
+}
+
+:deep(.el-tree-node__content.is-drop-prev),
+:deep(.el-tree-node__content.is-drop-next) {
+  background-color: rgba(74, 144, 217, 0.1) !important;
+}
+
+:deep(.el-tree-draggable .el-tree-node__content) {
+  cursor: move;
+}
+
+:deep(.el-tree-draggable .el-tree-node__content:hover) {
+  background-color: #f0f0f0;
 }
 </style>
