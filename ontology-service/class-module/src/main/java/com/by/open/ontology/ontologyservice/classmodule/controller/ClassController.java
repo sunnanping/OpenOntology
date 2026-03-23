@@ -114,4 +114,10 @@ public class ClassController {
         classService.mergeClasses(request.getSourceId(), request.getTargetId());
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Class>> searchClasses(@RequestParam String query, @RequestParam String projectId) {
+        List<Class> classes = classService.searchClasses(query, projectId);
+        return ResponseEntity.ok(classes);
+    }
 }

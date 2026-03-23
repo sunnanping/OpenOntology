@@ -174,11 +174,12 @@
                     <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="1.5"/>
                   </svg>
                 </button>
+                <!-- :disabled="!selectedClass || selectedClass.id === 'owl:Thing'" -->
                 <button 
                   class="panel-btn" 
                   title="Delete selected class" 
                   @click="deleteSelectedClass"
-                  :disabled="!selectedClass || selectedClass.id === 'owl:Thing'"
+                  :disabled="!selectedClass"
                 >
                   <svg class="wp-icon" viewBox="0 0 24 24" width="14" height="14">
                     <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
@@ -752,7 +753,7 @@ const loadClassHierarchy = async () => {
     // 提取所有类
     allClasses.value = extractAllClasses(classHierarchy.value)
     
-    // 默认选中 owl:Thing
+    // 默认选中 owl:Thing ,首先判断是不是根节点即root节点
     const rootClass = findClassById(classHierarchy.value, 'owl:Thing')
     if (rootClass) {
       selectedClass.value = rootClass
@@ -926,7 +927,8 @@ const createClass = async () => {
 
 // 删除选中的类
 const deleteSelectedClass = async () => {
-  if (!selectedClass.value || selectedClass.value.id === 'owl:Thing') return
+  //if (!selectedClass.value || selectedClass.value.id === 'owl:Thing') return
+  if (!selectedClass.value ) return
   
   if (!confirm(`Are you sure you want to delete "${selectedClass.value.label}"?`)) return
   

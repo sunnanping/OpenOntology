@@ -187,4 +187,11 @@ public class ClassService {
             classRepository.deleteById(sourceId);
         }
     }
+
+    public List<Class> searchClasses(String query, String projectId) {
+        List<Class> classes = classRepository.findByOntologyId(projectId);
+        return classes.stream()
+                .filter(cls -> cls.getName().toLowerCase().contains(query.toLowerCase()))
+                .collect(java.util.stream.Collectors.toList());
+    }
 }

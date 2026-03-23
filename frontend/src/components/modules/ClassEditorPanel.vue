@@ -617,19 +617,87 @@
       <div class="modal-dialog modal-sm">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Move Class - {{ contextMenuNode?.name }}</h5>
+            <h5 class="modal-title">Move</h5>
             <button type="button" class="btn-close" @click="showMoveModal = false"></button>
           </div>
           <div class="modal-body">
             <form @submit.prevent="handleMoveClass">
               <div class="mb-3">
-                <label class="form-label">Select New Parent</label>
-                <select class="form-select form-select-sm" v-model="moveTargetParent" required>
-                  <option value="owl:Thing">owl:Thing (Root)</option>
-                  <option v-for="cls in availableMoveTargets" :key="cls.id" :value="cls.id">
+                <label class="form-label">New parent</label>
+                <div class="input-group input-group-sm mb-2">
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    title="Classes"
+                    @click="showClassesList"
+                  >
+                    <i class="bi bi-diagram-3"></i>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    title="Move up"
+                    @click="moveSelectionUp"
+                  >
+                    <i class="bi bi-arrow-up"></i>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    title="Move down"
+                    @click="moveSelectionDown"
+                  >
+                    <i class="bi bi-arrow-down"></i>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    title="Refresh"
+                    @click="refreshClassesList"
+                  >
+                    <i class="bi bi-arrow-clockwise"></i>
+                  </button>
+                </div>
+                <div class="input-group input-group-sm">
+                  <input 
+                    type="text" 
+                    class="form-control form-control-sm" 
+                    v-model="moveTargetParent" 
+                    placeholder="Type in a class name" 
+                    required
+                    @input="searchClassesForMove"
+                  >
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    title="Clear"
+                    @click="clearMoveSearch"
+                  >
+                    <i class="bi bi-x"></i>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    title="Search"
+                    @click="searchClassesForMove"
+                  >
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+                <div class="form-text mt-1">
+                  Specify the class that should be the new parent. The selected classes will be moved from their current parent to this new parent.
+                </div>
+                <!-- 搜索结果下拉 -->
+                <div class="search-results" v-if="moveSearchResults.length > 0">
+                  <div 
+                    v-for="cls in moveSearchResults" 
+                    :key="cls.id" 
+                    class="search-result-item"
+                    @click="selectMoveTarget(cls)"
+                  >
                     {{ cls.name }}
-                  </option>
-                </select>
+                  </div>
+                </div>
               </div>
               <div class="d-flex justify-content-end gap-2">
                 <button type="button" class="btn btn-secondary btn-sm" @click="showMoveModal = false">Cancel</button>
@@ -643,29 +711,106 @@
 
     <!-- Merge Modal -->
     <div class="modal fade" :class="{ 'show': showMergeModal }" tabindex="-1" v-if="showMergeModal">
-      <div class="modal-dialog modal-sm">
+      <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Merge Into - {{ contextMenuNode?.name }}</h5>
+            <h5 class="modal-title">Merge Entities</h5>
             <button type="button" class="btn-close" @click="showMergeModal = false"></button>
           </div>
           <div class="modal-body">
             <form @submit.prevent="handleMergeClass">
-              <div class="mb-3">
-                <label class="form-label">Select Target Class</label>
-                <select class="form-select form-select-sm" v-model="mergeTarget" required>
-                  <option v-for="cls in availableMergeTargets" :key="cls.id" :value="cls.id">
-                    {{ cls.name }}
-                  </option>
-                </select>
+              <div class="mb-4">
+                <p class="text-sm">
+                  This action will merges the selected entities into a target entity. This will replace usages of the selected entities with the target entity and will transfer annotations and relationships from the merged entities to the target entity. To continue, specify the entity that you want to merge into.
+                </p>
               </div>
-              <div class="alert alert-warning alert-sm">
-                <i class="bi bi-exclamation-triangle"></i>
-                This will merge "{{ contextMenuNode?.name }}" into the selected class.
+              <div class="mb-3">
+                <label class="form-label">Target</label>
+                <div class="input-group input-group-sm mb-2">
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    title="Classes"
+                    @click="toggleMergeClassesTree"
+                  >
+                    <i class="bi bi-diagram-3"></i>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    title="Move up"
+                    @click="moveMergeSelectionUp"
+                  >
+                    <i class="bi bi-arrow-up"></i>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    title="Move down"
+                    @click="moveMergeSelectionDown"
+                  >
+                    <i class="bi bi-arrow-down"></i>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    title="Refresh"
+                    @click="refreshMergeClassesList"
+                  >
+                    <i class="bi bi-arrow-clockwise"></i>
+                  </button>
+                </div>
+                <!-- Classes Tree -->
+                <div class="classes-tree" v-if="showMergeClassesTreeFlag" style="border: 1px solid #ced4da; border-radius: 0.25rem; max-height: 200px; overflow-y: auto; margin-top: 8px;">
+                  <el-tree
+                    :data="classHierarchy"
+                    node-key="id"
+                    :props="treeProps"
+                    @node-click="handleMergeTreeNodeClick"
+                    default-expand-all
+                  />
+                </div>
+                <div class="input-group input-group-sm">
+                  <input 
+                    type="text" 
+                    class="form-control form-control-sm" 
+                    v-model="mergeTargetParent" 
+                    placeholder="Type in a class name" 
+                    required
+                    @input="searchClassesForMerge"
+                  >
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    title="Clear"
+                    @click="clearMergeSearch"
+                  >
+                    <i class="bi bi-x"></i>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    title="Search"
+                    @click="searchClassesForMerge"
+                  >
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+                <!-- 搜索结果下拉 -->
+                <div class="search-results" v-if="mergeSearchResults.length > 0">
+                  <div 
+                    v-for="cls in mergeSearchResults" 
+                    :key="cls.id" 
+                    class="search-result-item"
+                    @click="selectMergeTarget(cls)"
+                  >
+                    {{ cls.name }}
+                  </div>
+                </div>
               </div>
               <div class="d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-secondary btn-sm" @click="showMergeModal = false">Cancel</button>
-                <button type="submit" class="btn btn-danger btn-sm">Merge</button>
+                <button type="button" class="btn btn-secondary" @click="showMergeModal = false">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="background-color: #7b1fa2; border-color: #7b1fa2;">Merge Entities</button>
               </div>
             </form>
           </div>
@@ -777,6 +922,60 @@
         </div>
       </div>
     </div>
+
+    <!-- Direct Link Modal -->
+    <div class="modal fade" :class="{ 'show': showDirectLinkModal }" tabindex="-1" v-if="showDirectLinkModal">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Direct Link</h5>
+            <button type="button" class="btn-close" @click="showDirectLinkModal = false"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Link</label>
+              <input type="text" class="form-control form-control-sm" v-model="directLink" readonly>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary btn-sm" @click="copyDirectLink">Copy</button>
+            <button type="button" class="btn btn-secondary btn-sm" @click="showDirectLinkModal = false">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Watch Modal -->
+    <div class="modal fade" :class="{ 'show': showWatchModal }" tabindex="-1" v-if="showWatchModal">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Watches</h5>
+            <button type="button" class="btn-close" @click="showWatchModal = false"></button>
+          </div>
+          <div class="modal-body">
+            <div class="watch-options">
+              <div class="watch-option">
+                <input type="radio" id="watch-none" v-model="watchOption" value="none">
+                <label for="watch-none">None</label>
+              </div>
+              <div class="watch-option">
+                <input type="radio" id="watch-entity" v-model="watchOption" value="entity">
+                <label for="watch-entity">Entity</label>
+              </div>
+              <div class="watch-option">
+                <input type="radio" id="watch-branch" v-model="watchOption" value="branch">
+                <label for="watch-branch">Branch</label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" @click="showWatchModal = false">Cancel</button>
+            <button type="button" class="btn btn-primary btn-sm" @click="handleWatchSubmit">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -869,6 +1068,14 @@ const showMoveModal = ref(false)
 const showMergeModal = ref(false)
 const showSetAnnotationModal = ref(false)
 const showEditAnnotationsModal = ref(false)
+const showDirectLinkModal = ref(false)
+const showWatchModal = ref(false)
+
+// Direct Link相关
+const directLink = ref('')
+
+// Watch相关
+const watchOption = ref('none')
 
 // 剪枝状态
 const prunedNodes = ref([])
@@ -902,17 +1109,13 @@ const newTag = ref('')
 
 // Move相关
 const moveTargetParent = ref('')
+const moveSearchResults = ref([])
 const availableMoveTargets = computed(() => {
   if (!contextMenuNode.value) return classHierarchy.value
   return classHierarchy.value.filter(c => c.id !== contextMenuNode.value.id)
 })
 
-// Merge相关
-const mergeTarget = ref('')
-const availableMergeTargets = computed(() => {
-  if (!contextMenuNode.value) return classHierarchy.value
-  return classHierarchy.value.filter(c => c.id !== contextMenuNode.value.id)
-})
+
 
 // Set Annotation相关
 const setAnnotationForm = ref({
@@ -996,7 +1199,7 @@ const loadClassHierarchy = async () => {
   } catch (error) {
     console.error('Failed to load class hierarchy:', error)
     // 使用模拟数据
-    treeData.value = [
+    const mockData = [
       {
         id: 'owl:Thing',
         name: 'owl:Thing',
@@ -1006,13 +1209,17 @@ const loadClassHierarchy = async () => {
         ]
       }
     ]
+    classHierarchy.value = mockData
+    treeData.value = mockData
   }
 }
 
 // 构建树形数据
 const buildTreeData = (classes) => {
   if (!classes || classes.length === 0) {
-    return [{ id: 'owl:Thing', name: 'owl:Thing', children: [] }]
+    const defaultRoot = [{ id: 'owl:Thing', name: 'owl:Thing', children: [] }]
+    classHierarchy.value = defaultRoot
+    return defaultRoot
   }
   return classes
 }
@@ -1114,7 +1321,7 @@ const handleContextMenuAction = (action) => {
       showEditAnnotationsModal.value = true
       break
     case 'watch':
-      handleWatchClass()
+      showWatchModal.value = true
       break
     case 'pruneBranch':
       handlePruneBranch()
@@ -1129,8 +1336,8 @@ const handleContextMenuAction = (action) => {
       alert(`IRI: ${contextMenuNode.value?.iri || `http://www.w3.org/2002/07/owl#${contextMenuNode.value?.name}`}`)
       break
     case 'showDirectLink':
-      const iri = contextMenuNode.value?.iri || `http://www.w3.org/2002/07/owl#${contextMenuNode.value?.name}`
-      window.open(iri, '_blank')
+      generateDirectLink()
+      showDirectLinkModal.value = true
       break
     case 'refreshTree':
       loadClassHierarchy()
@@ -1194,7 +1401,7 @@ const handleMoveClass = async () => {
   if (!contextMenuNode.value || !moveTargetParent.value) return
   
   try {
-    await http.post('/class/move', {
+    await http.post('/api/class/move', {
       classId: contextMenuNode.value.id,
       newParentId: moveTargetParent.value
     })
@@ -1210,15 +1417,16 @@ const handleMoveClass = async () => {
 
 // Merge功能
 const handleMergeClass = async () => {
-  if (!contextMenuNode.value || !mergeTarget.value) return
+  if (!contextMenuNode.value || !mergeTargetParent.value) return
   
   try {
-    await http.post('/class/merge', {
+    await http.post('/api/class/merge', {
       sourceId: contextMenuNode.value.id,
-      targetId: mergeTarget.value
+      targetId: mergeTargetParent.value
     })
     showMergeModal.value = false
-    mergeTarget.value = ''
+    mergeTargetParent.value = ''
+    mergeSearchResults.value = []
     await loadClassHierarchy()
     alert(`Classes merged successfully`)
   } catch (error) {
@@ -1313,6 +1521,122 @@ const searchClasses = async () => {
     console.log('Search results:', response.data)
   } catch (error) {
     console.error('Failed to search classes:', error)
+  }
+}
+
+// Move搜索类
+const searchClassesForMove = async () => {
+  if (!moveTargetParent.value) {
+    moveSearchResults.value = []
+    return
+  }
+  
+  try {
+    const response = await http.get(`/api/class/search`, {
+      params: { query: moveTargetParent.value, projectId: props.projectId }
+    })
+    moveSearchResults.value = response.data || []
+  } catch (error) {
+    console.error('Failed to search classes for move:', error)
+    moveSearchResults.value = []
+  }
+}
+
+// 清除Move搜索
+const clearMoveSearch = () => {
+  moveTargetParent.value = ''
+  moveSearchResults.value = []
+}
+
+// 选择Move目标
+const selectMoveTarget = (cls) => {
+  moveTargetParent.value = cls.id
+  moveSearchResults.value = []
+}
+
+// 显示类列表
+const showClassesList = async () => {
+  try {
+    const response = await http.get(`/api/class/findByOntologyId/${props.projectId}`)
+    moveSearchResults.value = response.data || []
+  } catch (error) {
+    console.error('Failed to load classes list:', error)
+    moveSearchResults.value = []
+  }
+}
+
+// 上移选择
+const moveSelectionUp = () => {
+  // 实现上移逻辑
+  console.log('Move selection up')
+}
+
+// 下移选择
+const moveSelectionDown = () => {
+  // 实现下移逻辑
+  console.log('Move selection down')
+}
+
+// 刷新类列表
+const refreshClassesList = async () => {
+  await showClassesList()
+}
+
+// Merge相关变量
+const mergeTargetParent = ref('')
+const mergeSearchResults = ref([])
+const showMergeClassesTreeFlag = ref(false)
+
+// 显示Merge类列表
+const showMergeClassesList = async () => {
+  try {
+    const response = await http.get(`/api/class/findByOntologyId/${props.projectId}`)
+    mergeSearchResults.value = response.data || []
+  } catch (error) {
+    console.error('Failed to load classes list:', error)
+    mergeSearchResults.value = []
+  }
+}
+
+// 上移Merge选择
+const moveMergeSelectionUp = () => {
+  // 实现上移逻辑
+  console.log('Move merge selection up')
+}
+
+// 下移Merge选择
+const moveMergeSelectionDown = () => {
+  // 实现下移逻辑
+  console.log('Move merge selection down')
+}
+
+// 刷新Merge类列表
+const refreshMergeClassesList = async () => {
+  await showMergeClassesList()
+}
+
+// 清除Merge搜索
+const clearMergeSearch = () => {
+  mergeTargetParent.value = ''
+  mergeSearchResults.value = []
+}
+
+// 选择Merge目标
+const selectMergeTarget = (cls) => {
+  mergeTargetParent.value = cls.id
+  mergeSearchResults.value = []
+}
+
+// 切换Merge类树显示
+const toggleMergeClassesTree = () => {
+  showMergeClassesTreeFlag.value = !showMergeClassesTreeFlag.value
+}
+
+// 处理Merge树节点点击
+const handleMergeTreeNodeClick = (node) => {
+  if (node.id !== contextMenuNode.value?.id) {
+    mergeTargetParent.value = node.id
+    showMergeClassesTreeFlag.value = false
   }
 }
 
@@ -1417,6 +1741,45 @@ const handleAddAnnotation = async () => {
 const removeParent = async (index) => {
   if (!selectedClass.value) return
   console.log('Remove parent at index:', index)
+}
+
+// 生成Direct Link
+const generateDirectLink = () => {
+  if (!contextMenuNode.value) return
+  const projectId = props.projectId
+  const classId = contextMenuNode.value.id
+  // 参考WebProtege的链接格式
+  directLink.value = `${window.location.origin}/#projects/${projectId}/edit/Classes?selection=Class(${classId})`
+}
+
+// 复制Direct Link到剪贴板
+const copyDirectLink = async () => {
+  try {
+    await navigator.clipboard.writeText(directLink.value)
+    alert('Link copied to clipboard')
+  } catch (error) {
+    console.error('Failed to copy link:', error)
+    alert('Failed to copy link')
+  }
+}
+
+// 处理Watch提交
+const handleWatchSubmit = async () => {
+  if (!contextMenuNode.value) return
+  
+  try {
+    await http.post('/watch/set', {
+      entityId: contextMenuNode.value.id,
+      entityType: 'CLASS',
+      watchType: watchOption.value
+    })
+    showWatchModal.value = false
+    watchOption.value = 'none'
+    alert(`Watch set to ${watchOption.value} for class: ${contextMenuNode.value.name}`)
+  } catch (error) {
+    console.error('Failed to set watch:', error)
+    alert('Failed to set watch')
+  }
 }
 
 // 添加父类
@@ -2299,5 +2662,34 @@ const initGraph = () => {
     padding: 4px 8px;
     font-size: 10px;
   }
+}
+
+/* Move Modal Search Results */
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ced4da;
+  border-radius: 0 0 0.25rem 0.25rem;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.search-result-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.search-result-item:hover {
+  background-color: #f8f9fa;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
 }
 </style>
