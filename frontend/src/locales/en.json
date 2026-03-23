@@ -132,7 +132,76 @@
     "addAnnotation": "Add Annotation",
     "translations": "Translations",
     "label": "Label",
-    "comment": "Comment"
+    "comment": "Comment",
+    "classNames": "Class names",
+    "languageTag": "Language Tag",
+    "classNameMissing": "Class name missing",
+    "invalidLanguageTag": "The language tag \"{tag}\" is not valid. Please refer to the list of valid language tags.",
+    "contextMenu": {
+      "create": "Create",
+      "delete": "Delete",
+      "tags": "Tags...",
+      "move": "Move...",
+      "mergeInto": "Merge Into...",
+      "setAnnotationValue": "Set annotation value...",
+      "editAnnotations": "Edit annotations...",
+      "watch": "Watch...",
+      "pruneBranch": "Prune branch to root",
+      "pruneAllBranches": "Prune all branches to root",
+      "clearPruning": "Clear pruning",
+      "showIri": "Show IRI",
+      "showDirectLink": "Show Direct Link",
+      "refreshTree": "Refresh Tree"
+    },
+    "deleteConfirm": {
+      "title": "Delete Class",
+      "message": "Are you sure you want to delete the class \"{className}\"?",
+      "warning": "This action cannot be undone.",
+      "confirmButton": "Delete",
+      "cancelButton": "Cancel"
+    },
+    "tagsModal": {
+      "title": "Manage Tags",
+      "currentTags": "Current Tags",
+      "noTags": "No tags",
+      "addNewTag": "Add New Tag",
+      "placeholder": "Enter tag name"
+    },
+    "moveModal": {
+      "title": "Move Class",
+      "currentParent": "Current Parent",
+      "newParent": "New Parent",
+      "placeholder": "Search for parent class...",
+      "moveButton": "Move",
+      "cancelButton": "Cancel"
+    },
+    "mergeModal": {
+      "title": "Merge Classes",
+      "sourceClass": "Source Class",
+      "targetClass": "Target Class",
+      "placeholder": "Search for target class...",
+      "warning": "The source class will be deleted and all its properties will be merged into the target class.",
+      "mergeButton": "Merge",
+      "cancelButton": "Cancel"
+    },
+    "setAnnotationModal": {
+      "title": "Set Annotation Value",
+      "property": "Property",
+      "language": "Language",
+      "value": "Value",
+      "placeholder": "Enter annotation value...",
+      "setButton": "Set",
+      "cancelButton": "Cancel"
+    },
+    "editAnnotationsModal": {
+      "title": "Edit Annotations",
+      "property": "Property",
+      "language": "Language",
+      "value": "Value",
+      "addAnnotation": "Add Annotation",
+      "saveButton": "Save",
+      "cancelButton": "Cancel"
+    }
   },
   "property": {
     "title": "Property Management",

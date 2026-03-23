@@ -5,6 +5,7 @@ import com.by.open.ontology.ontologyservice.classmodule.repository.ClassReposito
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -91,6 +92,99 @@ public class ClassService {
         if (classEntity != null) {
             classEntity.getIndividuals().add(individualId);
             classRepository.save(classEntity);
+        }
+    }
+
+    public void moveClass(String classId, String newParentId) {
+        Class classEntity = classRepository.findById(classId).orElse(null);
+        if (classEntity != null) {
+            // Remove from old parent
+            List<String> superClasses = classEntity.getSuperClasses();
+            if (superClasses != null && !superClasses.isEmpty()) {
+                String oldParentId = superClasses.get(0);
+                Class oldParent = classRepository.findById(oldParentId).orElse(null);
+                if (oldParent != null && oldParent.getSubClasses() != null) {
+                    oldParent.getSubClasses().remove(classId);
+                    classRepository.save(oldParent);
+                }
+            }
+            
+            // Add to new parent
+            Class newParent = classRepository.findById(newParentId).orElse(null);
+            if (newParent != null) {
+                if (newParent.getSubClasses() == null) {
+                    newParent.setSubClasses(new ArrayList<>());
+                }
+                newParent.getSubClasses().add(classId);
+                classRepository.save(newParent);
+            }
+            
+            // Update class superClasses
+            if (classEntity.getSuperClasses() == null) {
+                classEntity.setSuperClasses(new ArrayList<>());
+            } else {
+                classEntity.getSuperClasses().clear();
+            }
+            classEntity.getSuperClasses().add(newParentId);
+            classEntity.setLastModifiedDate(new Date());
+            classRepository.save(classEntity);
+        }
+    }
+
+    public void mergeClasses(String sourceId, String targetId) {
+        Class sourceClass = classRepository.findById(sourceId).orElse(null);
+        Class targetClass = classRepository.findById(targetId).orElse(null);
+        
+        if (sourceClass != null && targetClass != null) {
+            // Merge properties
+            if (sourceClass.getProperties() != null) {
+                if (targetClass.getProperties() == null) {
+                    targetClass.setProperties(new ArrayList<>());
+                }
+                targetClass.getProperties().addAll(sourceClass.getProperties());
+            }
+            
+            // Merge individuals
+            if (sourceClass.getIndividuals() != null) {
+                if (targetClass.getIndividuals() == null) {
+                    targetClass.setIndividuals(new ArrayList<>());
+                }
+                targetClass.getIndividuals().addAll(sourceClass.getIndividuals());
+            }
+            
+            // Merge subClasses
+            if (sourceClass.getSubClasses() != null) {
+                if (targetClass.getSubClasses() == null) {
+                    targetClass.setSubClasses(new ArrayList<>());
+                }
+                targetClass.getSubClasses().addAll(sourceClass.getSubClasses());
+                
+                // Update subClasses' superClass reference
+                for (String subClassId : sourceClass.getSubClasses()) {
+                    Class subClass = classRepository.findById(subClassId).orElse(null);
+                    if (subClass != null && subClass.getSuperClasses() != null) {
+                        subClass.getSuperClasses().remove(sourceId);
+                        subClass.getSuperClasses().add(targetId);
+                        classRepository.save(subClass);
+                    }
+                }
+            }
+            
+            targetClass.setLastModifiedDate(new Date());
+            classRepository.save(targetClass);
+            
+            // Remove source class from its parent's subClasses
+            if (sourceClass.getSuperClasses() != null && !sourceClass.getSuperClasses().isEmpty()) {
+                String parentId = sourceClass.getSuperClasses().get(0);
+                Class parent = classRepository.findById(parentId).orElse(null);
+                if (parent != null && parent.getSubClasses() != null) {
+                    parent.getSubClasses().remove(sourceId);
+                    classRepository.save(parent);
+                }
+            }
+            
+            // Delete source class
+            classRepository.deleteById(sourceId);
         }
     }
 }

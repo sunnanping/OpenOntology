@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ontology-service</artifactId>
         <groupId>com.by.ontology</groupId>
-        <version>0.1.10</version>
+        <version>0.1.9</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -17,47 +17,47 @@
         <dependency>
             <groupId>com.by.ontology</groupId>
             <artifactId>ontology-service-core</artifactId>
-            <version>0.1.10</version>
+            <version>0.1.9</version>
         </dependency>
         <dependency>
             <groupId>com.by.ontology</groupId>
             <artifactId>project-module</artifactId>
-            <version>0.1.10</version>
+            <version>0.1.9</version>
         </dependency>
         <dependency>
             <groupId>com.by.ontology</groupId>
             <artifactId>class-module</artifactId>
-            <version>0.1.10</version>
+            <version>0.1.9</version>
         </dependency>
         <dependency>
             <groupId>com.by.ontology</groupId>
             <artifactId>property-module</artifactId>
-            <version>0.1.10</version>
+            <version>0.1.9</version>
         </dependency>
         <dependency>
             <groupId>com.by.ontology</groupId>
             <artifactId>individual-module</artifactId>
-            <version>0.1.10</version>
+            <version>0.1.9</version>
         </dependency>
         <dependency>
             <groupId>com.by.ontology</groupId>
             <artifactId>instance-module</artifactId>
-            <version>0.1.10</version>
+            <version>0.1.9</version>
         </dependency>
         <dependency>
             <groupId>com.by.ontology</groupId>
             <artifactId>version-module</artifactId>
-            <version>0.1.10</version>
+            <version>0.1.9</version>
         </dependency>
         <dependency>
             <groupId>com.by.ontology</groupId>
             <artifactId>reasoning-module</artifactId>
-            <version>0.1.10</version>
+            <version>0.1.9</version>
         </dependency>
         <dependency>
             <groupId>com.by.ontology</groupId>
             <artifactId>search-module</artifactId>
-            <version>0.1.10</version>
+            <version>0.1.9</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

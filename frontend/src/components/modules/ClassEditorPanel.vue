@@ -85,17 +85,89 @@
             @node-click="handleNodeClick"
             @node-expand="handleNodeExpand"
             @node-collapse="handleNodeCollapse"
+            @node-contextmenu="handleNodeContextMenu"
             node-key="id"
             default-expand-all
             highlight-current
           >
             <template #default="{ node, data }">
-              <span class="tree-node" :class="{ 'selected': selectedClass?.id === data.id }">
+              <span 
+                class="tree-node" 
+                :class="{ 'selected': selectedClass?.id === data.id }"
+              >
                 <i class="bi bi-circle-fill node-icon"></i>
                 <span class="node-label">{{ data.name }}</span>
               </span>
             </template>
           </el-tree>
+        </div>
+
+        <!-- Context Menu -->
+        <div 
+          v-if="showContextMenu" 
+          class="context-menu" 
+          :style="{ left: contextMenuPosition.x + 'px', top: contextMenuPosition.y + 'px' }"
+        >
+          <div class="context-menu-item" @click="handleContextMenuAction('create')">
+            <i class="bi bi-plus-circle"></i>
+            <span>Create</span>
+          </div>
+          <div class="context-menu-item" @click="handleContextMenuAction('delete')">
+            <i class="bi bi-trash"></i>
+            <span>Delete</span>
+          </div>
+          <div class="context-menu-divider"></div>
+          <div class="context-menu-item" @click="handleContextMenuAction('tags')">
+            <i class="bi bi-tags"></i>
+            <span>Tags...</span>
+          </div>
+          <div class="context-menu-item" @click="handleContextMenuAction('move')">
+            <i class="bi bi-arrow-right-circle"></i>
+            <span>Move...</span>
+          </div>
+          <div class="context-menu-item" @click="handleContextMenuAction('merge')">
+            <i class="bi bi-sign-merge-right"></i>
+            <span>Merge Into...</span>
+          </div>
+          <div class="context-menu-divider"></div>
+          <div class="context-menu-item" @click="handleContextMenuAction('setAnnotation')">
+            <i class="bi bi-pencil-square"></i>
+            <span>Set annotation value...</span>
+          </div>
+          <div class="context-menu-item" @click="handleContextMenuAction('editAnnotations')">
+            <i class="bi bi-journal-text"></i>
+            <span>Edit annotations...</span>
+          </div>
+          <div class="context-menu-item" @click="handleContextMenuAction('watch')">
+            <i class="bi bi-eye"></i>
+            <span>Watch...</span>
+          </div>
+          <div class="context-menu-divider"></div>
+          <div class="context-menu-item" @click="handleContextMenuAction('pruneBranch')">
+            <i class="bi bi-scissors"></i>
+            <span>Prune branch to root</span>
+          </div>
+          <div class="context-menu-item" @click="handleContextMenuAction('pruneAllBranches')">
+            <i class="bi bi-tree"></i>
+            <span>Prune all branches to root</span>
+          </div>
+          <div class="context-menu-item" @click="handleContextMenuAction('clearPruning')">
+            <i class="bi bi-arrow-counterclockwise"></i>
+            <span>Clear pruning</span>
+          </div>
+          <div class="context-menu-divider"></div>
+          <div class="context-menu-item" @click="handleContextMenuAction('showIRI')">
+            <i class="bi bi-link-45deg"></i>
+            <span>Show IRI</span>
+          </div>
+          <div class="context-menu-item" @click="handleContextMenuAction('showDirectLink')">
+            <i class="bi bi-box-arrow-up-right"></i>
+            <span>Show Direct Link</span>
+          </div>
+          <div class="context-menu-item" @click="handleContextMenuAction('refreshTree')">
+            <i class="bi bi-arrow-clockwise"></i>
+            <span>Refresh Tree</span>
+          </div>
         </div>
         
         <div class="resize-handle-h" @mousedown="startResizeLeft($event)"></div>
@@ -508,6 +580,203 @@
         </div>
       </div>
     </div>
+
+    <!-- Tags Modal -->
+    <div class="modal fade" :class="{ 'show': showTagsModal }" tabindex="-1" v-if="showTagsModal">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Manage Tags - {{ contextMenuNode?.name }}</h5>
+            <button type="button" class="btn-close" @click="showTagsModal = false"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Current Tags</label>
+              <div class="tag-list">
+                <span v-for="(tag, index) in classTags" :key="index" class="tag-item">
+                  {{ tag }}
+                  <i class="bi bi-x" @click="removeTag(index)"></i>
+                </span>
+                <span v-if="classTags.length === 0" class="text-muted">No tags</span>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Add New Tag</label>
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control" v-model="newTag" placeholder="Enter tag name">
+                <button class="btn btn-primary" type="button" @click="addTag">Add</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Move Modal -->
+    <div class="modal fade" :class="{ 'show': showMoveModal }" tabindex="-1" v-if="showMoveModal">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Move Class - {{ contextMenuNode?.name }}</h5>
+            <button type="button" class="btn-close" @click="showMoveModal = false"></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="handleMoveClass">
+              <div class="mb-3">
+                <label class="form-label">Select New Parent</label>
+                <select class="form-select form-select-sm" v-model="moveTargetParent" required>
+                  <option value="owl:Thing">owl:Thing (Root)</option>
+                  <option v-for="cls in availableMoveTargets" :key="cls.id" :value="cls.id">
+                    {{ cls.name }}
+                  </option>
+                </select>
+              </div>
+              <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary btn-sm" @click="showMoveModal = false">Cancel</button>
+                <button type="submit" class="btn btn-primary btn-sm">Move</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Merge Modal -->
+    <div class="modal fade" :class="{ 'show': showMergeModal }" tabindex="-1" v-if="showMergeModal">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Merge Into - {{ contextMenuNode?.name }}</h5>
+            <button type="button" class="btn-close" @click="showMergeModal = false"></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="handleMergeClass">
+              <div class="mb-3">
+                <label class="form-label">Select Target Class</label>
+                <select class="form-select form-select-sm" v-model="mergeTarget" required>
+                  <option v-for="cls in availableMergeTargets" :key="cls.id" :value="cls.id">
+                    {{ cls.name }}
+                  </option>
+                </select>
+              </div>
+              <div class="alert alert-warning alert-sm">
+                <i class="bi bi-exclamation-triangle"></i>
+                This will merge "{{ contextMenuNode?.name }}" into the selected class.
+              </div>
+              <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary btn-sm" @click="showMergeModal = false">Cancel</button>
+                <button type="submit" class="btn btn-danger btn-sm">Merge</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Set Annotation Modal -->
+    <div class="modal fade" :class="{ 'show': showSetAnnotationModal }" tabindex="-1" v-if="showSetAnnotationModal">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Set Annotation - {{ contextMenuNode?.name }}</h5>
+            <button type="button" class="btn-close" @click="showSetAnnotationModal = false"></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="handleSetAnnotation">
+              <div class="mb-3">
+                <label class="form-label">Annotation Property</label>
+                <select class="form-select form-select-sm" v-model="setAnnotationForm.property" required>
+                  <option value="rdfs:label">rdfs:label</option>
+                  <option value="rdfs:comment">rdfs:comment</option>
+                  <option value="dc:description">dc:description</option>
+                  <option value="skos:definition">skos:definition</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Language</label>
+                <select class="form-select form-select-sm" v-model="setAnnotationForm.language">
+                  <option value="">No language tag</option>
+                  <option value="en">English (en)</option>
+                  <option value="zh">Chinese (zh)</option>
+                  <option value="de">German (de)</option>
+                  <option value="fr">French (fr)</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Value</label>
+                <textarea class="form-control form-control-sm" v-model="setAnnotationForm.value" rows="3" required></textarea>
+              </div>
+              <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary btn-sm" @click="showSetAnnotationModal = false">Cancel</button>
+                <button type="submit" class="btn btn-primary btn-sm">Set</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Annotations Modal -->
+    <div class="modal fade" :class="{ 'show': showEditAnnotationsModal }" tabindex="-1" v-if="showEditAnnotationsModal">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit Annotations - {{ contextMenuNode?.name }}</h5>
+            <button type="button" class="btn-close" @click="showEditAnnotationsModal = false"></button>
+          </div>
+          <div class="modal-body">
+            <div class="edit-annotations-container">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Property</th>
+                    <th>Language</th>
+                    <th>Value</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(ann, index) in editAnnotationsList" :key="index">
+                    <td>
+                      <select class="form-select form-select-sm" v-model="ann.property">
+                        <option value="rdfs:label">rdfs:label</option>
+                        <option value="rdfs:comment">rdfs:comment</option>
+                        <option value="dc:description">dc:description</option>
+                        <option value="skos:definition">skos:definition</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select class="form-select form-select-sm" v-model="ann.language">
+                        <option value="">-</option>
+                        <option value="en">en</option>
+                        <option value="zh">zh</option>
+                        <option value="de">de</option>
+                        <option value="fr">fr</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input type="text" class="form-control form-control-sm" v-model="ann.value">
+                    </td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-danger" @click="removeEditAnnotation(index)">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <button class="btn btn-sm btn-outline-primary" @click="addEditAnnotation">
+                <i class="bi bi-plus"></i> Add Annotation
+              </button>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" @click="showEditAnnotationsModal = false">Cancel</button>
+            <button type="button" class="btn btn-primary btn-sm" @click="saveEditAnnotations">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -557,6 +826,11 @@ const showClassDetails = ref(true)
 const showComments = ref(true)
 const showProjectFeed = ref(true)
 
+// 右键菜单状态
+const showContextMenu = ref(false)
+const contextMenuPosition = ref({ x: 0, y: 0 })
+const contextMenuNode = ref(null)
+
 // 面板宽度（默认占比：Class Hierarchy 1/4, Class 2/4, 右侧面板 1/4）
 const leftPanelWidth = ref(0)
 const middlePanelWidth = ref(0)
@@ -590,6 +864,14 @@ const showCreateCommentModal = ref(false)
 const showAddAnnotationModal = ref(false)
 const showAddParentModal = ref(false)
 const showAddRelationshipModal = ref(false)
+const showTagsModal = ref(false)
+const showMoveModal = ref(false)
+const showMergeModal = ref(false)
+const showSetAnnotationModal = ref(false)
+const showEditAnnotationsModal = ref(false)
+
+// 剪枝状态
+const prunedNodes = ref([])
 
 // 表单数据
 const createClassForm = ref({
@@ -613,6 +895,34 @@ const newRelationship = ref({
   property: '',
   target: ''
 })
+
+// Tags相关
+const classTags = ref([])
+const newTag = ref('')
+
+// Move相关
+const moveTargetParent = ref('')
+const availableMoveTargets = computed(() => {
+  if (!contextMenuNode.value) return classHierarchy.value
+  return classHierarchy.value.filter(c => c.id !== contextMenuNode.value.id)
+})
+
+// Merge相关
+const mergeTarget = ref('')
+const availableMergeTargets = computed(() => {
+  if (!contextMenuNode.value) return classHierarchy.value
+  return classHierarchy.value.filter(c => c.id !== contextMenuNode.value.id)
+})
+
+// Set Annotation相关
+const setAnnotationForm = ref({
+  property: 'rdfs:label',
+  language: '',
+  value: ''
+})
+
+// Edit Annotations相关
+const editAnnotationsList = ref([])
 
 // ECharts引用
 const graphChart = ref(null)
@@ -750,6 +1060,84 @@ const handleNodeClick = (data) => {
   loadClassDetails(data.id)
 }
 
+// 节点右键菜单处理
+const handleNodeContextMenu = (event, data, node, element) => {
+  event.preventDefault()
+  event.stopPropagation()
+  contextMenuPosition.value = { x: event.clientX, y: event.clientY }
+  contextMenuNode.value = data
+  showContextMenu.value = true
+  
+  // 点击其他地方关闭右键菜单
+  setTimeout(() => {
+    document.addEventListener('click', closeContextMenu)
+    document.addEventListener('contextmenu', closeContextMenu)
+  }, 0)
+}
+
+// 关闭右键菜单
+const closeContextMenu = () => {
+  showContextMenu.value = false
+  document.removeEventListener('click', closeContextMenu)
+  document.removeEventListener('contextmenu', closeContextMenu)
+}
+
+// 处理右键菜单动作
+const handleContextMenuAction = (action) => {
+  showContextMenu.value = false
+  
+  switch (action) {
+    case 'create':
+      // 设置父类为当前右键点击的节点
+      createClassForm.value.parentId = contextMenuNode.value?.id || 'owl:Thing'
+      showCreateClassModal.value = true
+      break
+    case 'delete':
+      if (contextMenuNode.value && contextMenuNode.value.id !== 'owl:Thing') {
+        selectedClass.value = contextMenuNode.value
+        deleteSelectedClass()
+      }
+      break
+    case 'tags':
+      showTagsModal.value = true
+      break
+    case 'move':
+      showMoveModal.value = true
+      break
+    case 'merge':
+      showMergeModal.value = true
+      break
+    case 'setAnnotation':
+      showSetAnnotationModal.value = true
+      break
+    case 'editAnnotations':
+      showEditAnnotationsModal.value = true
+      break
+    case 'watch':
+      handleWatchClass()
+      break
+    case 'pruneBranch':
+      handlePruneBranch()
+      break
+    case 'pruneAllBranches':
+      handlePruneAllBranches()
+      break
+    case 'clearPruning':
+      handleClearPruning()
+      break
+    case 'showIRI':
+      alert(`IRI: ${contextMenuNode.value?.iri || `http://www.w3.org/2002/07/owl#${contextMenuNode.value?.name}`}`)
+      break
+    case 'showDirectLink':
+      const iri = contextMenuNode.value?.iri || `http://www.w3.org/2002/07/owl#${contextMenuNode.value?.name}`
+      window.open(iri, '_blank')
+      break
+    case 'refreshTree':
+      loadClassHierarchy()
+      break
+  }
+}
+
 const handleNodeExpand = (data) => {
   expandedKeys.value.push(data.id)
 }
@@ -758,6 +1146,137 @@ const handleNodeCollapse = (data) => {
   const index = expandedKeys.value.indexOf(data.id)
   if (index > -1) {
     expandedKeys.value.splice(index, 1)
+  }
+}
+
+// Watch功能
+const handleWatchClass = () => {
+  if (!contextMenuNode.value) return
+  console.log('Watch class:', contextMenuNode.value.name)
+  alert(`Started watching class: ${contextMenuNode.value.name}`)
+}
+
+// 剪枝功能
+const handlePruneBranch = () => {
+  if (!contextMenuNode.value) return
+  const nodeId = contextMenuNode.value.id
+  if (!prunedNodes.value.includes(nodeId)) {
+    prunedNodes.value.push(nodeId)
+  }
+  console.log('Prune branch to root for:', nodeId)
+}
+
+const handlePruneAllBranches = () => {
+  console.log('Prune all branches to root')
+  prunedNodes.value = [...classHierarchy.value.map(c => c.id)]
+}
+
+const handleClearPruning = () => {
+  console.log('Clear pruning')
+  prunedNodes.value = []
+}
+
+// Tags功能
+const addTag = () => {
+  if (!newTag.value.trim()) return
+  if (!classTags.value.includes(newTag.value.trim())) {
+    classTags.value.push(newTag.value.trim())
+  }
+  newTag.value = ''
+}
+
+const removeTag = (index) => {
+  classTags.value.splice(index, 1)
+}
+
+// Move功能
+const handleMoveClass = async () => {
+  if (!contextMenuNode.value || !moveTargetParent.value) return
+  
+  try {
+    await http.post('/class/move', {
+      classId: contextMenuNode.value.id,
+      newParentId: moveTargetParent.value
+    })
+    showMoveModal.value = false
+    moveTargetParent.value = ''
+    await loadClassHierarchy()
+    alert(`Class moved successfully`)
+  } catch (error) {
+    console.error('Failed to move class:', error)
+    alert('Failed to move class')
+  }
+}
+
+// Merge功能
+const handleMergeClass = async () => {
+  if (!contextMenuNode.value || !mergeTarget.value) return
+  
+  try {
+    await http.post('/class/merge', {
+      sourceId: contextMenuNode.value.id,
+      targetId: mergeTarget.value
+    })
+    showMergeModal.value = false
+    mergeTarget.value = ''
+    await loadClassHierarchy()
+    alert(`Classes merged successfully`)
+  } catch (error) {
+    console.error('Failed to merge classes:', error)
+    alert('Failed to merge classes')
+  }
+}
+
+// Set Annotation功能
+const handleSetAnnotation = async () => {
+  if (!contextMenuNode.value) return
+  
+  try {
+    await http.post('/annotation/set', {
+      entityId: contextMenuNode.value.id,
+      entityType: 'CLASS',
+      property: setAnnotationForm.value.property,
+      language: setAnnotationForm.value.language,
+      value: setAnnotationForm.value.value
+    })
+    showSetAnnotationModal.value = false
+    setAnnotationForm.value = { property: 'rdfs:label', language: '', value: '' }
+    await loadClassDetails(contextMenuNode.value.id)
+    alert('Annotation set successfully')
+  } catch (error) {
+    console.error('Failed to set annotation:', error)
+    alert('Failed to set annotation')
+  }
+}
+
+// Edit Annotations功能
+const addEditAnnotation = () => {
+  editAnnotationsList.value.push({
+    property: 'rdfs:label',
+    language: '',
+    value: ''
+  })
+}
+
+const removeEditAnnotation = (index) => {
+  editAnnotationsList.value.splice(index, 1)
+}
+
+const saveEditAnnotations = async () => {
+  if (!contextMenuNode.value) return
+  
+  try {
+    await http.post('/annotation/batch', {
+      entityId: contextMenuNode.value.id,
+      entityType: 'CLASS',
+      annotations: editAnnotationsList.value
+    })
+    showEditAnnotationsModal.value = false
+    await loadClassDetails(contextMenuNode.value.id)
+    alert('Annotations saved successfully')
+  } catch (error) {
+    console.error('Failed to save annotations:', error)
+    alert('Failed to save annotations')
   }
 }
 
@@ -1268,6 +1787,18 @@ const initGraph = () => {
   align-items: center;
   gap: 4px;
   font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.tree-node:hover {
+  background-color: #f0f0f0;
+}
+
+.tree-node.selected {
+  background-color: #e3f2fd;
 }
 
 .node-icon {
@@ -1569,6 +2100,102 @@ const initGraph = () => {
 .btn-restore:hover {
   background-color: #f5f5f5;
   border-color: #999;
+}
+
+/* Context Menu Styles */
+.context-menu {
+  position: fixed;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  min-width: 180px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: #333;
+}
+
+.context-menu-item:hover {
+  background-color: #4a90d9;
+  color: white;
+}
+
+.context-menu-item i {
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+}
+
+.context-menu-divider {
+  height: 1px;
+  background-color: #e0e0e0;
+  margin: 4px 0;
+}
+
+/* Tags Styles */
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tag-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.tag-item i {
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.tag-item i:hover {
+  color: #d32f2f;
+}
+
+/* Edit Annotations Styles */
+.edit-annotations-container {
+  padding: 16px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.edit-annotations-container table {
+  width: 100%;
+}
+
+.edit-annotations-container th,
+.edit-annotations-container td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.edit-annotations-container th {
+  font-weight: 500;
+  color: #666;
+  font-size: 12px;
+}
+
+.edit-annotations-container td {
+  font-size: 12px;
 }
 
 :deep(.el-tree) {

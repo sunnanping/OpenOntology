@@ -1,7 +1,7 @@
-package com.by.open.ontology.ontologyservice.classmodule.controller;
+package com.by.open.ontology.ontologyservice.controller;
 
-import com.by.open.ontology.ontologyservice.classmodule.entity.Class;
-import com.by.open.ontology.ontologyservice.classmodule.service.ClassService;
+import com.by.open.ontology.ontologyservice.entity.Class;
+import com.by.open.ontology.ontologyservice.service.ClassService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -100,18 +100,6 @@ public class ClassController {
     @PostMapping("/addIndividual/{classId}/{individualId}")
     public ResponseEntity<Void> addIndividual(@PathVariable String classId, @PathVariable String individualId) {
         classService.addIndividual(classId, individualId);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/move")
-    public ResponseEntity<Void> moveClass(@RequestBody MoveClassRequest request) {
-        classService.moveClass(request.getClassId(), request.getNewParentId());
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/merge")
-    public ResponseEntity<Void> mergeClasses(@RequestBody MergeClassesRequest request) {
-        classService.mergeClasses(request.getSourceId(), request.getTargetId());
         return ResponseEntity.ok().build();
     }
 }

@@ -132,7 +132,76 @@
     "addAnnotation": "添加注释",
     "translations": "翻译",
     "label": "标签",
-    "comment": "注释"
+    "comment": "注释",
+    "classNames": "类名称",
+    "languageTag": "语言标签",
+    "classNameMissing": "类名称缺失",
+    "invalidLanguageTag": "语言标签 \"{tag}\" 无效。请参考有效语言标签列表。",
+    "contextMenu": {
+      "create": "创建",
+      "delete": "删除",
+      "tags": "标签...",
+      "move": "移动...",
+      "mergeInto": "合并到...",
+      "setAnnotationValue": "设置注释值...",
+      "editAnnotations": "编辑注释...",
+      "watch": "关注...",
+      "pruneBranch": "剪枝到根节点",
+      "pruneAllBranches": "剪枝所有分支到根节点",
+      "clearPruning": "清除剪枝",
+      "showIri": "显示IRI",
+      "showDirectLink": "显示直接链接",
+      "refreshTree": "刷新树"
+    },
+    "deleteConfirm": {
+      "title": "删除类",
+      "message": "确定要删除类 \"{className}\" 吗？",
+      "warning": "此操作无法撤销。",
+      "confirmButton": "删除",
+      "cancelButton": "取消"
+    },
+    "tagsModal": {
+      "title": "管理标签",
+      "currentTags": "当前标签",
+      "noTags": "无标签",
+      "addNewTag": "添加新标签",
+      "placeholder": "输入标签名称"
+    },
+    "moveModal": {
+      "title": "移动类",
+      "currentParent": "当前父类",
+      "newParent": "新父类",
+      "placeholder": "搜索父类...",
+      "moveButton": "移动",
+      "cancelButton": "取消"
+    },
+    "mergeModal": {
+      "title": "合并类",
+      "sourceClass": "源类",
+      "targetClass": "目标类",
+      "placeholder": "搜索目标类...",
+      "warning": "源类将被删除，其所有属性将合并到目标类中。",
+      "mergeButton": "合并",
+      "cancelButton": "取消"
+    },
+    "setAnnotationModal": {
+      "title": "设置注释值",
+      "property": "属性",
+      "language": "语言",
+      "value": "值",
+      "placeholder": "输入注释值...",
+      "setButton": "设置",
+      "cancelButton": "取消"
+    },
+    "editAnnotationsModal": {
+      "title": "编辑注释",
+      "property": "属性",
+      "language": "语言",
+      "value": "值",
+      "addAnnotation": "添加注释",
+      "saveButton": "保存",
+      "cancelButton": "取消"
+    }
   },
   "property": {
     "title": "属性管理",
