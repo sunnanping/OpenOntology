@@ -4,9 +4,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <properties>
+        <project.version>0.1.9</project.version>
+        <java.version>11</java.version>
+        <spring-cloud.version>2021.0.1</spring-cloud.version>
+    </properties>
+
     <groupId>com.by.ontology</groupId>
     <artifactId>openontology</artifactId>
-    <version>0.1.9</version>
+    <version>${project.version}</version>
     <packaging>pom</packaging>
 
     <name>OpenOntology</name>
@@ -18,11 +24,6 @@
         <version>2.6.3</version>
         <relativePath/>
     </parent>
-
-    <properties>
-        <java.version>11</java.version>
-        <spring-cloud.version>2021.0.1</spring-cloud.version>
-    </properties>
 
     <dependencyManagement>
         <dependencies>

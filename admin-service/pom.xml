@@ -8,12 +8,11 @@
     <parent>
         <groupId>com.by.ontology</groupId>
         <artifactId>openontology</artifactId>
-        <version>0.1.9</version>
+        <version>${project.version}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>admin-service</artifactId>
-    <version>0.1.9</version>
     <name>admin-service</name>
     <description>Admin Service for OpenOntology</description>
 
