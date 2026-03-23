@@ -329,10 +329,17 @@ eureka:
     - 验证类移动到新位置
     - 验证循环引用检测（不能将父节点拖入子节点）
   
-  - **右键菜单**：
+  - **右键菜单**:
     - 右键点击类节点
-    - 验证菜单选项（Add Subclass、Delete、Rename）
+    - 验证菜单选项（Add Subclass、Delete、Rename、Move、Merge Into...、Show Direct Link、Watch...）
     - 测试各菜单项功能
+  
+  - **Merge Entities功能**:
+    - 右键点击类节点，选择"Merge Into..."
+    - 验证Merge Entities对话框显示
+    - 测试搜索类功能
+    - 测试类树选择功能
+    - 验证无数据时显示默认的owl:Thing根节点
 
 - **类编辑视图测试**：
   - 选择类后显示编辑视图

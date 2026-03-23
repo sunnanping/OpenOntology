@@ -230,6 +230,7 @@ public class OntologyClass {
 | 删除类 | DELETE | /api/class/delete/{id} | id | void |
 | 获取子类 | GET | /api/class/children/{id} | id | List<OntologyClass> |
 | 获取父类 | GET | /api/class/parents/{id} | id | List<OntologyClass> |
+| 搜索类 | GET | /api/class/search | query, projectId | List<OntologyClass> |
 
 ---
 

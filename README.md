@@ -384,6 +384,7 @@ npm run dev
 | v0.1.7 | 2026-03-16 | 项目编辑器实现（Class Hierarchy、类编辑、立体视图、数据全生命周期、评论和动态） |
 | v0.1.8 | 2026-03-18 | DraggableModal组件移动功能实现 |
 | v0.1.9 | 2026-03-19 | AlertModal和DraggableModal组件移动功能Bug修复 |
+| v0.1.10 | 2026-03-23 | 实现Merge Entities功能，添加Tree选择和无数据时显示根节点 |
 
 ## 开发日志
 
