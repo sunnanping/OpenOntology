@@ -192,7 +192,27 @@ public class Ontology {
 
 ---
 
-### 5. class-service (类管理服务)
+### 5. ontology-service (本体管理服务)
+
+**功能描述**：
+- 本体的CRUD操作
+- 本体导入导出
+- 命名空间管理
+- 多格式支持(OWL, RDF/XML, Turtle等)
+
+**模块结构**：
+- **ontology-service-core**: 核心服务
+- **class-module**: 类管理模块
+- **property-module**: 属性管理模块
+- **instance-module**: 实例管理模块
+- **reasoning-module**: 本体推理模块
+- **search-module**: 搜索模块
+- **version-module**: 版本控制模块
+- **project-module**: 项目管理模块
+- **individual-module**: 个体管理模块
+- **ontology-service-app**: 应用入口
+
+**类管理模块 (class-module)**
 
 **功能描述**：
 - 类的CRUD操作
@@ -234,114 +254,7 @@ public class OntologyClass {
 
 ---
 
-### 6. property-service (属性管理服务)
-
-**功能描述**：
-- 对象属性管理
-- 数据属性管理
-- 注释属性管理
-- 属性约束管理
-
-**实体类**：
-```java
-@Entity
-public class OntologyProperty {
-    @Id
-    private String id;
-    private String ontologyId;
-    private String name;
-    private String iri;
-    private PropertyType type;  // OBJECT, DATA, ANNOTATION
-    private List<String> domain;  // 定义域
-    private List<String> range;   // 值域
-    private boolean functional;
-    private boolean transitive;
-    private boolean symmetric;
-    private boolean asymmetric;
-    private boolean reflexive;
-    private boolean irreflexive;
-}
-```
-
-**API接口**：
-
-| 接口 | 方法 | 路径 | 参数 | 返回值 |
-|------|------|------|------|--------|
-| 创建属性 | POST | /api/property/create | PropertyDTO | OntologyProperty |
-| 根据ID查询 | GET | /api/property/findById/{id} | id | OntologyProperty |
-| 根据本体查询 | GET | /api/property/findByOntology/{ontologyId} | ontologyId | List<OntologyProperty> |
-| 根据类型查询 | GET | /api/property/findByType | type, ontologyId | List<OntologyProperty> |
-| 更新属性 | PUT | /api/property/update | PropertyDTO | OntologyProperty |
-| 删除属性 | DELETE | /api/property/delete/{id} | id | void |
-
----
-
-### 7. instance-service (实例管理服务)
-
-**功能描述**：
-- 实例的CRUD操作
-- 实例分类
-- 属性值管理
-- 实例与类的关系维护
-
-**实体类**：
-```java
-@Entity
-public class Instance {
-    @Id
-    private String id;
-    private String ontologyId;
-    private String name;
-    private String iri;
-    private List<String> classIds;  // 所属类
-    private Map<String, List<PropertyValue>> propertyValues;
-    private Map<String, String> labels;
-    private Map<String, String> comments;
-}
-
-public class PropertyValue {
-    private String propertyId;
-    private String propertyName;
-    private String value;
-    private String type;  // 数据类型
-}
-```
-
-**API接口**：
-
-| 接口 | 方法 | 路径 | 参数 | 返回值 |
-|------|------|------|------|--------|
-| 创建实例 | POST | /api/instance/create | InstanceDTO | Instance |
-| 根据ID查询 | GET | /api/instance/findById/{id} | id | Instance |
-| 根据类查询 | GET | /api/instance/findByClass/{classId} | classId | List<Instance> |
-| 根据本体查询 | GET | /api/instance/findByOntology/{ontologyId} | ontologyId | List<Instance> |
-| 更新实例 | PUT | /api/instance/update | InstanceDTO | Instance |
-| 删除实例 | DELETE | /api/instance/delete/{id} | id | void |
-| 添加属性值 | POST | /api/instance/addPropertyValue | PropertyValueDTO | Instance |
-| 删除属性值 | DELETE | /api/instance/removePropertyValue | instanceId, propertyId | Instance |
-
----
-
-### 8. reasoning-service (本体推理服务)
-
-**功能描述**：
-- 一致性检查
-- 分类推理
-- 实例实现
-- 支持多种推理器(OWL-API, Pellet, HermiT)
-
-**API接口**：
-
-| 接口 | 方法 | 路径 | 参数 | 返回值 |
-|------|------|------|------|--------|
-| 一致性检查 | POST | /api/reasoning/consistency | ontologyId | ConsistencyResult |
-| 获取推断的类层次 | GET | /api/reasoning/inferredHierarchy | ontologyId | ClassHierarchy |
-| 获取实例类型 | GET | /api/reasoning/instanceTypes | instanceId | List<String> |
-| 执行推理 | POST | /api/reasoning/reason | ontologyId, reasonerType | ReasoningResult |
-
----
-
-### 9. collaboration-service (协作服务)
+### 6. collaboration-service (协作服务)
 
 **功能描述**：
 - 多用户实时协作
@@ -394,79 +307,7 @@ public class ProjectActivity {
 
 ---
 
-### 10. version-service (版本控制服务)
-
-**功能描述**：
-- 本体版本管理
-- 版本对比
-- 版本回滚
-- 变更历史记录
-
-**实体类**：
-```java
-@Entity
-public class OntologyVersion {
-    @Id
-    private String id;
-    private String ontologyId;
-    private String versionNumber;
-    private String description;
-    private String userId;
-    private String username;
-    private Date createTime;
-    private String snapshot;  // 本体快照
-}
-
-@Entity
-public class ChangeRecord {
-    @Id
-    private String id;
-    private String ontologyId;
-    private String versionId;
-    private ChangeType type;  // ADD, UPDATE, DELETE
-    private String entityType;
-    private String entityId;
-    private String entityName;
-    private String oldValue;
-    private String newValue;
-    private Date timestamp;
-    private String userId;
-}
-```
-
-**API接口**：
-
-| 接口 | 方法 | 路径 | 参数 | 返回值 |
-|------|------|------|------|--------|
-| 创建版本 | POST | /api/version/create | VersionDTO | OntologyVersion |
-| 获取版本列表 | GET | /api/version/list/{ontologyId} | ontologyId | List<OntologyVersion> |
-| 获取版本详情 | GET | /api/version/detail/{id} | id | OntologyVersion |
-| 版本对比 | GET | /api/version/compare | versionId1, versionId2 | VersionDiff |
-| 版本回滚 | POST | /api/version/rollback | versionId | Ontology |
-| 获取变更历史 | GET | /api/version/changes/{ontologyId} | ontologyId, page, size | Page<ChangeRecord> |
-
----
-
-### 11. search-service (全文搜索服务)
-
-**功能描述**：
-- 跨本体全文搜索
-- 实体类型过滤
-- 高级搜索选项
-- 搜索结果高亮
-
-**API接口**：
-
-| 接口 | 方法 | 路径 | 参数 | 返回值 |
-|------|------|------|------|--------|
-| 全文搜索 | GET | /api/search/fulltext | keyword, ontologyId, entityTypes, page, size | SearchResult |
-| 高级搜索 | POST | /api/search/advanced | SearchCriteria | SearchResult |
-| 搜索建议 | GET | /api/search/suggestions | keyword, ontologyId | List<String> |
-| 搜索历史 | GET | /api/search/history/{userId} | userId | List<SearchHistory> |
-
----
-
-### 12. user-service (用户管理服务)
+### 7. user-service (用户管理服务)
 
 **功能描述**：
 - 用户注册/登录
@@ -503,7 +344,7 @@ public class User {
 
 ---
 
-### 13. admin-service (管理员管理服务)
+### 8. admin-service (管理员管理服务)
 
 **功能描述**：
 - 管理员CRUD操作
@@ -554,7 +395,7 @@ public class SystemSettings {
 
 ---
 
-### 14. i18n-service (国际化翻译服务)
+### 9. i18n-service (国际化翻译服务)
 
 **功能描述**：
 - 多语言翻译
@@ -888,13 +729,13 @@ export default {
 | 服务 | 接口前缀 |
 |------|----------|
 | ontology-service | /api/ontology |
-| class-service | /api/class |
-| property-service | /api/property |
-| instance-service | /api/instance |
-| reasoning-service | /api/reasoning |
+| class-module | /api/class |
+| property-module | /api/property |
+| instance-module | /api/instance |
+| reasoning-module | /api/reasoning |
+| search-module | /api/search |
+| version-module | /api/version |
 | collaboration-service | /api/collaboration |
-| version-service | /api/version |
-| search-service | /api/search |
 | user-service | /api/user |
 | admin-service | /api/admin |
 | i18n-service | /api/i18n |
