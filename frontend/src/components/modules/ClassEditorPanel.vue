@@ -2100,6 +2100,7 @@ const startResizeLeft = (e) => {
   
   document.addEventListener('mousemove', handleMouseMove)
   document.addEventListener('mouseup', handleMouseUp)
+  e.preventDefault()
 }
 
 // 左侧面板上下拖动调整大小
@@ -2150,6 +2151,7 @@ const startResizeMiddle = (e) => {
   
   document.addEventListener('mousemove', handleMouseMove)
   document.addEventListener('mouseup', handleMouseUp)
+  e.preventDefault()
 }
 
 const startResize = (e) => {
