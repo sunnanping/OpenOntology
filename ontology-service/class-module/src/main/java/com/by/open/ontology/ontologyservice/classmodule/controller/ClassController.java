@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/class")
@@ -16,7 +18,23 @@ public class ClassController {
     private ClassService classService;
 
     @PostMapping("/create")
-    public ResponseEntity<Class> create(@RequestBody Class classEntity) {
+    public ResponseEntity<Class> create(@RequestBody Map<String, Object> request) {
+        Class classEntity = new Class();
+        
+        // 设置基本属性
+        classEntity.setName((String) request.get("name"));
+        classEntity.setIri((String) request.get("iri"));
+        classEntity.setOntologyId((String) request.get("ontologyId"));
+        classEntity.setLanguageTag((String) request.get("languageTag"));
+        
+        // 处理父类关系：前端传递的parentId就是父节点
+        String parentId = (String) request.get("parentId");
+        List<String> superClasses = new ArrayList<>();
+        if (parentId != null && !parentId.isEmpty()) {
+            superClasses.add(parentId);
+        }
+        classEntity.setSuperClasses(superClasses);
+        
         Class createdClass = classService.create(classEntity);
         return ResponseEntity.ok(createdClass);
     }
