@@ -442,13 +442,13 @@
           <div class="detail-section">
             <h6 class="section-title">Parents</h6>
             <div class="data-list">
-              <div v-for="(parent, index) in selectedClass.parents || ['owl:Thing']" :key="index" class="data-item">
+              <div v-for="(parent, index) in selectedClass.superClasses || []" :key="index" class="data-item">
                 <span class="item-value">{{ parent }}</span>
                 <button class="item-action delete" @click="removeParent(index)" :disabled="parent === 'owl:Thing'">
                   <i class="bi bi-x"></i>
                 </button>
               </div>
-              <button class="btn-add" @click="showAddParentModal = true">
+              <button v-if="!selectedClass.superClasses || selectedClass.superClasses.length === 0" class="btn-add" @click="showAddParentModal = true">
                 <i class="bi bi-plus"></i> Add Parent
               </button>
             </div>
