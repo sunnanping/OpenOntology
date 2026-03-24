@@ -18,14 +18,14 @@
       <!-- 左侧：Class Hierarchy 和 Description 面板 -->
       <div 
         class="left-panels"
-        :style="isMobileView ? {} : { width: leftPanelWidth + 'px' }"
+        :style="isMobileView ? {} : { width: leftPanelDynamicWidth ? leftPanelDynamicWidth + 'px' : '0px' }"
       >
         <!-- Class Hierarchy 面板 -->
         <div 
           v-show="showClassHierarchy && (isMobileView ? activeMobilePanel === 'hierarchy' : true)" 
           class="panel class-hierarchy-panel"
           :class="{ 'mobile-active': isMobileView && activeMobilePanel === 'hierarchy' }"
-          :style="isMobileView ? {} : { height: hierarchyHeight + 'px' }"
+          :style="isMobileView ? {} : { height: hierarchyPanelHeight }"
         >
         <div class="panel-header">
           <div class="panel-header-left">
@@ -188,7 +188,7 @@
           v-show="showDescription && (isMobileView ? activeMobilePanel === 'description' : true)" 
           class="panel description-panel"
           :class="{ 'mobile-active': isMobileView && activeMobilePanel === 'description' }"
-          :style="isMobileView ? {} : { height: 'calc(100% - ' + (showClassHierarchy ? hierarchyHeight : 0) + 'px)' }"
+          :style="isMobileView ? {} : { height: descriptionPanelHeight }"
         >
           <div class="panel-header">
             <div class="panel-header-left">
@@ -355,7 +355,7 @@
         v-show="showClassDetails && (isMobileView ? activeMobilePanel === 'details' : true)" 
         class="panel class-details-panel"
         :class="{ 'mobile-active': isMobileView && activeMobilePanel === 'details' }"
-        :style="isMobileView ? {} : { width: middlePanelWidth + 'px' }"
+        :style="isMobileView ? {} : { width: middlePanelDynamicWidth }"
       >
         <div class="panel-header">
           <div class="panel-header-left">
@@ -503,13 +503,13 @@
       <div 
         class="right-panels"
         v-show="!isMobileView || (activeMobilePanel === 'comments' || activeMobilePanel === 'feed')"
-        :style="isMobileView ? {} : { width: rightPanelWidth + 'px' }"
+        :style="isMobileView ? {} : { width: rightPanelDynamicWidth ? rightPanelDynamicWidth + 'px' : '0px' }"
       >
         <div 
           v-show="showComments && (isMobileView ? activeMobilePanel === 'comments' : true)" 
           class="panel comments-panel"
           :class="{ 'mobile-active': isMobileView && activeMobilePanel === 'comments' }"
-          :style="isMobileView ? {} : { height: commentsHeight + 'px' }"
+          :style="isMobileView ? {} : { height: commentsPanelHeight }"
         >
           <div class="panel-header">
             <div class="panel-header-left">
@@ -569,7 +569,7 @@
           v-show="showProjectFeed && (isMobileView ? activeMobilePanel === 'feed' : true)" 
           class="panel project-feed-panel"
           :class="{ 'mobile-active': isMobileView && activeMobilePanel === 'feed' }"
-          :style="isMobileView ? {} : { height: 'calc(100% - ' + (showComments ? commentsHeight : 0) + 'px)' }"
+          :style="isMobileView ? {} : { height: projectFeedPanelHeight }"
         >
           <div class="panel-header">
             <div class="panel-header-left">
@@ -1239,6 +1239,98 @@ const middlePanelWidth = ref(0)
 const rightPanelWidth = ref(0)
 const commentsHeight = ref(0)
 const hierarchyHeight = ref(0)
+
+// 动态计算左侧面板高度
+const hierarchyPanelHeight = computed(() => {
+  if (!showClassHierarchy.value && !showDescription.value) {
+    return 0
+  }
+  if (!showClassHierarchy.value) {
+    return 0
+  }
+  if (!showDescription.value) {
+    return '100%'
+  }
+  return hierarchyHeight.value + 'px'
+})
+
+const descriptionPanelHeight = computed(() => {
+  if (!showClassHierarchy.value && !showDescription.value) {
+    return 0
+  }
+  if (!showDescription.value) {
+    return 0
+  }
+  if (!showClassHierarchy.value) {
+    return '100%'
+  }
+  return `calc(100% - ${hierarchyHeight.value}px)`
+})
+
+// 动态计算右侧面板高度
+const commentsPanelHeight = computed(() => {
+  if (!showComments.value && !showProjectFeed.value) {
+    return 0
+  }
+  if (!showComments.value) {
+    return 0
+  }
+  if (!showProjectFeed.value) {
+    return '100%'
+  }
+  return commentsHeight.value + 'px'
+})
+
+const projectFeedPanelHeight = computed(() => {
+  if (!showComments.value && !showProjectFeed.value) {
+    return 0
+  }
+  if (!showProjectFeed.value) {
+    return 0
+  }
+  if (!showComments.value) {
+    return '100%'
+  }
+  return `calc(100% - ${commentsHeight.value}px)`
+})
+
+// 动态计算三列布局宽度
+// 规则：当某个区域的面板都被最小化时，按照从右到左的顺序，由剩余的区域来填满
+const leftPanelDynamicWidth = computed(() => {
+  // 如果左侧没有面板显示，宽度为0
+  if (!showClassHierarchy.value && !showDescription.value) {
+    return 0
+  }
+  return leftPanelWidth.value
+})
+
+const rightPanelDynamicWidth = computed(() => {
+  // 如果右侧没有面板显示，宽度为0
+  if (!showComments.value && !showProjectFeed.value) {
+    return 0
+  }
+  return rightPanelWidth.value
+})
+
+const middlePanelDynamicWidth = computed(() => {
+  // 如果左侧和右侧都隐藏了，中间面板填满剩余空间
+  const leftVisible = showClassHierarchy.value || showDescription.value
+  const rightVisible = showComments.value || showProjectFeed.value
+  
+  if (!leftVisible && !rightVisible) {
+    return '100%'
+  }
+  if (!leftVisible) {
+    // 左侧隐藏，中间扩展填满左侧空间
+    return `calc(100% - ${rightPanelWidth.value}px)`
+  }
+  if (!rightVisible) {
+    // 右侧隐藏，中间扩展填满右侧空间
+    return `calc(100% - ${leftPanelWidth.value}px)`
+  }
+  // 都显示时保持原宽度
+  return middlePanelWidth.value + 'px'
+})
 
 // 恢复面板按钮位置
 const restorePanelsPosition = ref({ x: 0, y: 0 })
