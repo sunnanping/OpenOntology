@@ -6,7 +6,7 @@
 - 项目版本: **v0.1.10**
 - 项目路径: d:\project\trae\java\OpenOntology
 - **首次时间**: 2026-03-15
-- **最后时间**: 2026-03-23
+- **最后时间**: 2026-03-24
 
 ## 交互记录
 
@@ -541,6 +541,131 @@
   - ✅ 左下角缩放：右侧和顶部不动，宽度和高度同时变化
   - ✅ 左上角缩放：右侧和底部不动，宽度和高度同时变化
   - ✅ 右下角缩放：左侧和顶部不动，宽度和高度同时变化
+- **遗留问题/待优化**:
+  - 无
+
+### 交互 #17: Class Hierarchy Tree组件拖拽功能实现
+
+- **需求类型**: 功能开发
+- **需求内容**: 检查"Class Hierarchy"中Tree对象中的数据节点，验证前端UI中的Tree是否支持拖拽，参考WebProtege项目实现对Class数据层级的拖拽改变功能
+- **需求提交人**: 用户
+- **需求提出时间**: 2026-03-24
+- **完成时间**: 2026-03-24
+- **思考主要内容**:
+  - 分析ClassEditorPanel.vue中Tree组件的现有实现
+  - 验证前端Tree组件是否支持拖拽功能
+  - 实现拖拽事件处理函数
+  - 开发循环依赖检测功能
+  - 优化树形数据构建逻辑
+  - 确保与后端移动类接口正确集成
+  - 解决Maven构建问题并启动服务
+- **任务拆分**:
+  1. 检查ClassEditorPanel.vue中Tree组件的配置
+  2. 为Tree组件添加draggable属性和拖拽相关事件
+  3. 实现拖拽事件处理函数（allowDrag, allowDrop, handleNodeDrop）
+  4. 开发循环依赖检测功能，防止拖拽导致循环继承
+  5. 优化树形数据构建逻辑，将扁平化数据转换为嵌套结构
+  6. 添加拖拽相关的CSS样式，提升用户体验
+  7. 验证后端移动类接口的功能完整性
+  8. 本地git提交代码
+  9. 解决Maven构建问题（清理本地仓库错误目录、强制更新依赖）
+  10. 启动ontology-service-app服务
+- **实现方案**:
+  1. **前端Tree组件配置**：
+     - 为el-tree组件添加`draggable="true"`属性
+     - 添加`allow-drop`、`allow-drag`、`node-drop`事件
+     - 配置`node-key="id"`确保节点唯一性
+  2. **拖拽事件处理**：
+     - `allowDrag`：禁止拖拽根节点owl:Thing
+     - `allowDrop`：只允许作为子节点放置，禁止放置到自己身上，禁止循环依赖
+     - `handleNodeDrop`：处理拖拽放置，调用后端接口更新数据
+  3. **循环依赖检测**：
+     - 实现递归查找节点和后代检查的完整算法
+     - 防止出现A→B→C→A的循环继承
+  4. **树形数据构建**：
+     - 修改`buildTreeData`函数，根据`superClasses`字段构建父子关系
+     - 将后端返回的扁平化数据转换为嵌套的树形结构
+  5. **后端接口集成**：
+     - 确认`/api/class/move`接口的功能完整性
+     - 验证`ClassService.moveClass`方法能正确处理类的移动逻辑
+  6. **Maven构建问题解决**：
+     - 使用`mvn clean install -DskipTests -U`强制更新依赖
+     - 清理本地仓库中的错误目录
+     - 使用`java -jar`直接启动服务
+- **验证结果**:
+  - ✅ Tree组件拖拽功能实现
+  - ✅ 循环依赖检测功能正常
+  - ✅ 树形数据结构优化
+  - ✅ 后端接口正确集成
+  - ✅ Maven构建问题解决
+  - ✅ 服务成功启动（端口8082）
+- **遗留问题/待优化**:
+  - 无
+
+### 交互 #18: Maven依赖解析路径错误分析
+
+- **需求类型**: 技术问题分析
+- **需求内容**: 分析"当使用 mvn spring-boot:run -pl ontology-service-app 时，Maven仍然尝试从远程仓库下载 ontology-service-${project.version}.pom"的错误原因
+- **需求提交人**: 用户
+- **需求提出时间**: 2026-03-24
+- **完成时间**: 2026-03-24
+- **思考主要内容**:
+  - 分析Maven多模块项目结构
+  - 检查版本变量解析机制
+  - 分析本地仓库缓存问题
+  - 分析命令执行上下文
+  - 提供解决方案
+- **错误原因分析**:
+  1. **Maven 多模块项目结构问题**：
+     - 项目采用多层嵌套的 Maven 多模块结构
+     - 根项目：`openontology` (版本 0.1.10)
+     - 子模块：`ontology-service` (作为 pom 类型的父模块)
+     - 孙子模块：`ontology-service-app`、`ontology-service-core` 等
+     - 当使用 `-pl ontology-service-app` 单独构建时，Maven 无法正确解析父模块的依赖关系
+  2. **版本变量解析问题**：
+     - `ontology-service-app` 的 pom.xml 中使用 `${project.version}` 引用父模块版本
+     - 当单独构建子模块时，Maven 可能无法正确从父模块继承版本信息
+     - 导致版本变量 `${project.version}` 没有被解析，直接作为字符串使用
+  3. **本地仓库缓存问题**：
+     - 之前的构建过程中，可能产生了错误的缓存
+     - 本地仓库中出现了 `${project.version}` 目录，说明版本变量没有被正确解析
+     - Maven 尝试从远程仓库下载 `ontology-service-${project.version}.pom`，而不是使用本地构建的依赖
+  4. **命令执行上下文问题**：
+     - 当在项目根目录执行 `mvn spring-boot:run -pl ontology-service-app` 时
+     - Maven 可能没有正确识别模块间的父子关系
+     - 导致依赖解析路径错误，尝试从远程仓库获取本地模块
+- **解决方案**:
+  1. **使用完整构建流程**：
+     ```bash
+     # 先在根目录执行完整构建，确保所有模块都正确安装到本地仓库
+     mvn clean install -DskipTests -U
+     
+     # 然后直接使用 java -jar 启动
+     java -jar ontology-service/ontology-service-app/target/ontology-service-app-0.1.10.jar
+     ```
+  2. **指定版本参数**：
+     ```bash
+     # 在执行 spring-boot:run 时指定版本参数
+     mvn spring-boot:run -pl ontology-service-app -Dproject.version=0.1.10
+     ```
+  3. **在模块目录中执行**：
+     ```bash
+     # 进入 ontology-service-app 目录后执行
+     cd ontology-service/ontology-service-app
+     mvn spring-boot:run
+     ```
+  4. **清理本地仓库**：
+     ```bash
+     # 删除本地仓库中错误的目录
+     rm -rf ~/.m2/repository/com/by/ontology/ontology-service/\${project.version}
+     
+     # 重新构建
+     mvn clean install -DskipTests -U
+     ```
+- **根本原因**:
+  Maven 在处理多层嵌套的多模块项目时，当使用 `-pl` 参数单独构建子模块时，可能无法正确解析父模块的版本信息和依赖关系，导致版本变量未被解析，进而尝试从远程仓库下载不存在的依赖。
+
+  通过执行完整的构建流程，确保所有模块都正确安装到本地仓库，然后使用 `java -jar` 直接启动，可以绕过这个问题。
 - **遗留问题/待优化**:
   - 无
 
