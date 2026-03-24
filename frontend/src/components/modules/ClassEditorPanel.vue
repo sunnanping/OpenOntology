@@ -3465,6 +3465,15 @@ const initGraph = () => {
   color: white !important;
 }
 
+:deep(.el-tree-node.is-current > .el-tree-node__content .tree-node) {
+  color: white;
+  background-color: transparent;
+}
+
+:deep(.el-tree-node.is-current > .el-tree-node__content .tree-node:hover) {
+  background-color: transparent;
+}
+
 .modal.show {
   display: block;
   background-color: rgba(0, 0, 0, 0.4);
