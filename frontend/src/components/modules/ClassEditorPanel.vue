@@ -647,6 +647,20 @@
                 <input type="text" class="form-control form-control-sm" id="className" v-model="createClassForm.name" required>
               </div>
               <div class="mb-3">
+                <label for="languageTag" class="form-label">Language Tag</label>
+                <div class="input-group input-group-sm">
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    id="languageTag" 
+                    v-model="createClassForm.languageTag"
+                    :placeholder="projectDefaultLanguage"
+                  >
+                  <button type="button" class="btn btn-outline-secondary" @click="resetLanguageTag">Reset</button>
+                </div>
+                <div class="form-text text-muted small">Leave blank for no language tag. Press 'Reset' to reset to project default.</div>
+              </div>
+              <div class="mb-3">
                 <label for="classIri" class="form-label">IRI</label>
                 <input type="text" class="form-control form-control-sm" id="classIri" v-model="createClassForm.iri" :placeholder="generateIriPlaceholder()">
               </div>
@@ -659,7 +673,10 @@
                   </option>
                 </select>
               </div>
-              <button type="submit" class="btn btn-primary btn-sm">Create</button>
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm">Create</button>
+                <button type="button" class="btn btn-secondary btn-sm" @click="resetCreateClassForm">Reset</button>
+              </div>
             </form>
           </div>
         </div>
@@ -1470,8 +1487,29 @@ const draggingNode = ref(null)
 const createClassForm = ref({
   name: '',
   iri: '',
-  parentId: 'owl:Thing'
+  parentId: 'owl:Thing',
+  languageTag: ''
 })
+
+// 项目默认语言
+const projectDefaultLanguage = computed(() => {
+  return props.projectInfo?.language || 'en'
+})
+
+// 重置语言标签
+const resetLanguageTag = () => {
+  createClassForm.value.languageTag = projectDefaultLanguage.value
+}
+
+// 重置创建类表单
+const resetCreateClassForm = () => {
+  createClassForm.value = {
+    name: '',
+    iri: '',
+    parentId: 'owl:Thing',
+    languageTag: ''
+  }
+}
 
 const createCommentForm = ref({
   content: ''
@@ -2084,20 +2122,73 @@ const deleteSelectedClass = async () => {
 // 创建类
 const handleCreateClass = async () => {
   try {
-    const response = await http.post('/class/create', {
+    // 构建请求数据
+    const requestData = {
       name: createClassForm.value.name,
       iri: createClassForm.value.iri || generateIriPlaceholder(),
       parentId: createClassForm.value.parentId,
-      projectId: props.projectId
-    })
-    showCreateClassModal.value = false
-    emit('class-created', response.data)
-    await loadClassHierarchy()
-    createClassForm.value = { name: '', iri: '', parentId: 'owl:Thing' }
+      projectId: props.projectId,
+      languageTag: createClassForm.value.languageTag || projectDefaultLanguage.value,
+      ontologyId: props.projectDataRecord?.id || props.projectId
+    }
+    
+    const response = await http.post('/class/create', requestData)
+    
+    // 显示成功消息
+    const successMessage = `Successfully created class: ${createClassForm.value.name}`
+    showAlertMessage(successMessage, 'success')
+    
+    // 延迟0.5秒后关闭模态框
+    setTimeout(() => {
+      showCreateClassModal.value = false
+      emit('class-created', response.data)
+      loadClassHierarchy()
+      // 重置表单
+      createClassForm.value = { 
+        name: '', 
+        iri: '', 
+        parentId: 'owl:Thing',
+        languageTag: '' 
+      }
+    }, 500)
+    
   } catch (error) {
     console.error('Failed to create class:', error)
-    alert('Failed to create class')
+    
+    // 构建错误消息
+    const source = error.response?.config?.url || 'Server'
+    const errorMessage = error.response?.data?.message || error.message || 'Unknown error'
+    const fullErrorMessage = `Source: ${source}\nFailed to create class: ${errorMessage}`
+    
+    // 显示错误消息
+    showAlertMessage(fullErrorMessage, 'error')
   }
+}
+
+// 显示提示消息
+const showAlertMessage = (message, type = 'info') => {
+  // 创建提示元素
+  const alertDiv = document.createElement('div')
+  alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'info'} alert-dismissible fade show position-fixed`
+  alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;'
+  alertDiv.innerHTML = `
+    <div style="white-space: pre-line;">${message}</div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  `
+  
+  document.body.appendChild(alertDiv)
+  
+  // 3秒后自动关闭
+  setTimeout(() => {
+    if (alertDiv.parentNode) {
+      alertDiv.remove()
+    }
+  }, 3000)
+  
+  // 点击关闭按钮移除
+  alertDiv.querySelector('.btn-close').addEventListener('click', () => {
+    alertDiv.remove()
+  })
 }
 
 // 生成IRI占位符

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class ClassService {
@@ -16,8 +17,51 @@ public class ClassService {
     private ClassRepository classRepository;
 
     public Class create(Class classEntity) {
+        // 设置创建时间和更新时间
         classEntity.setCreatedDate(new Date());
         classEntity.setLastModifiedDate(new Date());
+        
+        // 如果没有设置ID，生成一个
+        if (classEntity.getId() == null || classEntity.getId().isEmpty()) {
+            classEntity.setId(UUID.randomUUID().toString());
+        }
+        
+        // 如果没有设置语言标签，使用默认值
+        if (classEntity.getLanguageTag() == null || classEntity.getLanguageTag().isEmpty()) {
+            classEntity.setLanguageTag("en");
+        }
+        
+        // 创建rdfs:label注解
+        List<Class.Annotation> annotations = new ArrayList<>();
+        if (classEntity.getName() != null && !classEntity.getName().isEmpty()) {
+            Class.Annotation labelAnnotation = new Class.Annotation(
+                "rdfs:label",
+                classEntity.getName(),
+                classEntity.getLanguageTag()
+            );
+            annotations.add(labelAnnotation);
+        }
+        classEntity.setAnnotations(annotations);
+        
+        // 处理父类关系
+        if (classEntity.getSuperClasses() == null) {
+            classEntity.setSuperClasses(new ArrayList<>());
+        }
+        if (classEntity.getSuperClasses().isEmpty()) {
+            classEntity.getSuperClasses().add("owl:Thing");
+        }
+        
+        // 初始化其他列表
+        if (classEntity.getSubClasses() == null) {
+            classEntity.setSubClasses(new ArrayList<>());
+        }
+        if (classEntity.getProperties() == null) {
+            classEntity.setProperties(new ArrayList<>());
+        }
+        if (classEntity.getIndividuals() == null) {
+            classEntity.setIndividuals(new ArrayList<>());
+        }
+        
         return classRepository.save(classEntity);
     }
 

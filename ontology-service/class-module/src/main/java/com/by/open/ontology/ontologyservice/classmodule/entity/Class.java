@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Document(collection = "classes")
 public class Class {
@@ -14,14 +15,38 @@ public class Class {
     private String iri;
     private String ontologyId;
     private String description;
+    private String languageTag;
     private List<String> superClasses;
     private List<String> subClasses;
     private List<String> properties;
     private List<String> individuals;
+    private List<Annotation> annotations;
     private boolean abstractClass;
     private Date createdDate;
     private Date lastModifiedDate;
     private String creatorId;
+    
+    // 内部类：注解
+    public static class Annotation {
+        private String property;
+        private String value;
+        private String language;
+        
+        public Annotation() {}
+        
+        public Annotation(String property, String value, String language) {
+            this.property = property;
+            this.value = value;
+            this.language = language;
+        }
+        
+        public String getProperty() { return property; }
+        public void setProperty(String property) { this.property = property; }
+        public String getValue() { return value; }
+        public void setValue(String value) { this.value = value; }
+        public String getLanguage() { return language; }
+        public void setLanguage(String language) { this.language = language; }
+    }
 
     public Class() {
     }
@@ -135,5 +160,21 @@ public class Class {
 
     public void setCreatorId(String creatorId) {
         this.creatorId = creatorId;
+    }
+    
+    public String getLanguageTag() {
+        return languageTag;
+    }
+
+    public void setLanguageTag(String languageTag) {
+        this.languageTag = languageTag;
+    }
+    
+    public List<Annotation> getAnnotations() {
+        return annotations;
+    }
+
+    public void setAnnotations(List<Annotation> annotations) {
+        this.annotations = annotations;
     }
 }
