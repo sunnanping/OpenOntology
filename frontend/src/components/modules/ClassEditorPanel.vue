@@ -15,13 +15,18 @@
     </div>
     
     <div class="panels-wrapper" :class="{ 'mobile-view': isMobileView }">
-      <!-- 左侧：Class Hierarchy 面板 -->
+      <!-- 左侧：Class Hierarchy 和 Description 面板 -->
       <div 
-        v-show="showClassHierarchy && (isMobileView ? activeMobilePanel === 'hierarchy' : true)" 
-        class="panel class-hierarchy-panel"
-        :class="{ 'mobile-active': isMobileView && activeMobilePanel === 'hierarchy' }"
+        class="left-panels"
         :style="isMobileView ? {} : { width: leftPanelWidth + 'px' }"
       >
+        <!-- Class Hierarchy 面板 -->
+        <div 
+          v-show="showClassHierarchy && (isMobileView ? activeMobilePanel === 'hierarchy' : true)" 
+          class="panel class-hierarchy-panel"
+          :class="{ 'mobile-active': isMobileView && activeMobilePanel === 'hierarchy' }"
+          :style="isMobileView ? {} : { height: '66.67%' }"
+        >
         <div class="panel-header">
           <div class="panel-header-left">
             <span class="panel-title">Class Hierarchy</span>
@@ -175,6 +180,108 @@
         </div>
         
         <div class="resize-handle-h" @mousedown="startResizeLeft($event)"></div>
+        </div>
+        
+        <!-- Description 面板 -->
+        <div 
+          v-show="showDescription && (isMobileView ? activeMobilePanel === 'description' : true)" 
+          class="panel description-panel"
+          :class="{ 'mobile-active': isMobileView && activeMobilePanel === 'description' }"
+          :style="isMobileView ? {} : { height: '33.33%' }"
+        >
+          <div class="panel-header">
+            <div class="panel-header-left">
+              <span class="panel-title">Description</span>
+            </div>
+            <div class="panel-header-right">
+              <div class="panel-actions">
+                <button class="panel-btn" title="Add Equivalent To" @click="showAddEquivalentToModal = true">
+                  <i class="bi bi-plus"></i>
+                </button>
+                <button class="panel-btn" title="Add SubClass Of" @click="showAddSubClassOfModal = true">
+                  <i class="bi bi-plus"></i>
+                </button>
+                <button class="panel-btn" title="Add General class axioms" @click="showAddGeneralClassAxiomsModal = true">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+              <button class="panel-btn close-btn" title="Close" @click="showDescription = false">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="panel-body">
+            <div class="description-section">
+              <div class="description-item">
+                <span class="item-label">Equivalent To</span>
+                <button class="item-action" @click="showAddEquivalentToModal = true">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+              
+              <div class="description-item">
+                <span class="item-label">SubClass Of</span>
+                <button class="item-action" @click="showAddSubClassOfModal = true">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+              
+              <div class="description-item">
+                <span class="item-label">General class axioms</span>
+                <button class="item-action" @click="showAddGeneralClassAxiomsModal = true">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+              
+              <div class="description-item" v-if="selectedClass">
+                <span class="item-label">SubClass Of (Anonymous Assertions)</span>
+                <div class="item-value" v-for="(assertion, index) in selectedClass.anonymousAssertions || []" :key="index">
+                  {{ assertion }}
+                </div>
+              </div>
+              
+              <div class="description-item" v-if="selectedClass">
+                <span class="item-label">Instances</span>
+                <button class="item-action" @click="showAddInstanceModal = true">
+                  <i class="bi bi-plus"></i>
+                </button>
+                <div class="item-value" v-for="(instance, index) in selectedClass.instances || []" :key="index">
+                  {{ instance }}
+                </div>
+              </div>
+              
+              <div class="description-item" v-if="selectedClass">
+                <span class="item-label">Target for Key</span>
+                <button class="item-action" @click="showAddKeyTargetModal = true">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+              
+              <div class="description-item" v-if="selectedClass && selectedClass.disjointWith">
+                <span class="item-label">Disjoint With</span>
+                <div class="item-value disjoint-with">
+                  <span v-for="(disjoint, index) in selectedClass.disjointWith" :key="index" class="disjoint-item">
+                    {{ disjoint }}
+                    <button class="disjoint-action" @click="removeDisjointWith(index)">
+                      <i class="bi bi-x"></i>
+                    </button>
+                  </span>
+                </div>
+                <button class="item-action" @click="showAddDisjointWithModal = true">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+              
+              <div class="description-item" v-if="selectedClass">
+                <span class="item-label">Disjoint Union Of</span>
+                <button class="item-action" @click="showAddDisjointUnionOfModal = true">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 中间：Class 详情面板 -->
@@ -428,10 +535,14 @@
     </div>
 
     <!-- 恢复面板按钮 -->
-    <div class="restore-panels" v-if="!showClassHierarchy || !showClassDetails || !showComments || !showProjectFeed">
+    <div class="restore-panels" v-if="!showClassHierarchy || !showClassDetails || !showDescription || !showComments || !showProjectFeed">
       <button v-if="!showClassHierarchy" class="btn-restore" @click="showClassHierarchy = true">
         <i class="bi bi-diagram-3"></i>
         <span>Class Hierarchy</span>
+      </button>
+      <button v-if="!showDescription" class="btn-restore" @click="showDescription = true">
+        <i class="bi bi-file-text"></i>
+        <span>Description</span>
       </button>
       <button v-if="!showClassDetails" class="btn-restore" @click="showClassDetails = true">
         <i class="bi bi-file-earmark-text"></i>
@@ -1016,6 +1127,7 @@ const activeMobilePanel = ref('hierarchy')
 
 const availablePanels = [
   { id: 'hierarchy', label: 'Class Hierarchy', shortLabel: 'Hierarchy', icon: 'bi bi-diagram-3' },
+  { id: 'description', label: 'Description', shortLabel: 'Description', icon: 'bi bi-file-text' },
   { id: 'details', label: 'Class Details', shortLabel: 'Class', icon: 'bi bi-file-earmark-text' },
   { id: 'comments', label: 'Comments', shortLabel: 'Comments', icon: 'bi bi-chat-left-text' },
   { id: 'feed', label: 'Project Feed', shortLabel: 'Feed', icon: 'bi bi-activity' }
@@ -1025,9 +1137,19 @@ const isMobileView = computed(() => windowWidth.value < 992)
 
 // 面板显示状态
 const showClassHierarchy = ref(true)
+const showDescription = ref(true)
 const showClassDetails = ref(true)
 const showComments = ref(true)
 const showProjectFeed = ref(true)
+
+// Description面板相关模态框状态
+const showAddEquivalentToModal = ref(false)
+const showAddSubClassOfModal = ref(false)
+const showAddGeneralClassAxiomsModal = ref(false)
+const showAddInstanceModal = ref(false)
+const showAddKeyTargetModal = ref(false)
+const showAddDisjointWithModal = ref(false)
+const showAddDisjointUnionOfModal = ref(false)
 
 // 右键菜单状态
 const showContextMenu = ref(false)
@@ -1850,6 +1972,14 @@ const removeRelationship = async (index) => {
   console.log('Remove relationship at index:', index)
 }
 
+// Description面板相关方法
+const removeDisjointWith = (index) => {
+  if (!selectedClass.value) return
+  if (selectedClass.value.disjointWith) {
+    selectedClass.value.disjointWith.splice(index, 1)
+  }
+}
+
 // 添加关系
 const handleAddRelationship = async () => {
   if (!selectedClass.value || !newRelationship.value.property || !newRelationship.value.target) return
@@ -2472,6 +2602,78 @@ const initGraph = () => {
   text-align: center;
   color: #999;
   font-size: 12px;
+}
+
+.left-panels {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.description-panel {
+  border-top: 1px solid #ccc;
+  flex-shrink: 0;
+}
+
+.description-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.description-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 12px;
+}
+
+.description-item .item-label {
+  font-weight: 500;
+  color: #4a90d9;
+  min-width: 150px;
+  flex-shrink: 0;
+}
+
+.description-item .item-value {
+  flex: 1;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.description-item .disjoint-with {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+
+.description-item .disjoint-item {
+  background-color: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.description-item .disjoint-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  color: #666;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
 }
 
 .right-panels {
