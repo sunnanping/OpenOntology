@@ -17,43 +17,8 @@ public class ClassService {
     private ClassRepository classRepository;
     
     private static final String OWL_THING_ID = "owl:Thing";
-    private static final String OWL_THING_IRI = "http://www.w3.org/2002/07/owl#Thing";
-    
-    // 确保 owl:Thing 根节点存在
-    private void ensureOwlThingExists(String ontologyId) {
-        Class owlThing = classRepository.findById(OWL_THING_ID).orElse(null);
-        if (owlThing == null) {
-            // 创建 owl:Thing 根节点
-            owlThing = new Class();
-            owlThing.setId(OWL_THING_ID);
-            owlThing.setName("owl:Thing");
-            owlThing.setIri(OWL_THING_IRI);
-            owlThing.setOntologyId(ontologyId);
-            owlThing.setLanguageTag("en");
-            owlThing.setCreatedDate(new Date());
-            owlThing.setLastModifiedDate(new Date());
-            owlThing.setSuperClasses(new ArrayList<>());
-            owlThing.setSubClasses(new ArrayList<>());
-            owlThing.setProperties(new ArrayList<>());
-            owlThing.setIndividuals(new ArrayList<>());
-            owlThing.setAbstractClass(true);
-            
-            // 创建 rdfs:label 注解
-            List<Class.Annotation> annotations = new ArrayList<>();
-            annotations.add(new Class.Annotation("rdfs:label", "Thing", "en"));
-            owlThing.setAnnotations(annotations);
-            
-            classRepository.save(owlThing);
-        }
-    }
 
     public Class create(Class classEntity) {
-        // 确保 owl:Thing 根节点存在
-        String ontologyId = classEntity.getOntologyId();
-        if (ontologyId != null && !ontologyId.isEmpty()) {
-            ensureOwlThingExists(ontologyId);
-        }
-        
         // 设置创建时间和更新时间
         classEntity.setCreatedDate(new Date());
         classEntity.setLastModifiedDate(new Date());
@@ -84,6 +49,7 @@ public class ClassService {
         if (classEntity.getSuperClasses() == null) {
             classEntity.setSuperClasses(new ArrayList<>());
         }
+        // 如果没有指定父类，默认父类为owl:Thing（虚拟根节点）
         if (classEntity.getSuperClasses().isEmpty()) {
             classEntity.getSuperClasses().add(OWL_THING_ID);
         }
@@ -102,8 +68,13 @@ public class ClassService {
         // 保存新创建的类
         Class savedClass = classRepository.save(classEntity);
         
-        // 更新父类的 subClasses 列表
+        // 更新父类的 subClasses 列表（owl:Thing是虚拟节点，不在数据库中）
         for (String parentId : savedClass.getSuperClasses()) {
+            // 跳过owl:Thing虚拟根节点
+            if (OWL_THING_ID.equals(parentId)) {
+                continue;
+            }
+            
             Class parentClass = classRepository.findById(parentId).orElse(null);
             if (parentClass != null) {
                 if (parentClass.getSubClasses() == null) {

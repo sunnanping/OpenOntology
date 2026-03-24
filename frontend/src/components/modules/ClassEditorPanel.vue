@@ -1641,9 +1641,15 @@ const loadClassHierarchy = async () => {
 
 // 构建树形数据 - 将扁平化的类数据转换为嵌套的树形结构
 const buildTreeData = (classes) => {
+  // 始终创建owl:Thing作为虚拟根节点
+  const owlThingNode = {
+    id: 'owl:Thing',
+    name: 'owl:Thing',
+    children: []
+  }
+  
   if (!classes || classes.length === 0) {
-    const defaultRoot = [{ id: 'owl:Thing', name: 'owl:Thing', children: [] }]
-    return defaultRoot
+    return [owlThingNode]
   }
   
   // 创建类ID到类对象的映射
@@ -1656,34 +1662,33 @@ const buildTreeData = (classes) => {
   })
   
   // 构建树形结构
-  const roots = []
-  
   classes.forEach(cls => {
     const node = classMap.get(cls.id)
     
     // 检查是否有父类
     if (cls.superClasses && cls.superClasses.length > 0) {
       const parentId = cls.superClasses[0]
-      const parentNode = classMap.get(parentId)
       
-      if (parentNode) {
-        parentNode.children.push(node)
+      // 如果父类是owl:Thing，挂载到虚拟根节点下
+      if (parentId === 'owl:Thing') {
+        owlThingNode.children.push(node)
       } else {
-        // 父类不存在，作为根节点
-        roots.push(node)
+        // 否则挂载到实际的父节点下
+        const parentNode = classMap.get(parentId)
+        if (parentNode) {
+          parentNode.children.push(node)
+        } else {
+          // 父类不存在，作为owl:Thing的子节点
+          owlThingNode.children.push(node)
+        }
       }
     } else {
-      // 没有父类，作为根节点
-      roots.push(node)
+      // 没有父类，作为owl:Thing的子节点
+      owlThingNode.children.push(node)
     }
   })
   
-  // 如果没有根节点，添加默认的owl:Thing
-  if (roots.length === 0) {
-    return [{ id: 'owl:Thing', name: 'owl:Thing', children: [] }]
-  }
-  
-  return roots
+  return [owlThingNode]
 }
 
 // 加载评论
