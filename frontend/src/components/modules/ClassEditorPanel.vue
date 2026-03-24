@@ -25,7 +25,7 @@
           v-show="showClassHierarchy && (isMobileView ? activeMobilePanel === 'hierarchy' : true)" 
           class="panel class-hierarchy-panel"
           :class="{ 'mobile-active': isMobileView && activeMobilePanel === 'hierarchy' }"
-          :style="isMobileView ? {} : { height: '66.67%' }"
+          :style="isMobileView ? {} : { height: hierarchyHeight + 'px' }"
         >
         <div class="panel-header">
           <div class="panel-header-left">
@@ -179,17 +179,16 @@
           </div>
         </div>
         
-        </div>
-        
         <!-- Class Hierarchy 和 Description 之间的垂直分割线 -->
         <div class="resize-handle-v" @mousedown="startResizeLeftPanels($event)"></div>
+        </div>
         
         <!-- Description 面板 -->
         <div 
           v-show="showDescription && (isMobileView ? activeMobilePanel === 'description' : true)" 
           class="panel description-panel"
           :class="{ 'mobile-active': isMobileView && activeMobilePanel === 'description' }"
-          :style="isMobileView ? {} : { height: '33.33%' }"
+          :style="isMobileView ? {} : { height: 'calc(100% - ' + (showClassHierarchy ? hierarchyHeight : 0) + 'px)' }"
         >
           <div class="panel-header">
             <div class="panel-header-left">
@@ -1230,6 +1229,7 @@ const leftPanelWidth = ref(0)
 const middlePanelWidth = ref(0)
 const rightPanelWidth = ref(0)
 const commentsHeight = ref(0)
+const hierarchyHeight = ref(0)
 
 // Class详情面板当前Tab
 const activeClassTab = ref('details')
@@ -1369,6 +1369,7 @@ const handleResize = () => {
   
   // Comments 高度默认占右侧面板的 1/2
   commentsHeight.value = Math.floor((windowHeight.value - 120) * 0.5)
+  hierarchyHeight.value = Math.floor((windowHeight.value - 120) * 0.67)
 }
 
 // 初始化加载
@@ -2099,22 +2100,11 @@ const startResizeLeft = (e) => {
 // 左侧面板上下拖动调整大小
 const startResizeLeftPanels = (e) => {
   const startY = e.clientY
-  const hierarchyPanel = e.target.closest('.class-hierarchy-panel')
-  const descriptionPanel = hierarchyPanel.nextElementSibling
-  
-  if (!hierarchyPanel || !descriptionPanel) return
-  
-  const startHierarchyHeight = hierarchyPanel.offsetHeight
-  const startDescriptionHeight = descriptionPanel.offsetHeight
-  const totalHeight = startHierarchyHeight + startDescriptionHeight
+  const startHeight = hierarchyHeight.value
   
   const handleMouseMove = (e) => {
     const deltaY = e.clientY - startY
-    const newHierarchyHeight = Math.max(100, Math.min(totalHeight - 100, startHierarchyHeight + deltaY))
-    const newDescriptionHeight = totalHeight - newHierarchyHeight
-    
-    hierarchyPanel.style.height = `${newHierarchyHeight}px`
-    descriptionPanel.style.height = `${newDescriptionHeight}px`
+    hierarchyHeight.value = Math.max(100, startHeight + deltaY)
   }
   
   const handleMouseUp = () => {
@@ -2525,6 +2515,23 @@ const initGraph = () => {
 
 .class-hierarchy-panel {
   flex-shrink: 0;
+  position: relative;
+}
+
+/* Class Hierarchy面板内的垂直分割线 */
+.class-hierarchy-panel > .resize-handle-v {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  cursor: row-resize;
+  background-color: #ddd;
+  z-index: 100;
+}
+
+.class-hierarchy-panel > .resize-handle-v:hover {
+  background-color: #4a90d9;
 }
 
 .tree-node {
