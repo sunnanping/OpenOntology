@@ -443,7 +443,7 @@
             <h6 class="section-title">Parents</h6>
             <div class="data-list">
               <div v-for="(parent, index) in selectedClass.superClasses || []" :key="index" class="data-item">
-                <span class="item-value">{{ parent }}</span>
+                <span class="item-value">{{ getClassNameById(parent) }}</span>
                 <button class="item-action delete" @click="removeParent(index)" :disabled="parent === 'owl:Thing'">
                   <i class="bi bi-x"></i>
                 </button>
@@ -1711,6 +1711,15 @@ const loadProjectActivities = async () => {
     console.error('Failed to load project activities:', error)
     projectActivities.value = []
   }
+}
+
+// 根据ID获取类名称
+const getClassNameById = (classId) => {
+  if (classId === 'owl:Thing') {
+    return 'owl:Thing'
+  }
+  const foundClass = classHierarchy.value.find(c => c.id === classId)
+  return foundClass ? foundClass.name : classId
 }
 
 // 加载类详情
