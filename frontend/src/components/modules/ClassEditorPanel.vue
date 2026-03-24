@@ -179,9 +179,10 @@
           </div>
         </div>
         
-        <div class="resize-handle-h" @mousedown="startResizeLeft($event)"></div>
-        <div class="resize-handle-v" @mousedown="startResizeLeftPanels($event)"></div>
         </div>
+        
+        <!-- Class Hierarchy 和 Description 之间的垂直分割线 -->
+        <div class="resize-handle-v" @mousedown="startResizeLeftPanels($event)"></div>
         
         <!-- Description 面板 -->
         <div 
@@ -344,6 +345,9 @@
             </div>
           </div>
         </div>
+        
+        <!-- 左侧面板区域的分割线 - 覆盖整个left-panels区域 -->
+        <div class="resize-handle-h" @mousedown="startResizeLeft($event)"></div>
       </div>
 
       <!-- 中间：Class 详情面板 -->
@@ -2712,6 +2716,7 @@ const initGraph = () => {
   flex-direction: column;
   flex-shrink: 0;
   overflow: hidden;
+  position: relative;
 }
 
 .description-panel {
