@@ -1268,8 +1268,28 @@ const startDragRestorePanels = (e) => {
   isDraggingRestorePanels.value = true
   const startX = e.clientX
   const startY = e.clientY
-  const startPosX = restorePanelsPosition.value.x
-  const startPosY = restorePanelsPosition.value.y
+  
+  // 获取Classes页面容器的位置和尺寸
+  const classEditorPanel = document.querySelector('.class-editor-panel')
+  if (!classEditorPanel) return
+  
+  const panelRect = classEditorPanel.getBoundingClientRect()
+  
+  // 获取恢复面板当前位置
+  const restorePanels = document.querySelector('.restore-panels')
+  if (!restorePanels) return
+  
+  const restoreRect = restorePanels.getBoundingClientRect()
+  
+  // 如果是第一次拖动（使用默认居中样式），记录当前实际位置
+  let currentX = restorePanelsPosition.value.x
+  let currentY = restorePanelsPosition.value.y
+  
+  if (currentX === 0 && currentY === 0) {
+    // 使用实际位置（相对于视窗）
+    currentX = restoreRect.left
+    currentY = restoreRect.top
+  }
   
   // 禁用文本选择
   document.body.classList.add('no-select')
@@ -1278,16 +1298,18 @@ const startDragRestorePanels = (e) => {
     const deltaX = e.clientX - startX
     const deltaY = e.clientY - startY
     
-    // 计算新位置
-    let newX = startPosX + deltaX
-    let newY = startPosY + deltaY
+    // 计算新位置（相对于视窗）
+    let newX = currentX + deltaX
+    let newY = currentY + deltaY
     
-    // 限制在视窗范围内
-    const maxX = window.innerWidth - 200
-    const maxY = window.innerHeight - 50
+    // 限制在Classes页面容器范围内
+    const minX = panelRect.left
+    const minY = panelRect.top
+    const maxX = panelRect.right - restoreRect.width
+    const maxY = panelRect.bottom - restoreRect.height
     
-    newX = Math.max(0, Math.min(maxX, newX))
-    newY = Math.max(0, Math.min(maxY, newY))
+    newX = Math.max(minX, Math.min(maxX, newX))
+    newY = Math.max(minY, Math.min(maxY, newY))
     
     restorePanelsPosition.value = { x: newX, y: newY }
   }
