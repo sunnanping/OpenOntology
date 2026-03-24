@@ -196,13 +196,14 @@
             </div>
             <div class="panel-header-right">
               <div class="panel-actions">
-                <button class="panel-btn" title="Add Equivalent To" @click="showAddEquivalentToModal = true">
+                <!-- 暂时隐藏这些按钮，以后可能通过按钮来管理对应的7个功能模块的数据 -->
+                <button class="panel-btn" title="Add Equivalent To" @click="showAddEquivalentToModal = true" style="display: none;">
                   <i class="bi bi-plus"></i>
                 </button>
-                <button class="panel-btn" title="Add SubClass Of" @click="showAddSubClassOfModal = true">
+                <button class="panel-btn" title="Add SubClass Of" @click="showAddSubClassOfModal = true" style="display: none;">
                   <i class="bi bi-plus"></i>
                 </button>
-                <button class="panel-btn" title="Add General class axioms" @click="showAddGeneralClassAxiomsModal = true">
+                <button class="panel-btn" title="Add General class axioms" @click="showAddGeneralClassAxiomsModal = true" style="display: none;">
                   <i class="bi bi-plus"></i>
                 </button>
               </div>
