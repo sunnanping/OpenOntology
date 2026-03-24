@@ -2082,6 +2082,9 @@ const startResizeLeft = (e) => {
   const startLeftWidth = leftPanelWidth.value
   const startMiddleWidth = middlePanelWidth.value
   
+  // 禁用文本选择
+  document.body.classList.add('no-select')
+  
   const handleMouseMove = (e) => {
     const deltaX = e.clientX - startX
     leftPanelWidth.value = startLeftWidth + deltaX
@@ -2091,6 +2094,8 @@ const startResizeLeft = (e) => {
   const handleMouseUp = () => {
     document.removeEventListener('mousemove', handleMouseMove)
     document.removeEventListener('mouseup', handleMouseUp)
+    // 恢复文本选择
+    document.body.classList.remove('no-select')
   }
   
   document.addEventListener('mousemove', handleMouseMove)
@@ -2102,6 +2107,9 @@ const startResizeLeftPanels = (e) => {
   const startY = e.clientY
   const startHeight = hierarchyHeight.value
   
+  // 禁用文本选择
+  document.body.classList.add('no-select')
+  
   const handleMouseMove = (e) => {
     const deltaY = e.clientY - startY
     hierarchyHeight.value = Math.max(100, startHeight + deltaY)
@@ -2110,6 +2118,8 @@ const startResizeLeftPanels = (e) => {
   const handleMouseUp = () => {
     document.removeEventListener('mousemove', handleMouseMove)
     document.removeEventListener('mouseup', handleMouseUp)
+    // 恢复文本选择
+    document.body.classList.remove('no-select')
   }
   
   document.addEventListener('mousemove', handleMouseMove)
@@ -2122,6 +2132,9 @@ const startResizeMiddle = (e) => {
   const startMiddleWidth = middlePanelWidth.value
   const startRightWidth = rightPanelWidth.value
   
+  // 禁用文本选择
+  document.body.classList.add('no-select')
+  
   const handleMouseMove = (e) => {
     const deltaX = e.clientX - startX
     middlePanelWidth.value = startMiddleWidth + deltaX
@@ -2131,6 +2144,8 @@ const startResizeMiddle = (e) => {
   const handleMouseUp = () => {
     document.removeEventListener('mousemove', handleMouseMove)
     document.removeEventListener('mouseup', handleMouseUp)
+    // 恢复文本选择
+    document.body.classList.remove('no-select')
   }
   
   document.addEventListener('mousemove', handleMouseMove)
@@ -2141,6 +2156,9 @@ const startResize = (e) => {
   const startY = e.clientY
   const startHeight = commentsHeight.value
   
+  // 禁用文本选择
+  document.body.classList.add('no-select')
+  
   const handleMouseMove = (e) => {
     const deltaY = e.clientY - startY
     commentsHeight.value = startHeight + deltaY
@@ -2149,6 +2167,8 @@ const startResize = (e) => {
   const handleMouseUp = () => {
     document.removeEventListener('mousemove', handleMouseMove)
     document.removeEventListener('mouseup', handleMouseUp)
+    // 恢复文本选择
+    document.body.classList.remove('no-select')
   }
   
   document.addEventListener('mousemove', handleMouseMove)
@@ -2959,6 +2979,14 @@ const initGraph = () => {
 
 .resize-handle-h:hover {
   background-color: #4a90d9;
+}
+
+/* 拖动时禁用文本选择 */
+.no-select {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
 }
 
 .resize-handle-v {
