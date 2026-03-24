@@ -601,7 +601,15 @@
     </div>
 
     <!-- 恢复面板按钮 -->
-    <div class="restore-panels" v-if="!showClassHierarchy || !showClassDetails || !showDescription || !showComments || !showProjectFeed">
+    <div 
+      class="restore-panels" 
+      v-if="!showClassHierarchy || !showClassDetails || !showDescription || !showComments || !showProjectFeed"
+      :style="restorePanelsStyle"
+      @mousedown="startDragRestorePanels"
+    >
+      <div class="restore-panels-drag-handle" title="拖动移动">
+        <i class="bi bi-grip-horizontal"></i>
+      </div>
       <button v-if="!showClassHierarchy" class="btn-restore" @click="showClassHierarchy = true">
         <i class="bi bi-diagram-3"></i>
         <span>Class Hierarchy</span>
@@ -1231,6 +1239,71 @@ const middlePanelWidth = ref(0)
 const rightPanelWidth = ref(0)
 const commentsHeight = ref(0)
 const hierarchyHeight = ref(0)
+
+// 恢复面板按钮位置
+const restorePanelsPosition = ref({ x: 0, y: 0 })
+const isDraggingRestorePanels = ref(false)
+
+// 恢复面板样式计算
+const restorePanelsStyle = computed(() => {
+  if (restorePanelsPosition.value.x === 0 && restorePanelsPosition.value.y === 0) {
+    return {} // 使用默认样式
+  }
+  return {
+    left: `${restorePanelsPosition.value.x}px`,
+    top: `${restorePanelsPosition.value.y}px`,
+    right: 'auto',
+    bottom: 'auto',
+    transform: 'none'
+  }
+})
+
+// 拖动恢复面板
+const startDragRestorePanels = (e) => {
+  // 只有点击拖动把手时才启动拖动
+  if (!e.target.closest('.restore-panels-drag-handle')) {
+    return
+  }
+  
+  isDraggingRestorePanels.value = true
+  const startX = e.clientX
+  const startY = e.clientY
+  const startPosX = restorePanelsPosition.value.x
+  const startPosY = restorePanelsPosition.value.y
+  
+  // 禁用文本选择
+  document.body.classList.add('no-select')
+  
+  const handleMouseMove = (e) => {
+    const deltaX = e.clientX - startX
+    const deltaY = e.clientY - startY
+    
+    // 计算新位置
+    let newX = startPosX + deltaX
+    let newY = startPosY + deltaY
+    
+    // 限制在视窗范围内
+    const maxX = window.innerWidth - 200
+    const maxY = window.innerHeight - 50
+    
+    newX = Math.max(0, Math.min(maxX, newX))
+    newY = Math.max(0, Math.min(maxY, newY))
+    
+    restorePanelsPosition.value = { x: newX, y: newY }
+  }
+  
+  const handleMouseUp = () => {
+    isDraggingRestorePanels.value = false
+    document.removeEventListener('mousemove', handleMouseMove)
+    document.removeEventListener('mouseup', handleMouseUp)
+    // 恢复文本选择
+    document.body.classList.remove('no-select')
+  }
+  
+  document.addEventListener('mousemove', handleMouseMove)
+  document.addEventListener('mouseup', handleMouseUp)
+  e.preventDefault()
+}
 
 // Class详情面板当前Tab
 const activeClassTab = ref('details')
@@ -3020,6 +3093,28 @@ const initGraph = () => {
   border-radius: 4px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
   border: 1px solid #ddd;
+  cursor: default;
+}
+
+.restore-panels-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 4px;
+  cursor: grab;
+  color: #999;
+  font-size: 12px;
+  border-right: 1px solid #eee;
+  margin-right: 4px;
+}
+
+.restore-panels-drag-handle:hover {
+  color: #666;
+  cursor: grab;
+}
+
+.restore-panels-drag-handle:active {
+  cursor: grabbing;
 }
 
 .btn-restore {
