@@ -180,6 +180,7 @@
         </div>
         
         <div class="resize-handle-h" @mousedown="startResizeLeft($event)"></div>
+        <div class="resize-handle-v" @mousedown="startResizeLeftPanels($event)"></div>
         </div>
         
         <!-- Description 面板 -->
@@ -213,71 +214,132 @@
           
           <div class="panel-body">
             <div class="description-section">
-              <div class="description-item">
+              <!-- Equivalent To -->
+              <div class="description-item" 
+                   :class="{ 'focused': focusedDescriptionItem === 'equivalentTo' }"
+                   @click="focusedDescriptionItem = 'equivalentTo'">
                 <span class="item-label">Equivalent To</span>
-                <button class="item-action" @click="showAddEquivalentToModal = true">
+                <button class="item-action" title="Add Equivalent To" @click.stop="showAddEquivalentToModal = true">
                   <i class="bi bi-plus"></i>
+                  <span class="add-text">Add</span>
                 </button>
+                <div class="item-value" v-if="selectedClass && selectedClass.equivalentTo">
+                  {{ selectedClass.equivalentTo }}
+                </div>
               </div>
               
-              <div class="description-item">
+              <!-- SubClass Of -->
+              <div class="description-item" 
+                   :class="{ 'focused': focusedDescriptionItem === 'subClassOf' }"
+                   @click="focusedDescriptionItem = 'subClassOf'">
                 <span class="item-label">SubClass Of</span>
-                <button class="item-action" @click="showAddSubClassOfModal = true">
+                <button class="item-action" title="Add SubClass Of" @click.stop="showAddSubClassOfModal = true">
                   <i class="bi bi-plus"></i>
+                  <span class="add-text">Add</span>
                 </button>
+                <div class="item-value" v-if="selectedClass && selectedClass.superClasses">
+                  <div v-for="(superClass, index) in selectedClass.superClasses" :key="index" class="super-class-item">
+                    {{ superClass }}
+                    <button class="super-class-action" @click.stop="removeSuperClass(index)" :disabled="superClass === 'owl:Thing'">
+                      <i class="bi bi-x"></i>
+                    </button>
+                  </div>
+                </div>
               </div>
               
-              <div class="description-item">
+              <!-- General class axioms -->
+              <div class="description-item" 
+                   :class="{ 'focused': focusedDescriptionItem === 'generalAxioms' }"
+                   @click="focusedDescriptionItem = 'generalAxioms'">
                 <span class="item-label">General class axioms</span>
-                <button class="item-action" @click="showAddGeneralClassAxiomsModal = true">
+                <button class="item-action" title="Add General class axioms" @click.stop="showAddGeneralClassAxiomsModal = true">
                   <i class="bi bi-plus"></i>
+                  <span class="add-text">Add</span>
                 </button>
+                <div class="item-value" v-if="selectedClass && selectedClass.generalAxioms">
+                  <div v-for="(axiom, index) in selectedClass.generalAxioms" :key="index">
+                    {{ axiom }}
+                  </div>
+                </div>
               </div>
               
-              <div class="description-item" v-if="selectedClass">
+              <!-- SubClass Of (Anonymous Assertions) -->
+              <div class="description-item" 
+                   :class="{ 'focused': focusedDescriptionItem === 'anonymousAssertions' }"
+                   @click="focusedDescriptionItem = 'anonymousAssertions'">
                 <span class="item-label">SubClass Of (Anonymous Assertions)</span>
-                <div class="item-value" v-for="(assertion, index) in selectedClass.anonymousAssertions || []" :key="index">
-                  {{ assertion }}
+                <div class="item-value" v-if="selectedClass && selectedClass.anonymousAssertions">
+                  <div v-for="(assertion, index) in selectedClass.anonymousAssertions" :key="index">
+                    {{ assertion }}
+                  </div>
                 </div>
               </div>
               
-              <div class="description-item" v-if="selectedClass">
+              <!-- Instances -->
+              <div class="description-item" 
+                   :class="{ 'focused': focusedDescriptionItem === 'instances' }"
+                   @click="focusedDescriptionItem = 'instances'">
                 <span class="item-label">Instances</span>
-                <button class="item-action" @click="showAddInstanceModal = true">
+                <button class="item-action" title="Add Instance" @click.stop="showAddInstanceModal = true">
                   <i class="bi bi-plus"></i>
+                  <span class="add-text">Add</span>
                 </button>
-                <div class="item-value" v-for="(instance, index) in selectedClass.instances || []" :key="index">
-                  {{ instance }}
+                <div class="item-value" v-if="selectedClass && selectedClass.instances">
+                  <div v-for="(instance, index) in selectedClass.instances" :key="index">
+                    {{ instance }}
+                  </div>
                 </div>
               </div>
               
-              <div class="description-item" v-if="selectedClass">
+              <!-- Target for Key -->
+              <div class="description-item" 
+                   :class="{ 'focused': focusedDescriptionItem === 'keyTargets' }"
+                   @click="focusedDescriptionItem = 'keyTargets'">
                 <span class="item-label">Target for Key</span>
-                <button class="item-action" @click="showAddKeyTargetModal = true">
+                <button class="item-action" title="Add Target for Key" @click.stop="showAddKeyTargetModal = true">
                   <i class="bi bi-plus"></i>
+                  <span class="add-text">Add</span>
                 </button>
+                <div class="item-value" v-if="selectedClass && selectedClass.keyTargets">
+                  <div v-for="(target, index) in selectedClass.keyTargets" :key="index">
+                    {{ target }}
+                  </div>
+                </div>
               </div>
               
-              <div class="description-item" v-if="selectedClass && selectedClass.disjointWith">
+              <!-- Disjoint With -->
+              <div class="description-item" 
+                   :class="{ 'focused': focusedDescriptionItem === 'disjointWith' }"
+                   @click="focusedDescriptionItem = 'disjointWith'">
                 <span class="item-label">Disjoint With</span>
-                <div class="item-value disjoint-with">
+                <button class="item-action" title="Add Disjoint With" @click.stop="showAddDisjointWithModal = true">
+                  <i class="bi bi-plus"></i>
+                  <span class="add-text">Add</span>
+                </button>
+                <div class="item-value disjoint-with" v-if="selectedClass && selectedClass.disjointWith">
                   <span v-for="(disjoint, index) in selectedClass.disjointWith" :key="index" class="disjoint-item">
                     {{ disjoint }}
-                    <button class="disjoint-action" @click="removeDisjointWith(index)">
+                    <button class="disjoint-action" @click.stop="removeDisjointWith(index)">
                       <i class="bi bi-x"></i>
                     </button>
                   </span>
                 </div>
-                <button class="item-action" @click="showAddDisjointWithModal = true">
-                  <i class="bi bi-plus"></i>
-                </button>
               </div>
               
-              <div class="description-item" v-if="selectedClass">
+              <!-- Disjoint Union Of -->
+              <div class="description-item" 
+                   :class="{ 'focused': focusedDescriptionItem === 'disjointUnionOf' }"
+                   @click="focusedDescriptionItem = 'disjointUnionOf'">
                 <span class="item-label">Disjoint Union Of</span>
-                <button class="item-action" @click="showAddDisjointUnionOfModal = true">
+                <button class="item-action" title="Add Disjoint Union Of" @click.stop="showAddDisjointUnionOfModal = true">
                   <i class="bi bi-plus"></i>
+                  <span class="add-text">Add</span>
                 </button>
+                <div class="item-value" v-if="selectedClass && selectedClass.disjointUnionOf">
+                  <div v-for="(union, index) in selectedClass.disjointUnionOf" :key="index">
+                    {{ union }}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1151,6 +1213,9 @@ const showAddKeyTargetModal = ref(false)
 const showAddDisjointWithModal = ref(false)
 const showAddDisjointUnionOfModal = ref(false)
 
+// Description面板聚焦状态
+const focusedDescriptionItem = ref(null)
+
 // 右键菜单状态
 const showContextMenu = ref(false)
 const contextMenuPosition = ref({ x: 0, y: 0 })
@@ -1980,6 +2045,13 @@ const removeDisjointWith = (index) => {
   }
 }
 
+const removeSuperClass = (index) => {
+  if (!selectedClass.value) return
+  if (selectedClass.value.superClasses) {
+    selectedClass.value.superClasses.splice(index, 1)
+  }
+}
+
 // 添加关系
 const handleAddRelationship = async () => {
   if (!selectedClass.value || !newRelationship.value.property || !newRelationship.value.target) return
@@ -2018,6 +2090,37 @@ const startResizeLeft = (e) => {
   
   document.addEventListener('mousemove', handleMouseMove)
   document.addEventListener('mouseup', handleMouseUp)
+}
+
+// 左侧面板上下拖动调整大小
+const startResizeLeftPanels = (e) => {
+  const startY = e.clientY
+  const hierarchyPanel = e.target.closest('.class-hierarchy-panel')
+  const descriptionPanel = hierarchyPanel.nextElementSibling
+  
+  if (!hierarchyPanel || !descriptionPanel) return
+  
+  const startHierarchyHeight = hierarchyPanel.offsetHeight
+  const startDescriptionHeight = descriptionPanel.offsetHeight
+  const totalHeight = startHierarchyHeight + startDescriptionHeight
+  
+  const handleMouseMove = (e) => {
+    const deltaY = e.clientY - startY
+    const newHierarchyHeight = Math.max(100, Math.min(totalHeight - 100, startHierarchyHeight + deltaY))
+    const newDescriptionHeight = totalHeight - newHierarchyHeight
+    
+    hierarchyPanel.style.height = `${newHierarchyHeight}px`
+    descriptionPanel.style.height = `${newDescriptionHeight}px`
+  }
+  
+  const handleMouseUp = () => {
+    document.removeEventListener('mousemove', handleMouseMove)
+    document.removeEventListener('mouseup', handleMouseUp)
+  }
+  
+  document.addEventListener('mousemove', handleMouseMove)
+  document.addEventListener('mouseup', handleMouseUp)
+  e.preventDefault()
 }
 
 const startResizeMiddle = (e) => {
@@ -2626,23 +2729,77 @@ const initGraph = () => {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  padding: 4px 0;
+  padding: 4px 8px;
   font-size: 12px;
+  color: #999;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 3px;
+}
+
+.description-item:hover {
+  color: #4a90d9;
+  background-color: rgba(74, 144, 217, 0.1);
+}
+
+.description-item.focused {
+  background-color: #4a90d9;
+  color: white;
 }
 
 .description-item .item-label {
   font-weight: 500;
-  color: #4a90d9;
   min-width: 150px;
   flex-shrink: 0;
 }
 
 .description-item .item-value {
   flex: 1;
-  color: #333;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.description-item.focused .item-value {
+  color: white;
+}
+
+.description-item .item-action {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.description-item:hover .item-action {
+  border-color: #4a90d9;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.description-item.focused .item-action {
+  border-color: white;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.description-item .add-text {
+  font-size: 10px;
+}
+
+.description-item.focused .super-class-item {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.description-item.focused .disjoint-item {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
 .description-item .disjoint-with {
@@ -2674,6 +2831,36 @@ const initGraph = () => {
   border: none;
   cursor: pointer;
   font-size: 10px;
+}
+
+.description-item .super-class-item {
+  background-color: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.description-item .super-class-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  color: #666;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.description-item .super-class-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .right-panels {
