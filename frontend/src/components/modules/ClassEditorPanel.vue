@@ -57,6 +57,11 @@
                   <line x1="15" y1="15" x2="20" y2="20" stroke="currentColor" stroke-width="1.5"/>
                 </svg>
               </button>
+              <button class="panel-btn" title="Import classes" @click="showImportClassesModal = true">
+                <svg class="wp-icon" viewBox="0 0 24 24" width="14" height="14">
+                  <path d="M12 3v12M8 9l4-4 4 4M4 17h16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
               <button class="panel-btn" title="Filter" @click="toggleFilter">
                 <svg class="wp-icon" viewBox="0 0 24 24" width="14" height="14">
                   <polygon points="3,5 21,5 14,12 14,19 10,19 10,12" fill="none" stroke="currentColor" stroke-width="1.5"/>
@@ -418,55 +423,68 @@
           
           <div class="detail-section">
             <h6 class="section-title">Annotations</h6>
-            <div class="data-list">
-              <div v-for="(ann, index) in selectedClass.annotations || []" :key="index" class="data-item">
-                <span class="item-predicate">{{ ann.predicate }}</span>
-                <span class="item-value">{{ ann.value }}</span>
-                <button class="item-action" @click="editAnnotation(index)">
-                  <i class="bi bi-pencil"></i>
+            <div class="annotation-list">
+              <div v-for="(ann, index) in selectedClass.annotations || []" :key="index" class="annotation-item">
+                <div class="annotation-content">
+                  <span class="annotation-predicate">{{ ann.predicate }}</span>
+                  <span class="annotation-value">{{ ann.value }}</span>
+                  <span v-if="ann.languageTag" class="annotation-lang">{{ ann.languageTag }}</span>
+                </div>
+                <button class="annotation-delete" @click="removeAnnotation(index)">
+                  <i class="bi bi-x"></i>
                 </button>
               </div>
-              <div v-if="!selectedClass.annotations || selectedClass.annotations.length === 0" class="data-item">
-                <span class="item-predicate">rdfs:label</span>
-                <span class="item-value">{{ selectedClass.name }}</span>
-                <button class="item-action" @click="editLabel">
-                  <i class="bi bi-pencil"></i>
+              <div class="annotation-input-row">
+                <input type="text" class="annotation-property" placeholder="Enter property" v-model="newAnnotation.property">
+                <input type="text" class="annotation-value-input" placeholder="Enter value" v-model="newAnnotation.value">
+                <input type="text" class="annotation-lang-input" placeholder="lang" v-model="newAnnotation.languageTag">
+                <button class="annotation-add" @click="addAnnotation">
+                  <i class="bi bi-plus"></i>
                 </button>
               </div>
-              <button class="btn-add" @click="showAddAnnotationModal = true">
-                <i class="bi bi-plus"></i> Add Annotation
-              </button>
             </div>
           </div>
           
           <div class="detail-section">
             <h6 class="section-title">Parents</h6>
-            <div class="data-list">
-              <div v-for="(parent, index) in selectedClass.superClasses || []" :key="index" class="data-item">
-                <span class="item-value">{{ getClassNameById(parent) }}</span>
-                <button class="item-action delete" @click="removeParent(index)" :disabled="parent === 'owl:Thing'">
+            <div class="parent-list">
+              <div v-for="(parent, index) in selectedClass.superClasses || []" :key="index" class="parent-item">
+                <div class="parent-content">
+                  <span class="parent-checkbox"><i class="bi bi-circle"></i></span>
+                  <span class="parent-name">{{ getClassNameById(parent) }}</span>
+                </div>
+                <button class="parent-delete" @click="removeParent(index)" :disabled="parent === 'owl:Thing'">
                   <i class="bi bi-x"></i>
                 </button>
               </div>
-              <button v-if="!selectedClass.superClasses || selectedClass.superClasses.length === 0" class="btn-add" @click="showAddParentModal = true">
-                <i class="bi bi-plus"></i> Add Parent
-              </button>
+              <div class="parent-input-row">
+                <input type="text" class="parent-input" placeholder="Enter a class name" v-model="newParent.name">
+                <button class="parent-add" @click="showAddParentModal = true">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
             </div>
           </div>
           
           <div class="detail-section">
             <h6 class="section-title">Relationships</h6>
-            <div class="data-list">
-              <div v-for="(rel, index) in selectedClass.relationships || []" :key="index" class="data-item">
-                <span class="item-predicate">{{ rel.property }}</span>
-                <span class="item-value">{{ rel.target }}</span>
-                <button class="item-action delete" @click="removeRelationship(index)">
+            <div class="relationship-list">
+              <div v-for="(rel, index) in selectedClass.relationships || []" :key="index" class="relationship-item">
+                <div class="relationship-content">
+                  <span class="relationship-property">{{ rel.property }}</span>
+                  <span class="relationship-value">{{ rel.target }}</span>
+                  <span v-if="rel.languageTag" class="relationship-lang">{{ rel.languageTag }}</span>
+                </div>
+                <button class="relationship-delete" @click="removeRelationship(index)">
                   <i class="bi bi-x"></i>
                 </button>
               </div>
-              <button class="btn-add" @click="showAddRelationshipModal = true">
-                <i class="bi bi-plus"></i> Add Relationship
-              </button>
+              <div class="relationship-input-row">
+                <input type="text" class="relationship-property" placeholder="Enter property" v-model="newRelationship.property">
+                <span class="relationship-separator">•</span>
+                <input type="text" class="relationship-value-input" placeholder="Enter value" v-model="newRelationship.value">
+                <input type="text" class="relationship-lang-input" placeholder="lang" v-model="newRelationship.languageTag">
+              </div>
             </div>
           </div>
         </div>
@@ -676,6 +694,43 @@
               <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary btn-sm">Create</button>
                 <button type="button" class="btn btn-secondary btn-sm" @click="resetCreateClassForm">Reset</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import Classes Modal -->
+    <div class="modal fade" :class="{ 'show': showImportClassesModal }" tabindex="-1" v-if="showImportClassesModal">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Import Classes</h5>
+            <button type="button" class="btn-close" @click="showImportClassesModal = false"></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="handleImportClasses">
+              <div class="mb-3">
+                <label for="importScript" class="form-label">Please enter turtle/rdfs script:</label>
+                <textarea 
+                  class="form-control" 
+                  id="importScript" 
+                  v-model="importScript" 
+                  rows="12" 
+                  required
+                  placeholder="@prefix rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt; .
+@prefix rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
+@prefix : &lt;http://example.org/device#&gt; .
+
+:Office a rdfs:Class ;
+  rdfs:subClassOf :PhysicalLocation ;
+  rdfs:label &quot;Office&quot;@en ."
+                ></textarea>
+              </div>
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm">Import</button>
+                <button type="button" class="btn btn-secondary btn-sm" @click="showImportClassesModal = false">Cancel</button>
               </div>
             </form>
           </div>
@@ -1459,6 +1514,7 @@ const classChanges = ref([])
 
 // 模态框状态
 const showCreateClassModal = ref(false)
+const showImportClassesModal = ref(false)
 const showCreateCommentModal = ref(false)
 const showAddAnnotationModal = ref(false)
 const showAddParentModal = ref(false)
@@ -1488,6 +1544,26 @@ const createClassForm = ref({
   name: '',
   iri: '',
   parentId: 'owl:Thing',
+  languageTag: ''
+})
+
+// 导入脚本数据
+const importScript = ref('')
+
+// 新的输入字段数据
+const newAnnotation = ref({
+  property: '',
+  value: '',
+  languageTag: ''
+})
+
+const newParent = ref({
+  name: ''
+})
+
+const newRelationship = ref({
+  property: '',
+  value: '',
   languageTag: ''
 })
 
@@ -2179,8 +2255,47 @@ const handleCreateClass = async () => {
   }
 }
 
+// 导入类
+const handleImportClasses = async () => {
+  try {
+    // 构建请求数据
+    const requestData = {
+      script: importScript.value,
+      projectId: props.projectId,
+      ontologyId: props.projectDataRecord?.id || props.projectId
+    }
+    
+    const response = await http.post('/class/importRDFS', requestData)
+    
+    // 显示成功消息，1秒后自动关闭
+    const importedCount = response.data?.importedCount || 0
+    const successMessage = `Successfully imported ${importedCount} classes`
+    showAlertMessage(successMessage, 'success', 1000)
+    
+    // 延迟1秒后关闭模态框
+    setTimeout(() => {
+      showImportClassesModal.value = false
+      emit('classes-imported', response.data)
+      loadClassHierarchy()
+      // 重置表单
+      importScript.value = ''
+    }, 1000)
+    
+  } catch (error) {
+    console.error('Failed to import classes:', error)
+    
+    // 构建错误消息
+    const source = error.response?.config?.url || 'Server'
+    const errorMessage = error.response?.data?.message || error.message || 'Unknown error'
+    const fullErrorMessage = `Source: ${source}\nFailed to import classes: ${errorMessage}`
+    
+    // 显示错误消息，需要用户点击OK确认
+    showConfirmMessage(fullErrorMessage, 'error')
+  }
+}
+
 // 显示提示消息
-const showAlertMessage = (message, type = 'info') => {
+const showAlertMessage = (message, type = 'info', duration = 3000) => {
   // 创建提示元素
   const alertDiv = document.createElement('div')
   alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'info'} alert-dismissible fade show position-fixed`
@@ -2192,16 +2307,35 @@ const showAlertMessage = (message, type = 'info') => {
   
   document.body.appendChild(alertDiv)
   
-  // 3秒后自动关闭
+  // 指定时间后自动关闭
   setTimeout(() => {
     if (alertDiv.parentNode) {
       alertDiv.remove()
     }
-  }, 3000)
+  }, duration)
   
   // 点击关闭按钮移除
   alertDiv.querySelector('.btn-close').addEventListener('click', () => {
     alertDiv.remove()
+  })
+}
+
+// 显示确认消息（需要用户点击OK确认）
+const showConfirmMessage = (message, type = 'error') => {
+  // 创建确认框元素
+  const confirmDiv = document.createElement('div')
+  confirmDiv.className = `alert alert-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'info'} position-fixed`
+  confirmDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;'
+  confirmDiv.innerHTML = `
+    <div style="white-space: pre-line; margin-bottom: 10px;">${message}</div>
+    <button type="button" class="btn btn-primary btn-sm" id="confirmOkBtn">OK</button>
+  `
+  
+  document.body.appendChild(confirmDiv)
+  
+  // 点击OK按钮移除
+  confirmDiv.querySelector('#confirmOkBtn').addEventListener('click', () => {
+    confirmDiv.remove()
   })
 }
 
@@ -2270,6 +2404,40 @@ const handleAddAnnotation = async () => {
 const removeParent = async (index) => {
   if (!selectedClass.value) return
   console.log('Remove parent at index:', index)
+}
+
+// 添加注解（新方法）
+const addAnnotation = async () => {
+  if (!selectedClass.value || !newAnnotation.value.property || !newAnnotation.value.value) return
+  
+  try {
+    await http.post('/annotation/create', {
+      entityId: selectedClass.value.id,
+      entityType: 'CLASS',
+      predicate: newAnnotation.value.property,
+      value: newAnnotation.value.value,
+      languageTag: newAnnotation.value.languageTag
+    })
+    newAnnotation.value = { property: '', value: '', languageTag: '' }
+    await loadClassDetails(selectedClass.value.id)
+  } catch (error) {
+    console.error('Failed to add annotation:', error)
+    showAlertMessage('Failed to add annotation', 'error')
+  }
+}
+
+// 移除注解
+const removeAnnotation = async (index) => {
+  if (!selectedClass.value) return
+  
+  try {
+    const ann = selectedClass.value.annotations[index]
+    await http.delete(`/annotation/delete/${selectedClass.value.id}/${ann.predicate}`)
+    await loadClassDetails(selectedClass.value.id)
+  } catch (error) {
+    console.error('Failed to remove annotation:', error)
+    showAlertMessage('Failed to remove annotation', 'error')
+  }
 }
 
 // 生成Direct Link
@@ -3068,6 +3236,149 @@ const initGraph = () => {
   border: none;
   cursor: pointer;
   font-size: 11px;
+}
+
+/* 新的样式 */
+.annotation-list,
+.parent-list,
+.relationship-list {
+  border: 1px solid #ddd;
+  border-radius: 2px;
+  padding: 6px;
+}
+
+.annotation-item,
+.parent-item,
+.relationship-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 12px;
+}
+
+.annotation-content,
+.parent-content,
+.relationship-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.annotation-predicate,
+.relationship-property {
+  font-weight: 500;
+  color: #4a90d9;
+  min-width: 90px;
+  flex-shrink: 0;
+}
+
+.annotation-value,
+.relationship-value {
+  flex: 1;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.annotation-lang,
+.relationship-lang {
+  font-size: 11px;
+  color: #666;
+  min-width: 30px;
+  text-align: right;
+}
+
+.parent-checkbox {
+  color: #4a90d9;
+  margin-right: 4px;
+}
+
+.parent-name {
+  flex: 1;
+  color: #333;
+}
+
+.annotation-delete,
+.parent-delete,
+.relationship-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  color: #999;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.annotation-delete:hover,
+.parent-delete:hover,
+.relationship-delete:hover {
+  color: #e74c3c;
+}
+
+.annotation-input-row,
+.parent-input-row,
+.relationship-input-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #eee;
+}
+
+.annotation-property,
+.annotation-value-input,
+.annotation-lang-input,
+.parent-input,
+.relationship-property,
+.relationship-value-input,
+.relationship-lang-input {
+  font-size: 12px;
+  padding: 3px 6px;
+  border: 1px solid #ddd;
+  border-radius: 2px;
+  flex: 1;
+}
+
+.annotation-lang-input,
+.relationship-lang-input {
+  flex: 0 0 60px;
+}
+
+.annotation-add,
+.parent-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: #4a90d9;
+  background: transparent;
+  border: 1px solid #4a90d9;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.annotation-add:hover,
+.parent-add:hover {
+  background-color: #4a90d9;
+  color: white;
+}
+
+.relationship-separator {
+  color: #999;
+  font-weight: bold;
+  margin: 0 4px;
 }
 
 .item-action.delete {

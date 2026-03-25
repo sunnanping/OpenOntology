@@ -7,8 +7,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class ClassService {
@@ -263,5 +267,270 @@ public class ClassService {
         return classes.stream()
                 .filter(cls -> cls.getName().toLowerCase().contains(query.toLowerCase()))
                 .collect(java.util.stream.Collectors.toList());
+    }
+
+    public Map<String, Object> importRDFS(String script, String ontologyId, String projectId) {
+        Map<String, Object> result = new HashMap<>();
+        List<Class> importedClasses = new ArrayList<>();
+        
+        try {
+            // 解析Turtle/RDFS脚本
+            Map<String, ParsedClass> parsedClasses = parseTurtleScript(script);
+            
+            // 创建类并保存
+            for (ParsedClass parsedClass : parsedClasses.values()) {
+                Class classEntity = new Class();
+                classEntity.setId(UUID.randomUUID().toString());
+                classEntity.setName(parsedClass.getName());
+                classEntity.setIri(parsedClass.getIri());
+                classEntity.setOntologyId(ontologyId);
+                classEntity.setLanguageTag(parsedClass.getLanguageTag());
+                classEntity.setSuperClasses(parsedClass.getSuperClasses());
+                classEntity.setCreatedDate(new Date());
+                classEntity.setLastModifiedDate(new Date());
+                
+                // 处理注解
+                List<Class.Annotation> annotations = new ArrayList<>();
+                for (ParsedAnnotation annotation : parsedClass.getAnnotations()) {
+                    annotations.add(new Class.Annotation(
+                        annotation.getPredicate(),
+                        annotation.getValue(),
+                        annotation.getLanguageTag()
+                    ));
+                }
+                classEntity.setAnnotations(annotations);
+                
+                // 保存类
+                Class savedClass = classRepository.save(classEntity);
+                importedClasses.add(savedClass);
+            }
+            
+            // 更新子类关系
+            for (Class importedClass : importedClasses) {
+                if (importedClass.getSuperClasses() != null) {
+                    for (String parentId : importedClass.getSuperClasses()) {
+                        if (!OWL_THING_ID.equals(parentId)) {
+                            Class parentClass = classRepository.findById(parentId).orElse(null);
+                            if (parentClass != null) {
+                                if (parentClass.getSubClasses() == null) {
+                                    parentClass.setSubClasses(new ArrayList<>());
+                                }
+                                if (!parentClass.getSubClasses().contains(importedClass.getId())) {
+                                    parentClass.getSubClasses().add(importedClass.getId());
+                                    parentClass.setLastModifiedDate(new Date());
+                                    classRepository.save(parentClass);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            result.put("importedCount", importedClasses.size());
+            result.put("importedClasses", importedClasses);
+            result.put("success", true);
+            
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("error", e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    private Map<String, ParsedClass> parseTurtleScript(String script) {
+        Map<String, ParsedClass> classes = new HashMap<>();
+        Map<String, String> prefixes = new HashMap<>();
+        
+        String[] lines = script.split("\\n");
+        String currentSubject = null;
+        ParsedClass currentClass = null;
+        
+        for (String line : lines) {
+            line = line.trim();
+            
+            // 跳过空行和注释
+            if (line.isEmpty() || line.startsWith("#")) {
+                continue;
+            }
+            
+            // 解析前缀定义
+            if (line.startsWith("@prefix")) {
+                parsePrefix(line, prefixes);
+                continue;
+            }
+            
+            // 解析类定义
+            if (line.contains("a rdfs:Class") || line.contains("a owl:Class")) {
+                currentSubject = extractSubject(line);
+                if (currentSubject != null) {
+                    String fullUri = expandPrefix(currentSubject, prefixes);
+                    currentClass = new ParsedClass();
+                    currentClass.setUri(fullUri);
+                    currentClass.setName(extractLocalName(currentSubject));
+                    currentClass.setIri(fullUri);
+                    currentClass.setLanguageTag("zh");
+                    classes.put(fullUri, currentClass);
+                }
+            }
+            
+            // 解析rdfs:subClassOf
+            if (line.contains("rdfs:subClassOf") && currentClass != null) {
+                String parentUri = extractObject(line, prefixes);
+                if (parentUri != null) {
+                    currentClass.getSuperClasses().add(parentUri);
+                }
+            }
+            
+            // 解析rdfs:label
+            if (line.contains("rdfs:label") && currentClass != null) {
+                ParsedAnnotation annotation = parseLabel(line);
+                if (annotation != null) {
+                    currentClass.getAnnotations().add(annotation);
+                    if (annotation.getLanguageTag() != null) {
+                        currentClass.setLanguageTag(annotation.getLanguageTag());
+                    }
+                }
+            }
+            
+            // 解析rdfs:comment
+            if (line.contains("rdfs:comment") && currentClass != null) {
+                ParsedAnnotation annotation = parseComment(line);
+                if (annotation != null) {
+                    currentClass.getAnnotations().add(annotation);
+                }
+            }
+        }
+        
+        return classes;
+    }
+    
+    private void parsePrefix(String line, Map<String, String> prefixes) {
+        // 解析 @prefix : <http://example.org/device#> .
+        Pattern pattern = Pattern.compile("@prefix\\s+(\\w*):\\s*<(.*?)>\\s*\\.");
+        Matcher matcher = pattern.matcher(line);
+        if (matcher.find()) {
+            String prefix = matcher.group(1);
+            String uri = matcher.group(2);
+            prefixes.put(prefix.isEmpty() ? ":" : prefix + ":", uri);
+        }
+    }
+    
+    private String extractSubject(String line) {
+        // 提取主语，如 :办公室 或 <http://example.org/device#办公室>
+        Pattern pattern = Pattern.compile("^(?::(\\w+)|<(.*?)>)\\s+a\\s+");
+        Matcher matcher = pattern.matcher(line);
+        if (matcher.find()) {
+            if (matcher.group(1) != null) {
+                return ":" + matcher.group(1);
+            } else if (matcher.group(2) != null) {
+                return "<" + matcher.group(2) + ">";
+            }
+        }
+        return null;
+    }
+    
+    private String extractObject(String line, Map<String, String> prefixes) {
+        // 提取宾语
+        Pattern pattern = Pattern.compile("rdfs:subClassOf\\s+(?::(\\w+)|<(.*?)>)");
+        Matcher matcher = pattern.matcher(line);
+        if (matcher.find()) {
+            if (matcher.group(1) != null) {
+                return expandPrefix(":" + matcher.group(1), prefixes);
+            } else if (matcher.group(2) != null) {
+                return matcher.group(2);
+            }
+        }
+        return null;
+    }
+    
+    private String expandPrefix(String prefixedUri, Map<String, String> prefixes) {
+        for (Map.Entry<String, String> entry : prefixes.entrySet()) {
+            if (prefixedUri.startsWith(entry.getKey())) {
+                return entry.getValue() + prefixedUri.substring(entry.getKey().length());
+            }
+        }
+        return prefixedUri;
+    }
+    
+    private String extractLocalName(String uri) {
+        // 提取本地名称
+        if (uri.startsWith("<") && uri.endsWith(">")) {
+            uri = uri.substring(1, uri.length() - 1);
+        }
+        int lastHash = uri.lastIndexOf('#');
+        int lastSlash = uri.lastIndexOf('/');
+        int lastColon = uri.lastIndexOf(':');
+        int lastIndex = Math.max(lastHash, Math.max(lastSlash, lastColon));
+        if (lastIndex > 0) {
+            return uri.substring(lastIndex + 1);
+        }
+        return uri;
+    }
+    
+    private ParsedAnnotation parseLabel(String line) {
+        // 解析 rdfs:label "办公室"@zh
+        Pattern pattern = Pattern.compile("rdfs:label\\s+\"(.*?)\"(?:@([a-zA-Z-]+))?");
+        Matcher matcher = pattern.matcher(line);
+        if (matcher.find()) {
+            ParsedAnnotation annotation = new ParsedAnnotation();
+            annotation.setPredicate("rdfs:label");
+            annotation.setValue(matcher.group(1));
+            annotation.setLanguageTag(matcher.group(2) != null ? matcher.group(2) : "zh");
+            return annotation;
+        }
+        return null;
+    }
+    
+    private ParsedAnnotation parseComment(String line) {
+        // 解析 rdfs:comment "用于办公的物理空间"@zh
+        Pattern pattern = Pattern.compile("rdfs:comment\\s+\"(.*?)\"(?:@([a-zA-Z-]+))?");
+        Matcher matcher = pattern.matcher(line);
+        if (matcher.find()) {
+            ParsedAnnotation annotation = new ParsedAnnotation();
+            annotation.setPredicate("rdfs:comment");
+            annotation.setValue(matcher.group(1));
+            annotation.setLanguageTag(matcher.group(2) != null ? matcher.group(2) : "zh");
+            return annotation;
+        }
+        return null;
+    }
+    
+    // 辅助类
+    private static class ParsedClass {
+        private String uri;
+        private String name;
+        private String iri;
+        private String languageTag = "zh";
+        private List<String> superClasses = new ArrayList<>();
+        private List<ParsedAnnotation> annotations = new ArrayList<>();
+        
+        // Getters and Setters
+        public String getUri() { return uri; }
+        public void setUri(String uri) { this.uri = uri; }
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public String getIri() { return iri; }
+        public void setIri(String iri) { this.iri = iri; }
+        public String getLanguageTag() { return languageTag; }
+        public void setLanguageTag(String languageTag) { this.languageTag = languageTag; }
+        public List<String> getSuperClasses() { return superClasses; }
+        public void setSuperClasses(List<String> superClasses) { this.superClasses = superClasses; }
+        public List<ParsedAnnotation> getAnnotations() { return annotations; }
+        public void setAnnotations(List<ParsedAnnotation> annotations) { this.annotations = annotations; }
+    }
+    
+    private static class ParsedAnnotation {
+        private String predicate;
+        private String value;
+        private String languageTag;
+        
+        // Getters and Setters
+        public String getPredicate() { return predicate; }
+        public void setPredicate(String predicate) { this.predicate = predicate; }
+        public String getValue() { return value; }
+        public void setValue(String value) { this.value = value; }
+        public String getLanguageTag() { return languageTag; }
+        public void setLanguageTag(String languageTag) { this.languageTag = languageTag; }
     }
 }

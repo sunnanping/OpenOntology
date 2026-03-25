@@ -138,4 +138,14 @@ public class ClassController {
         List<Class> classes = classService.searchClasses(query, projectId);
         return ResponseEntity.ok(classes);
     }
+
+    @PostMapping("/importRDFS")
+    public ResponseEntity<Map<String, Object>> importRDFS(@RequestBody Map<String, Object> request) {
+        String script = (String) request.get("script");
+        String ontologyId = (String) request.get("ontologyId");
+        String projectId = (String) request.get("projectId");
+        
+        Map<String, Object> result = classService.importRDFS(script, ontologyId, projectId);
+        return ResponseEntity.ok(result);
+    }
 }
