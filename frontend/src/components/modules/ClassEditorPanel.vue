@@ -2911,6 +2911,11 @@ const initGraph = () => {
   color: white !important;
 }
 
+:deep(.el-tree-node:first-child > .el-tree-node__content.is-current:hover) {
+  background-color: #4a90d9 !important;
+  color: white !important;
+}
+
 :deep(.el-tree-node:first-child > .el-tree-node__content.is-current .custom-node-icon) {
   background-color: white !important;
 }
@@ -2972,6 +2977,11 @@ const initGraph = () => {
 
 /* Selected node styling */
 :deep(.el-tree-node.is-current > .el-tree-node__content) {
+  background-color: #4a90d9 !important;
+  color: white !important;
+}
+
+:deep(.el-tree-node.is-current > .el-tree-node__content:hover) {
   background-color: #4a90d9 !important;
   color: white !important;
 }
