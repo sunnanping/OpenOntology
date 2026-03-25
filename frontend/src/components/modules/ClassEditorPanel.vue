@@ -1564,6 +1564,7 @@ const newParent = ref({
 const newRelationship = ref({
   property: '',
   value: '',
+  target: '',
   languageTag: ''
 })
 
@@ -1589,18 +1590,6 @@ const resetCreateClassForm = () => {
 
 const createCommentForm = ref({
   content: ''
-})
-
-const newAnnotation = ref({
-  predicate: '',
-  value: ''
-})
-
-const newParent = ref('')
-
-const newRelationship = ref({
-  property: '',
-  target: ''
 })
 
 // Tags相关
@@ -3379,10 +3368,6 @@ const initGraph = () => {
   color: #999;
   font-weight: bold;
   margin: 0 4px;
-}
-
-.item-action.delete {
-  color: #dc3545;
 }
 
 .btn-add {
