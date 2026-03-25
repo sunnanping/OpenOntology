@@ -98,15 +98,15 @@
             node-key="id"
             default-expand-all
             highlight-current
+            :current-node-key="selectedClass?.id"
+            show-line
+            :expand-on-click-node="false"
           >
             <template #default="{ node, data }">
-              <span 
-                class="tree-node" 
-                :class="{ 'selected': selectedClass?.id === data.id }"
-              >
-                <i class="bi bi-circle-fill node-icon"></i>
-                <span class="node-label">{{ data.name }}</span>
-              </span>
+              <div class="custom-tree-node">
+                <span class="custom-node-icon"></span>
+                <span class="custom-node-label">{{ data.name }}</span>
+              </div>
             </template>
           </el-tree>
         </div>
@@ -2849,28 +2849,139 @@ const initGraph = () => {
   background-color: #4a90d9;
 }
 
-.tree-node {
+.custom-tree-node {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   font-size: 12px;
   cursor: pointer;
   user-select: none;
   padding: 2px 4px;
   border-radius: 3px;
+  transition: background-color 0.2s ease;
+  width: 100%;
 }
 
-.tree-node:hover {
-  background-color: #f0f0f0;
+/* Ensure hover effect works for all nodes */
+:deep(.el-tree-node) {
+  transition: background-color 0.2s ease;
 }
 
-.tree-node.selected {
-  background-color: #e3f2fd;
+:deep(.el-tree-node__content) {
+  height: 26px;
+  padding-left: 4px !important;
+  transition: background-color 0.2s ease;
 }
 
-.node-icon {
-  font-size: 6px;
-  color: #4a90d9;
+:deep(.el-tree-node__content:hover) {
+  background-color: #e3f2fd !important;
+}
+
+:deep(.el-tree-node__content:hover .custom-tree-node) {
+  background-color: transparent !important;
+}
+
+/* Ensure hover effect works for all nodes including children */
+:deep(.el-tree-node__children .el-tree-node__content) {
+  transition: background-color 0.2s ease;
+}
+
+:deep(.el-tree-node__children .el-tree-node__content:hover) {
+  background-color: #e3f2fd !important;
+}
+
+.custom-node-icon {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #ffc107;
+  flex-shrink: 0;
+}
+
+.custom-node-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Root node styling - only when selected */
+:deep(.el-tree-node:first-child > .el-tree-node__content.is-current) {
+  background-color: #4a90d9 !important;
+  color: white !important;
+}
+
+:deep(.el-tree-node:first-child > .el-tree-node__content.is-current .custom-node-icon) {
+  background-color: white !important;
+}
+
+:deep(.el-tree-node:first-child > .el-tree-node__content.is-current .custom-node-label) {
+  color: white !important;
+}
+
+/* Root node default styling */
+:deep(.el-tree-node:first-child > .el-tree-node__content) {
+  background-color: transparent !important;
+  color: inherit !important;
+  transition: background-color 0.2s ease;
+}
+
+:deep(.el-tree-node:first-child > .el-tree-node__content:hover) {
+  background-color: #e3f2fd !important;
+}
+
+:deep(.el-tree-node:first-child > .el-tree-node__content .custom-node-icon) {
+  background-color: #ffc107 !important;
+}
+
+:deep(.el-tree-node:first-child > .el-tree-node__content .custom-node-label) {
+  color: inherit !important;
+}
+
+/* Custom line style */
+:deep(.el-tree-node__line) {
+  border-right: 1px dashed #999 !important;
+}
+
+:deep(.el-tree-node__line::before) {
+  border-bottom: 1px dashed #999 !important;
+}
+
+:deep(.el-tree-node__line::after) {
+  border-bottom: 1px dashed #999 !important;
+}
+
+/* Ensure tree lines are visible */
+:deep(.el-tree) {
+  --el-tree-line-color: #999 !important;
+}
+
+/* Increase indent for better hierarchy visualization */
+:deep(.el-tree-node__children) {
+  padding-left: 16px !important;
+}
+
+/* Ensure expand/collapse icons are visible */
+:deep(.el-tree-node__expand-icon) {
+  color: #666 !important;
+}
+
+:deep(.el-tree-node__expand-icon:hover) {
+  color: #4a90d9 !important;
+}
+
+/* Selected node styling */
+:deep(.el-tree-node.is-current > .el-tree-node__content) {
+  background-color: #4a90d9 !important;
+  color: white !important;
+}
+
+:deep(.el-tree-node.is-current > .el-tree-node__content .custom-node-icon) {
+  background-color: white !important;
+}
+
+:deep(.el-tree-node.is-current > .el-tree-node__content .custom-node-label) {
+  color: white !important;
 }
 
 .node-label {
@@ -3452,36 +3563,7 @@ const initGraph = () => {
   font-size: 12px;
 }
 
-:deep(.el-tree) {
-  background: transparent;
-}
 
-:deep(.el-tree-node__content) {
-  height: 26px;
-  padding-left: 4px !important;
-}
-
-:deep(.el-tree-node__content:hover) {
-  background-color: #f0f0f0;
-}
-
-:deep(.el-tree-node.is-current > .el-tree-node__content) {
-  background-color: #4a90d9;
-  color: white;
-}
-
-:deep(.el-tree-node.is-current > .el-tree-node__content .node-icon) {
-  color: white !important;
-}
-
-:deep(.el-tree-node.is-current > .el-tree-node__content .tree-node) {
-  color: white;
-  background-color: transparent;
-}
-
-:deep(.el-tree-node.is-current > .el-tree-node__content .tree-node:hover) {
-  background-color: transparent;
-}
 
 .modal.show {
   display: block;
@@ -3594,11 +3676,6 @@ const initGraph = () => {
 }
 
 /* Tree拖拽样式 */
-:deep(.el-tree--highlight-current .el-tree-node.is-current > .el-tree-node__content) {
-  background-color: #4a90d9;
-  color: white;
-}
-
 :deep(.el-tree-node__content.is-drop-inner) {
   background-color: rgba(74, 144, 217, 0.2) !important;
 }
