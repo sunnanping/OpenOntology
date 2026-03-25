@@ -2,15 +2,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    
-    <properties>
-        <revision>0.1.12</revision>       
-    </properties>
-    
-    <parent>
-        <artifactId>openontology</artifactId>
+    <parent>      
+    <artifactId>openontology</artifactId>
         <groupId>com.by.ontology</groupId>
-        <version>${revision}</version>
+        <version>${project.version}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>

@@ -5,11 +5,11 @@
     <parent>
         <artifactId>ontology-service</artifactId>
         <groupId>com.by.ontology</groupId>
-        <version>${revision}</version>
+        <version>${project.version}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
+    
     <artifactId>version-module</artifactId>
     <name>version-module</name>
     <description>Version module for ontology service - handles version-related operations</description>
@@ -18,7 +18,7 @@
         <dependency>
             <groupId>com.by.ontology</groupId>
             <artifactId>ontology-service-core</artifactId>
-            <version>${revision}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
