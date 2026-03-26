@@ -504,5 +504,11 @@
       },
       "noData": "无数据"
     }
+  },
+  "panel": {
+    "minimize": "最小化",
+    "maximize": "最大化",
+    "close": "关闭",
+    "restore": "恢复"
   }
 }

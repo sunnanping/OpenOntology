@@ -504,5 +504,11 @@
       },
       "noData": "No Data"
     }
+  },
+  "panel": {
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "close": "Close",
+    "restore": "Restore"
   }
 }

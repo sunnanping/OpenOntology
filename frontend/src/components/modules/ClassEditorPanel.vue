@@ -68,8 +68,8 @@
                 </svg>
               </button>
             </div>
-            <button class="panel-btn close-btn" title="Close" @click="showClassHierarchy = false">
-              <i class="bi bi-x-lg"></i>
+            <button class="panel-btn close-btn minimize-btn" :title="t('panel.minimize')" @click="showClassHierarchy = false">
+              <span class="minimize-icon">_</span>
             </button>
           </div>
         </div>
@@ -212,8 +212,8 @@
                   <i class="bi bi-plus"></i>
                 </button>
               </div>
-              <button class="panel-btn close-btn" title="Close" @click="showDescription = false">
-                <i class="bi bi-x-lg"></i>
+              <button class="panel-btn close-btn minimize-btn" :title="t('panel.minimize')" @click="showDescription = false">
+                <span class="minimize-icon">_</span>
               </button>
             </div>
           </div>
@@ -409,8 +409,8 @@
                 </svg>
               </button>
             </div>
-            <button class="panel-btn close-btn" title="Close" @click="showClassDetails = false">
-              <i class="bi bi-x-lg"></i>
+            <button class="panel-btn close-btn minimize-btn" :title="t('panel.minimize')" @click="showClassDetails = false">
+              <span class="minimize-icon">_</span>
             </button>
           </div>
         </div>
@@ -548,8 +548,8 @@
                   </svg>
                 </button>
               </div>
-              <button class="panel-btn close-btn" title="Close" @click="showComments = false">
-                <i class="bi bi-x-lg"></i>
+              <button class="panel-btn close-btn minimize-btn" :title="t('panel.minimize')" @click="showComments = false">
+                <span class="minimize-icon">_</span>
               </button>
             </div>
           </div>
@@ -594,8 +594,8 @@
               <span class="panel-title">Project Feed</span>
             </div>
             <div class="panel-header-right">
-              <button class="panel-btn close-btn" title="Close" @click="showProjectFeed = false">
-                <i class="bi bi-x-lg"></i>
+              <button class="panel-btn close-btn minimize-btn" :title="t('panel.minimize')" @click="showProjectFeed = false">
+                <span class="minimize-icon">_</span>
               </button>
             </div>
           </div>
@@ -1242,8 +1242,11 @@
 
 <script setup>
 import { ref, onMounted, computed, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import * as echarts from 'echarts'
 import http from '@/utils/http'
+
+const { t } = useI18n()
 
 const props = defineProps({
   projectId: {
@@ -2941,6 +2944,24 @@ const initGraph = () => {
 
 .close-btn {
   margin-left: 4px;
+}
+
+.minimize-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-weight: bold;
+}
+
+.minimize-icon {
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1;
+  color: inherit;
+  transform: translateY(-2px);
 }
 
 .wp-icon {
