@@ -426,21 +426,28 @@
             <div class="annotation-list">
               <div v-for="(ann, index) in selectedClass.annotations || []" :key="index" class="annotation-item">
                 <div class="annotation-content">
-                  <span class="annotation-predicate">{{ ann.predicate }}</span>
-                  <span class="annotation-value">{{ ann.value }}</span>
-                  <span v-if="ann.languageTag" class="annotation-lang">{{ ann.languageTag }}</span>
+                  <select class="annotation-property-select" v-model="ann.property">
+                    <option value="rdfs:label">rdfs:label</option>
+                    <option value="rdfs:comment">rdfs:comment</option>
+                    <option value="dc:description">dc:description</option>
+                    <option value="skos:definition">skos:definition</option>
+                  </select>
+                  <input type="text" class="annotation-value-input" v-model="ann.value" placeholder="Enter value">
+                  <input type="text" class="annotation-lang-input" v-model="ann.language" placeholder="lang" @focus="handleAnnotationLangFocus(index)" @blur="handleAnnotationLangBlur(ann, index)">
                 </div>
                 <button class="annotation-delete" @click="removeAnnotation(index)">
-                  <i class="bi bi-x"></i>
+                  <span class="delete-icon">×</span>
                 </button>
               </div>
-              <div class="annotation-input-row">
-                <input type="text" class="annotation-property" placeholder="Enter property" v-model="newAnnotation.property">
-                <input type="text" class="annotation-value-input" placeholder="Enter value" v-model="newAnnotation.value">
-                <input type="text" class="annotation-lang-input" placeholder="lang" v-model="newAnnotation.languageTag">
-                <button class="annotation-add" @click="addAnnotation">
-                  <i class="bi bi-plus"></i>
-                </button>
+              <div class="annotation-input-row" v-if="showNewAnnotationInput">
+                <select class="annotation-property-select" v-model="newAnnotation.property">
+                  <option value="rdfs:label">rdfs:label</option>
+                  <option value="rdfs:comment">rdfs:comment</option>
+                  <option value="dc:description">dc:description</option>
+                  <option value="skos:definition">skos:definition</option>
+                </select>
+                <input type="text" class="annotation-value-input" v-model="newAnnotation.value" placeholder="Enter value">
+                <input type="text" class="annotation-lang-input" v-model="newAnnotation.language" placeholder="lang" @focus="handleNewAnnotationLangFocus" @blur="handleNewAnnotationLangBlur">
               </div>
             </div>
           </div>
@@ -454,13 +461,33 @@
                   <span class="parent-name">{{ getClassNameById(parent) }}</span>
                 </div>
                 <button class="parent-delete" @click="removeParent(index)" :disabled="parent === 'owl:Thing'">
-                  <i class="bi bi-x"></i>
+                  <span class="delete-icon">×</span>
                 </button>
               </div>
               <div class="parent-input-row">
-                <input type="text" class="parent-input" placeholder="Enter a class name" v-model="newParent.name">
-                <button class="parent-add" @click="showAddParentModal = true">
-                  <i class="bi bi-plus"></i>
+                <div class="parent-input-container">
+                  <input 
+                    type="text" 
+                    class="parent-input" 
+                    placeholder="Enter a class name" 
+                    v-model="newParent.name"
+                    @input="searchParents"
+                    @focus="showParentSearchResults = true"
+                    @blur="handleParentInputBlur"
+                  >
+                  <div class="parent-search-results" v-if="showParentSearchResults && parentSearchResults.length > 0">
+                    <div 
+                      v-for="cls in parentSearchResults" 
+                      :key="cls.id" 
+                      class="parent-search-result-item"
+                      @click="selectParent(cls)"
+                    >
+                      {{ cls.name }}
+                    </div>
+                  </div>
+                </div>
+                <button class="parent-add" @click="addParent">
+                  <span class="add-icon">+</span>
                 </button>
               </div>
             </div>
@@ -471,19 +498,34 @@
             <div class="relationship-list">
               <div v-for="(rel, index) in selectedClass.relationships || []" :key="index" class="relationship-item">
                 <div class="relationship-content">
-                  <span class="relationship-property">{{ rel.property }}</span>
-                  <span class="relationship-value">{{ rel.target }}</span>
-                  <span v-if="rel.languageTag" class="relationship-lang">{{ rel.languageTag }}</span>
+                  <select class="relationship-property-select" v-model="rel.property">
+                    <option value="rdfs:subClassOf">rdfs:subClassOf</option>
+                    <option value="owl:equivalentClass">owl:equivalentClass</option>
+                    <option value="owl:disjointWith">owl:disjointWith</option>
+                  </select>
+                  <select class="relationship-target-select" v-model="rel.target">
+                    <option v-for="cls in availableClasses" :key="cls.id" :value="cls.name">
+                      {{ cls.name }}
+                    </option>
+                  </select>
+                  <input type="text" class="relationship-lang-input" v-model="rel.language" placeholder="lang" @focus="handleRelationshipLangFocus(index)" @blur="handleRelationshipLangBlur(rel, index)">
                 </div>
                 <button class="relationship-delete" @click="removeRelationship(index)">
-                  <i class="bi bi-x"></i>
+                  <span class="delete-icon">×</span>
                 </button>
               </div>
-              <div class="relationship-input-row">
-                <input type="text" class="relationship-property" placeholder="Enter property" v-model="newRelationship.property">
-                <span class="relationship-separator">•</span>
-                <input type="text" class="relationship-value-input" placeholder="Enter value" v-model="newRelationship.value">
-                <input type="text" class="relationship-lang-input" placeholder="lang" v-model="newRelationship.languageTag">
+              <div class="relationship-input-row" v-if="showNewRelationshipInput">
+                <select class="relationship-property-select" v-model="newRelationship.property">
+                  <option value="rdfs:subClassOf">rdfs:subClassOf</option>
+                  <option value="owl:equivalentClass">owl:equivalentClass</option>
+                  <option value="owl:disjointWith">owl:disjointWith</option>
+                </select>
+                <select class="relationship-target-select" v-model="newRelationship.target">
+                  <option v-for="cls in availableClasses" :key="cls.id" :value="cls.name">
+                    {{ cls.name }}
+                  </option>
+                </select>
+                <input type="text" class="relationship-lang-input" v-model="newRelationship.language" placeholder="lang" @focus="handleNewRelationshipLangFocus" @blur="handleNewRelationshipLangBlur">
               </div>
             </div>
           </div>
@@ -770,8 +812,8 @@
           <div class="modal-body">
             <form @submit.prevent="handleAddAnnotation">
               <div class="mb-3">
-                <label for="annotationPredicate" class="form-label">Predicate</label>
-                <input type="text" class="form-control form-control-sm" id="annotationPredicate" v-model="newAnnotation.predicate" placeholder="e.g., rdfs:comment">
+                <label for="annotationPredicate" class="form-label">Property</label>
+                <input type="text" class="form-control form-control-sm" id="annotationPredicate" v-model="newAnnotation.property" placeholder="e.g., rdfs:comment">
               </div>
               <div class="mb-3">
                 <label for="annotationValue" class="form-label">Value</label>
@@ -1557,19 +1599,26 @@ const importScript = ref('')
 const newAnnotation = ref({
   property: '',
   value: '',
-  languageTag: ''
+  language: ''
 })
+
+const showNewAnnotationInput = ref(true)
 
 const newParent = ref({
   name: ''
 })
 
+const parentSearchResults = ref([])
+const showParentSearchResults = ref(false)
+
 const newRelationship = ref({
   property: '',
   value: '',
   target: '',
-  languageTag: ''
+  language: ''
 })
+
+const showNewRelationshipInput = ref(true)
 
 // 项目默认语言
 const projectDefaultLanguage = computed(() => {
@@ -2184,6 +2233,291 @@ const handleMergeTreeNodeClick = (node) => {
   }
 }
 
+// Annotations相关方法
+const handleAnnotationLangFocus = (index) => {
+  // 当标签和value都有数据时，点击lang输入框会在下边新增加1行数据
+  const ann = selectedClass.value.annotations[index]
+  if (ann && ann.property && ann.value) {
+    // 检查是否已经有新的输入行
+    if (!showNewAnnotationInput.value) {
+      showNewAnnotationInput.value = true
+    }
+  }
+}
+
+const handleAnnotationLangBlur = async (ann, index) => {
+  // 当焦点离开lang输入框时，向后台更新数据
+  if (ann && (ann.property || ann.value || ann.language)) {
+    try {
+      await http.post('/annotation/set', {
+        entityId: selectedClass.value.id,
+        entityType: 'CLASS',
+        property: ann.property,
+        language: ann.language,
+        value: ann.value
+      })
+      await loadClassDetails(selectedClass.value.id)
+    } catch (error) {
+      console.error('Failed to update annotation:', error)
+    }
+  }
+}
+
+const handleNewAnnotationLangFocus = () => {
+  // 当新annotation的lang输入框获得焦点时，确保显示新输入行
+  showNewAnnotationInput.value = true
+}
+
+const handleNewAnnotationLangBlur = async () => {
+  // 当新annotation的lang输入框失去焦点时，添加新数据
+  if (newAnnotation.value.property && newAnnotation.value.value) {
+    try {
+      await http.post('/annotation/set', {
+        entityId: selectedClass.value.id,
+        entityType: 'CLASS',
+        property: newAnnotation.value.property,
+        language: newAnnotation.value.language,
+        value: newAnnotation.value.value
+      })
+      await loadClassDetails(selectedClass.value.id)
+      // 重置新annotation表单
+      newAnnotation.value = {
+        property: '',
+        value: '',
+        language: ''
+      }
+    } catch (error) {
+      console.error('Failed to add annotation:', error)
+    }
+  }
+}
+
+const removeAnnotation = async (index) => {
+  if (!selectedClass.value) return
+  
+  try {
+    const ann = selectedClass.value.annotations[index]
+    if (ann) {
+      await http.delete('/annotation/delete', {
+        params: {
+          entityId: selectedClass.value.id,
+          entityType: 'CLASS',
+          property: ann.property,
+          language: ann.language
+        }
+      })
+      await loadClassDetails(selectedClass.value.id)
+    }
+  } catch (error) {
+    console.error('Failed to remove annotation:', error)
+  }
+}
+
+const addAnnotation = async () => {
+  if (!selectedClass.value || !newAnnotation.value.property || !newAnnotation.value.value) return
+  
+  try {
+    await http.post('/annotation/set', {
+      entityId: selectedClass.value.id,
+      entityType: 'CLASS',
+      property: newAnnotation.value.property,
+      language: newAnnotation.value.language,
+      value: newAnnotation.value.value
+    })
+    await loadClassDetails(selectedClass.value.id)
+    // 重置新annotation表单
+    newAnnotation.value = {
+      property: '',
+      value: '',
+      language: ''
+    }
+  } catch (error) {
+    console.error('Failed to add annotation:', error)
+  }
+}
+
+// Parents相关方法
+const searchParents = async () => {
+  if (!newParent.value.name) {
+    parentSearchResults.value = []
+    return
+  }
+  
+  try {
+    const response = await http.get(`/class/search`, {
+      params: { query: newParent.value.name, projectId: props.projectId }
+    })
+    // 过滤掉当前选中的类
+    if (selectedClass.value) {
+      parentSearchResults.value = (response.data || []).filter(cls => cls.id !== selectedClass.value.id)
+    } else {
+      parentSearchResults.value = response.data || []
+    }
+  } catch (error) {
+    console.error('Failed to search parents:', error)
+    parentSearchResults.value = []
+  }
+}
+
+const handleParentInputBlur = () => {
+  // 延迟关闭搜索结果，以便点击结果时能触发选择事件
+  setTimeout(() => {
+    showParentSearchResults.value = false
+  }, 200)
+}
+
+const selectParent = (cls) => {
+  newParent.value.name = cls.name
+  showParentSearchResults.value = false
+}
+
+const addParent = async () => {
+  if (!selectedClass.value || !newParent.value.name) return
+  
+  try {
+    // 查找选中的类
+    const cls = classHierarchy.value.find(c => c.name === newParent.value.name)
+    if (!cls) return
+    
+    // 检查是否已经是父类
+    if (selectedClass.value.superClasses && selectedClass.value.superClasses.includes(cls.id)) {
+      return
+    }
+    
+    await http.post('/class/addSuperClass', {
+      classId: selectedClass.value.id,
+      superClassId: cls.id
+    })
+    await loadClassDetails(selectedClass.value.id)
+    // 重置新parent表单
+    newParent.value.name = ''
+  } catch (error) {
+    console.error('Failed to add parent:', error)
+  }
+}
+
+const removeParent = async (index) => {
+  if (!selectedClass.value) return
+  
+  try {
+    const parentId = selectedClass.value.superClasses[index]
+    if (parentId === 'owl:Thing') return
+    
+    await http.post('/class/removeSuperClass', {
+      classId: selectedClass.value.id,
+      superClassId: parentId
+    })
+    await loadClassDetails(selectedClass.value.id)
+  } catch (error) {
+    console.error('Failed to remove parent:', error)
+  }
+}
+
+// Relationships相关方法
+const handleRelationshipLangFocus = (index) => {
+  // 当标签和target都有数据时，点击lang输入框会在下边新增加1行数据
+  const rel = selectedClass.value.relationships[index]
+  if (rel && rel.property && rel.target) {
+    // 检查是否已经有新的输入行
+    if (!showNewRelationshipInput.value) {
+      showNewRelationshipInput.value = true
+    }
+  }
+}
+
+const handleRelationshipLangBlur = async (rel, index) => {
+  // 当焦点离开lang输入框时，向后台更新数据
+  if (rel && (rel.property || rel.target || rel.language)) {
+    try {
+      await http.post('/relationship/set', {
+        entityId: selectedClass.value.id,
+        entityType: 'CLASS',
+        property: rel.property,
+        target: rel.target,
+        language: rel.language
+      })
+      await loadClassDetails(selectedClass.value.id)
+    } catch (error) {
+      console.error('Failed to update relationship:', error)
+    }
+  }
+}
+
+const handleNewRelationshipLangFocus = () => {
+  // 当新relationship的lang输入框获得焦点时，确保显示新输入行
+  showNewRelationshipInput.value = true
+}
+
+const handleNewRelationshipLangBlur = async () => {
+  // 当新relationship的lang输入框失去焦点时，添加新数据
+  if (newRelationship.value.property && newRelationship.value.target) {
+    try {
+      await http.post('/relationship/set', {
+        entityId: selectedClass.value.id,
+        entityType: 'CLASS',
+        property: newRelationship.value.property,
+        target: newRelationship.value.target,
+        language: newRelationship.value.language
+      })
+      await loadClassDetails(selectedClass.value.id)
+      // 重置新relationship表单
+      newRelationship.value = {
+        property: '',
+        value: '',
+        target: '',
+        language: ''
+      }
+    } catch (error) {
+      console.error('Failed to add relationship:', error)
+    }
+  }
+}
+
+const removeRelationship = async (index) => {
+  if (!selectedClass.value) return
+  
+  try {
+    const rel = selectedClass.value.relationships[index]
+    if (rel) {
+      await http.delete('/relationship/delete', {
+        params: {
+          entityId: selectedClass.value.id,
+          entityType: 'CLASS',
+          property: rel.property,
+          target: rel.target
+        }
+      })
+      await loadClassDetails(selectedClass.value.id)
+    }
+  } catch (error) {
+    console.error('Failed to remove relationship:', error)
+  }
+}
+
+const addRelationship = async () => {
+  if (!selectedClass.value || !newRelationship.value.property || !newRelationship.value.target) return
+  
+  try {
+    await http.post('/relationship/set', {
+      entityId: selectedClass.value.id,
+      entityType: 'CLASS',
+      property: newRelationship.value.property,
+      target: newRelationship.value.target,
+      language: newRelationship.value.language
+    })
+    await loadClassDetails(selectedClass.value.id)
+    // 重置新relationship表单
+    newRelationship.value = {
+      property: '',
+      value: '',
+      target: '',
+      language: ''
+    }
+  } catch (error) {
+    console.error('Failed to add relationship:', error)
+  }
+}
+
 // 删除选中的类
 const deleteSelectedClass = async () => {
   if (!selectedClass.value || selectedClass.value.id === 'owl:Thing') return
@@ -2380,55 +2714,15 @@ const handleAddAnnotation = async () => {
     await http.post('/annotation/create', {
       entityId: selectedClass.value.id,
       entityType: 'CLASS',
-      predicate: newAnnotation.value.predicate || 'rdfs:comment',
+      property: newAnnotation.value.property || 'rdfs:comment',
       value: newAnnotation.value.value
     })
     showAddAnnotationModal.value = false
-    newAnnotation.value = { predicate: '', value: '' }
+    newAnnotation.value = { property: '', value: '' }
     await loadClassDetails(selectedClass.value.id)
   } catch (error) {
     console.error('Failed to add annotation:', error)
     alert('Failed to add annotation')
-  }
-}
-
-// 移除父类
-const removeParent = async (index) => {
-  if (!selectedClass.value) return
-  console.log('Remove parent at index:', index)
-}
-
-// 添加注解（新方法）
-const addAnnotation = async () => {
-  if (!selectedClass.value || !newAnnotation.value.property || !newAnnotation.value.value) return
-  
-  try {
-    await http.post('/annotation/create', {
-      entityId: selectedClass.value.id,
-      entityType: 'CLASS',
-      predicate: newAnnotation.value.property,
-      value: newAnnotation.value.value,
-      languageTag: newAnnotation.value.languageTag
-    })
-    newAnnotation.value = { property: '', value: '', languageTag: '' }
-    await loadClassDetails(selectedClass.value.id)
-  } catch (error) {
-    console.error('Failed to add annotation:', error)
-    showAlertMessage('Failed to add annotation', 'error')
-  }
-}
-
-// 移除注解
-const removeAnnotation = async (index) => {
-  if (!selectedClass.value) return
-  
-  try {
-    const ann = selectedClass.value.annotations[index]
-    await http.delete(`/annotation/delete/${selectedClass.value.id}/${ann.predicate}`)
-    await loadClassDetails(selectedClass.value.id)
-  } catch (error) {
-    console.error('Failed to remove annotation:', error)
-    showAlertMessage('Failed to remove annotation', 'error')
   }
 }
 
@@ -2487,12 +2781,6 @@ const handleAddParent = async () => {
     console.error('Failed to add parent:', error)
     alert('Failed to add parent')
   }
-}
-
-// 移除关系
-const removeRelationship = async (index) => {
-  if (!selectedClass.value) return
-  console.log('Remove relationship at index:', index)
 }
 
 // Description面板相关方法
