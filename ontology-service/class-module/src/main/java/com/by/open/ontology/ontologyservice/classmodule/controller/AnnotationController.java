@@ -1,6 +1,7 @@
 package com.by.open.ontology.ontologyservice.classmodule.controller;
 
 import com.by.open.ontology.ontologyservice.classmodule.entity.Annotation;
+import com.by.open.ontology.ontologyservice.classmodule.service.AnnotationPropertyService;
 import com.by.open.ontology.ontologyservice.classmodule.service.AnnotationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,9 @@ public class AnnotationController {
 
     @Autowired
     private AnnotationService annotationService;
+    
+    @Autowired
+    private AnnotationPropertyService annotationPropertyService;
 
     @PostMapping("/create")
     public ResponseEntity<Annotation> create(@RequestBody Annotation annotation) {
@@ -51,6 +55,16 @@ public class AnnotationController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/delete")
+    public ResponseEntity<Void> deleteByEntityIdAndEntityTypeAndPropertyAndLanguage(
+            @RequestParam String entityId,
+            @RequestParam String entityType,
+            @RequestParam String property,
+            @RequestParam(required = false) String language) {
+        annotationService.deleteByEntityIdAndEntityTypeAndPropertyAndLanguage(entityId, entityType, property, language);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/set")
     public ResponseEntity<Annotation> setAnnotation(@RequestBody Annotation annotation) {
         Annotation setAnnotation = annotationService.setAnnotation(annotation);
@@ -65,5 +79,12 @@ public class AnnotationController {
             request.getAnnotations()
         );
         return ResponseEntity.ok(savedAnnotations);
+    }
+
+    @GetMapping("/properties")
+    public ResponseEntity<List<String>> searchAnnotationProperties(
+            @RequestParam(required = false) String keyword) {
+        List<String> properties = annotationPropertyService.searchAnnotationProperties(keyword);
+        return ResponseEntity.ok(properties);
     }
 }

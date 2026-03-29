@@ -21,6 +21,7 @@ public class Class {
     private List<String> properties;
     private List<String> individuals;
     private List<Annotation> annotations;
+    private List<Relationship> relationships;
     private boolean abstractClass;
     private Date createdDate;
     private Date lastModifiedDate;
@@ -44,6 +45,28 @@ public class Class {
         public void setProperty(String property) { this.property = property; }
         public String getValue() { return value; }
         public void setValue(String value) { this.value = value; }
+        public String getLanguage() { return language; }
+        public void setLanguage(String language) { this.language = language; }
+    }
+    
+    // 内部类：关系
+    public static class Relationship {
+        private String property;
+        private String target;
+        private String language;
+        
+        public Relationship() {}
+        
+        public Relationship(String property, String target, String language) {
+            this.property = property;
+            this.target = target;
+            this.language = language;
+        }
+        
+        public String getProperty() { return property; }
+        public void setProperty(String property) { this.property = property; }
+        public String getTarget() { return target; }
+        public void setTarget(String target) { this.target = target; }
         public String getLanguage() { return language; }
         public void setLanguage(String language) { this.language = language; }
     }
@@ -176,5 +199,13 @@ public class Class {
 
     public void setAnnotations(List<Annotation> annotations) {
         this.annotations = annotations;
+    }
+
+    public List<Relationship> getRelationships() {
+        return relationships;
+    }
+
+    public void setRelationships(List<Relationship> relationships) {
+        this.relationships = relationships;
     }
 }

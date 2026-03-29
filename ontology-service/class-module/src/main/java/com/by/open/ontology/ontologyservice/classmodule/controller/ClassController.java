@@ -109,6 +109,14 @@ public class ClassController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/removeSuperClass")
+    public ResponseEntity<Void> removeSuperClass(@RequestBody Map<String, String> request) {
+        String classId = request.get("classId");
+        String superClassId = request.get("superClassId");
+        classService.removeSuperClass(classId, superClassId);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/addProperty/{classId}/{propertyId}")
     public ResponseEntity<Void> addProperty(@PathVariable String classId, @PathVariable String propertyId) {
         classService.addProperty(classId, propertyId);

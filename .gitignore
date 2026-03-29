@@ -30,4 +30,4 @@ local.properties
 .springBeans
 *.pid
 .repl-kill-port-history
-doc/hci-log.md
+# doc/hci-log.md

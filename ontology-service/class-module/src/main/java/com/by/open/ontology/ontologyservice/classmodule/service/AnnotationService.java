@@ -48,6 +48,17 @@ public class AnnotationService {
         annotationRepository.deleteByEntityIdAndEntityType(entityId, entityType);
     }
 
+    public void deleteByEntityIdAndEntityTypeAndPropertyAndLanguage(String entityId, String entityType, String property, String language) {
+        List<Annotation> annotations = annotationRepository.findByEntityIdAndEntityType(entityId, entityType);
+        for (Annotation annotation : annotations) {
+            if (annotation.getProperty().equals(property) &&
+                (language == null ? annotation.getLanguage() == null : 
+                 language.equals(annotation.getLanguage()))) {
+                annotationRepository.deleteById(annotation.getId());
+            }
+        }
+    }
+
     public Annotation setAnnotation(Annotation annotation) {
         // Delete existing annotation with same property and language
         List<Annotation> existingAnnotations = annotationRepository.findByEntityIdAndEntityType(

@@ -426,12 +426,26 @@
             <div class="annotation-list">
               <div v-for="(ann, index) in selectedClass.annotations || []" :key="index" class="annotation-item">
                 <div class="annotation-content">
-                  <select class="annotation-property-select" v-model="ann.property">
-                    <option value="rdfs:label">rdfs:label</option>
-                    <option value="rdfs:comment">rdfs:comment</option>
-                    <option value="dc:description">dc:description</option>
-                    <option value="skos:definition">skos:definition</option>
-                  </select>
+                  <div class="annotation-property-search">
+                    <input 
+                      type="text" 
+                      class="annotation-property-input" 
+                      v-model="ann.property" 
+                      placeholder="Search property..."
+                      @input="handleAnnotationPropertyInput(index, ann.property)"
+                      @focus="handleAnnotationPropertyFocus(index)"
+                    >
+                    <div v-if="showAnnotationPropertyDropdown && currentAnnotationIndex === index" class="annotation-property-dropdown">
+                      <div 
+                        v-for="prop in filteredAnnotationProperties" 
+                        :key="prop" 
+                        class="annotation-property-option"
+                        @mousedown="selectAnnotationProperty(index, prop)"
+                      >
+                        {{ prop }}
+                      </div>
+                    </div>
+                  </div>
                   <input type="text" class="annotation-value-input" v-model="ann.value" placeholder="Enter value">
                   <input type="text" class="annotation-lang-input" v-model="ann.language" placeholder="lang" @focus="handleAnnotationLangFocus(index)" @blur="handleAnnotationLangBlur(ann, index)">
                 </div>
@@ -440,12 +454,26 @@
                 </button>
               </div>
               <div class="annotation-input-row" v-if="showNewAnnotationInput">
-                <select class="annotation-property-select" v-model="newAnnotation.property">
-                  <option value="rdfs:label">rdfs:label</option>
-                  <option value="rdfs:comment">rdfs:comment</option>
-                  <option value="dc:description">dc:description</option>
-                  <option value="skos:definition">skos:definition</option>
-                </select>
+                <div class="annotation-property-search">
+                  <input 
+                    type="text" 
+                    class="annotation-property-input" 
+                    v-model="newAnnotation.property" 
+                    placeholder="Search property..."
+                    @input="handleAnnotationPropertyInput(-1, newAnnotation.property)"
+                    @focus="handleNewAnnotationPropertyFocus"
+                  >
+                  <div v-if="showAnnotationPropertyDropdown && currentAnnotationIndex === -1" class="annotation-property-dropdown">
+                    <div 
+                      v-for="prop in filteredAnnotationProperties" 
+                      :key="prop" 
+                      class="annotation-property-option"
+                      @mousedown="selectAnnotationProperty(-1, prop)"
+                    >
+                      {{ prop }}
+                    </div>
+                  </div>
+                </div>
                 <input type="text" class="annotation-value-input" v-model="newAnnotation.value" placeholder="Enter value">
                 <input type="text" class="annotation-lang-input" v-model="newAnnotation.language" placeholder="lang" @focus="handleNewAnnotationLangFocus" @blur="handleNewAnnotationLangBlur">
               </div>
@@ -1604,6 +1632,13 @@ const newAnnotation = ref({
 
 const showNewAnnotationInput = ref(true)
 
+// Annotation属性搜索相关
+const annotationProperties = ref([])
+const filteredAnnotationProperties = ref([])
+const showAnnotationPropertyDropdown = ref(false)
+const annotationPropertySearchKeyword = ref('')
+const currentAnnotationIndex = ref(-1) // -1表示新annotation，>=0表示已有annotation的索引
+
 const newParent = ref({
   name: ''
 })
@@ -2234,6 +2269,105 @@ const handleMergeTreeNodeClick = (node) => {
 }
 
 // Annotations相关方法
+// 搜索Annotation属性
+const searchAnnotationProperties = async (keyword = '') => {
+  try {
+    console.log('Searching annotation properties with keyword:', keyword)
+    const response = await http.get('/annotation/properties', {
+      params: { keyword }
+    })
+    console.log('Received annotation properties:', response.data)
+    annotationProperties.value = response.data
+    
+    // 根据关键字过滤
+    if (keyword) {
+      filteredAnnotationProperties.value = response.data.filter(prop =>
+        prop.toLowerCase().includes(keyword.toLowerCase())
+      )
+    } else {
+      filteredAnnotationProperties.value = response.data
+    }
+    console.log('Filtered annotation properties:', filteredAnnotationProperties.value)
+  } catch (error) {
+    console.error('Failed to search annotation properties:', error)
+  }
+}
+
+// 处理Annotation属性输入
+const handleAnnotationPropertyInput = (index, keyword) => {
+  console.log('handleAnnotationPropertyInput called with index:', index, 'keyword:', keyword)
+  currentAnnotationIndex.value = index
+  annotationPropertySearchKeyword.value = keyword
+  
+  // 如果annotationProperties为空，先从后端获取数据
+  if (annotationProperties.value.length === 0) {
+    console.log('annotationProperties is empty, fetching from backend')
+    searchAnnotationProperties(keyword).then(() => {
+      showAnnotationPropertyDropdown.value = true
+    })
+  } else {
+    // 否则，根据关键字过滤
+    if (keyword) {
+      filteredAnnotationProperties.value = annotationProperties.value.filter(prop =>
+        prop.toLowerCase().includes(keyword.toLowerCase())
+      )
+    } else {
+      filteredAnnotationProperties.value = annotationProperties.value
+    }
+    showAnnotationPropertyDropdown.value = true
+  }
+  console.log('filteredAnnotationProperties:', filteredAnnotationProperties.value)
+  console.log('showAnnotationPropertyDropdown:', showAnnotationPropertyDropdown.value)
+}
+
+// 选择Annotation属性
+const selectAnnotationProperty = (index, property) => {
+  console.log('selectAnnotationProperty called with index:', index, 'property:', property)
+  if (index === -1) {
+    // 新annotation
+    newAnnotation.value.property = property
+  } else {
+    // 已有annotation
+    selectedClass.value.annotations[index].property = property
+  }
+  showAnnotationPropertyDropdown.value = false
+  annotationPropertySearchKeyword.value = ''
+  console.log('showAnnotationPropertyDropdown set to false')
+}
+
+// 关闭Annotation属性下拉框
+const closeAnnotationPropertyDropdown = () => {
+  console.log('closeAnnotationPropertyDropdown called')
+  setTimeout(() => {
+    showAnnotationPropertyDropdown.value = false
+    console.log('showAnnotationPropertyDropdown set to false')
+  }, 300)
+}
+
+// 处理Annotation属性输入框的focus事件
+const handleAnnotationPropertyFocus = (index) => {
+  console.log('handleAnnotationPropertyFocus called with index:', index)
+  currentAnnotationIndex.value = index
+  const keyword = selectedClass.value.annotations[index]?.property || ''
+  console.log('keyword for focus:', keyword)
+  searchAnnotationProperties(keyword).then(() => {
+    showAnnotationPropertyDropdown.value = true
+    console.log('showAnnotationPropertyDropdown set to true')
+  })
+}
+
+// 处理新Annotation属性输入框的focus事件
+const handleNewAnnotationPropertyFocus = () => {
+  console.log('handleNewAnnotationPropertyFocus called')
+  currentAnnotationIndex.value = -1
+  const keyword = newAnnotation.value.property || ''
+  console.log('keyword for new annotation focus:', keyword)
+  searchAnnotationProperties(keyword).then(() => {
+    showAnnotationPropertyDropdown.value = true
+    console.log('showAnnotationPropertyDropdown set to true')
+  })
+}
+
 const handleAnnotationLangFocus = (index) => {
   // 当标签和value都有数据时，点击lang输入框会在下边新增加1行数据
   const ann = selectedClass.value.annotations[index]
@@ -3644,6 +3778,52 @@ const initGraph = () => {
   border: 1px solid #ddd;
   border-radius: 2px;
   flex: 1;
+}
+
+/* Annotation属性搜索样式 */
+.annotation-property-search {
+  position: relative;
+  flex: 1;
+  min-width: 120px;
+}
+
+.annotation-property-input {
+  width: 100%;
+  font-size: 12px;
+  padding: 3px 6px;
+  border: 1px solid #ddd;
+  border-radius: 2px;
+  box-sizing: border-box;
+}
+
+.annotation-property-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 2px 2px;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.annotation-property-option {
+  padding: 6px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.annotation-property-option:hover {
+  background-color: #f5f5f5;
+}
+
+.annotation-property-option:last-child {
+  border-bottom: none;
 }
 
 .annotation-lang-input,

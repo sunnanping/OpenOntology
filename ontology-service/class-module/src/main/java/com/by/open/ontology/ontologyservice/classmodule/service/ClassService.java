@@ -153,6 +153,14 @@ public class ClassService {
         }
     }
 
+    public void removeSuperClass(String classId, String superClassId) {
+        Class classEntity = classRepository.findById(classId).orElse(null);
+        if (classEntity != null) {
+            classEntity.getSuperClasses().remove(superClassId);
+            classRepository.save(classEntity);
+        }
+    }
+
     public void addProperty(String classId, String propertyId) {
         Class classEntity = classRepository.findById(classId).orElse(null);
         if (classEntity != null) {
