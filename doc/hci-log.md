@@ -3,10 +3,10 @@
 ## 项目信息
 
 - 项目名称: **OpenOntology**
-- 项目版本: **v0.1.12**
+- 项目版本: **v0.1.14**
 - 项目路径: d:\project\trae\java\OpenOntology
 - **首次时间**: 2026-03-15
-- **最后时间**: 2026-03-26
+- **最后时间**: 2026-03-30
 
 ## 交互记录
 
@@ -192,14 +192,6 @@
   - 优化导入导出性能
   - 增加更多格式支持
 
-## 技术栈
-
-- **前端**: Vue3 + Bootstrap + ElementUI
-- **后端**: SpringCloud + MongoDB
-- **微服务**: Eureka, Config Server, Gateway
-- **国际化**: Vue I18n + 外部翻译API
-- **本体处理**: OWL API
-
 ### 交互 #9: 管理员模块和项目操作功能
 
 - **需求类型**: 功能开发
@@ -273,59 +265,6 @@
   - 实现类的更多OWL属性支持
   - 完善查询功能（Query标签页）
 
-## 项目状态
-
-- ✅ 项目架构重构完成
-- ✅ 核心功能实现完成
-- ✅ 多语言支持实现完成
-- ✅ 国内翻译API集成完成
-- ✅ 本体导入导出功能实现完成
-- ✅ 管理员模块实现完成
-- ✅ 项目操作功能实现完成
-- ✅ 系统设置功能实现完成
-- ✅ 项目编辑器实现完成
-- ✅ DraggableModal组件移动功能实现完成
-- ⏳ 性能优化和测试
-
-## 版本历史
-
-- v0.1.0: 初始版本
-- v0.1.1: 功能完整性修复
-- v0.1.2: 多语言支持实现
-- v0.1.3: 项目重命名和配置更新
-- v0.1.4: 多语言支持优化
-- v0.1.5: 本体导入导出功能实现
-- v0.1.6: 管理员模块和项目操作功能实现
-- v0.1.7: 项目编辑器实现（Class Hierarchy、类编辑、立体视图、数据全生命周期、评论和动态）
-- v0.1.8: AlertModal组件8个方向缩放问题修复
-- v0.1.9: AlertModal和DraggableModal组件移动功能Bug修复
-- v0.1.10: 实现Merge Entities功能，添加Tree选择和无数据时显示根节点
-
-### 交互 #16: Merge Entities功能实现
-
-- **需求类型**: 功能开发
-- **需求内容**: 实现Merge Entities功能，添加Tree选择和无数据时显示根节点
-- **需求提交人**: 用户
-- **需求提出时间**: 2026-03-23
-- **完成时间**: 2026-03-23
-- **思考主要内容**:
-  - 设计Merge Entities对话框UI
-  - 实现类树选择功能
-  - 处理无数据时的默认根节点显示
-  - 集成后端搜索API
-- **任务拆分**:
-  1. 设计Merge Entities对话框UI，参考WebProtege风格
-  2. 实现类图标按钮、上移按钮、下移按钮和刷新按钮
-  3. 实现搜索输入框和搜索结果下拉框
-  4. 添加类层次结构Tree组件
-  5. 实现无数据时显示默认的owl:Thing根节点
-  6. 实现后端搜索接口
-  7. 测试和验证功能
-  8. 本地git提交并标记版本0.1.10
-  9. 更新README.md、ProjectTest.md、hci-log.md文档
-- **遗留问题/待优化**:
-  - 无
-
 ### 交互 #11: DraggableModal组件移动功能实现
 
 - **需求类型**: 功能开发
@@ -350,38 +289,6 @@
   8. 解决第一次移动漂移问题（位置初始化时机）
   9. 测试和验证移动功能
   10. 本地git提交
-- **遗留问题/待优化**:
-  - 无
-
-### 交互 #13: DraggableModal组件移动功能Bug修复
-
-- **需求类型**: Bug修复
-- **需求内容**: 修复DraggableModal组件移动时的漂移问题（与AlertModal相同的错误）
-- **需求提交人**: 用户
-- **需求提出时间**: 2026-03-19
-- **完成时间**: 2026-03-19
-- **思考主要内容**:
-  - 参考AlertModal组件的错误分析
-  - 应用相同的修复方案到DraggableModal组件
-  - 确保两个组件的定位逻辑一致
-- **任务拆分**:
-  1. 分析DraggableModal组件的dialogStyle计算属性
-  2. 修正dialogStyle计算属性，始终使用transform: translate(-50%, -50%)
-  3. 测试和验证修复效果
-  4. 本地git提交
-  5. 更新hci-log.md文档
-- **错误分析**:
-
-  **错误：第1次使用组件时，移动时出现漂移现象**
-  - **错误现象**: 点击时不漂移，但开始移动时对话框会向右下角漂移，第2次以后的移动都正常
-  - **根本原因分析**:
-    - 定位逻辑错误：当第一次移动时，代码计算对话框的中心位置并设置到currentX和currentY
-    - CSS变换丢失：在dialogStyle计算属性中，当currentX和currentY不为0时，transform被设置为'none'
-    - 坐标系统不匹配：从居中定位（left: 50%, top: 50%, transform: translate(-50%, -50%)）突然切换到绝对定位（left: 中心位置, top: 中心位置, transform: none）
-    - 定位偏移：由于left和top是相对于左上角的，而设置的值是中心位置，导致对话框向右下角偏移
-  - **解决思路**:
-    - 修正dialogStyle计算属性，始终使用transform: translate(-50%, -50%)
-    - 确保无论currentX和currentY是什么值，对话框都会以设置的left和top为中心进行定位
 - **遗留问题/待优化**:
   - 无
 
@@ -412,6 +319,38 @@
   - **根本原因**: 在startDrag方法中，当currentX和currentY都为0时（第一次拖拽），会立即计算并设置这两个值，导致对话框从居中定位突然切换到绝对定位
   - **解决思路**: 将位置计算逻辑从startDrag方法移到drag方法中，只有真正开始移动时才计算初始位置
   **错误2：第1次使用组件时，点击不飘移、移动时出现漂移现象**
+  - **错误现象**: 点击时不漂移，但开始移动时对话框会向右下角漂移，第2次以后的移动都正常
+  - **根本原因分析**:
+    - 定位逻辑错误：当第一次移动时，代码计算对话框的中心位置并设置到currentX和currentY
+    - CSS变换丢失：在dialogStyle计算属性中，当currentX和currentY不为0时，transform被设置为'none'
+    - 坐标系统不匹配：从居中定位（left: 50%, top: 50%, transform: translate(-50%, -50%)）突然切换到绝对定位（left: 中心位置, top: 中心位置, transform: none）
+    - 定位偏移：由于left和top是相对于左上角的，而设置的值是中心位置，导致对话框向右下角偏移
+  - **解决思路**:
+    - 修正dialogStyle计算属性，始终使用transform: translate(-50%, -50%)
+    - 确保无论currentX和currentY是什么值，对话框都会以设置的left和top为中心进行定位
+- **遗留问题/待优化**:
+  - 无
+
+### 交互 #13: DraggableModal组件移动功能Bug修复
+
+- **需求类型**: Bug修复
+- **需求内容**: 修复DraggableModal组件移动时的漂移问题（与AlertModal相同的错误）
+- **需求提交人**: 用户
+- **需求提出时间**: 2026-03-19
+- **完成时间**: 2026-03-19
+- **思考主要内容**:
+  - 参考AlertModal组件的错误分析
+  - 应用相同的修复方案到DraggableModal组件
+  - 确保两个组件的定位逻辑一致
+- **任务拆分**:
+  1. 分析DraggableModal组件的dialogStyle计算属性
+  2. 修正dialogStyle计算属性，始终使用transform: translate(-50%, -50%)
+  3. 测试和验证修复效果
+  4. 本地git提交
+  5. 更新hci-log.md文档
+- **错误分析**:
+
+  **错误：第1次使用组件时，移动时出现漂移现象**
   - **错误现象**: 点击时不漂移，但开始移动时对话框会向右下角漂移，第2次以后的移动都正常
   - **根本原因分析**:
     - 定位逻辑错误：当第一次移动时，代码计算对话框的中心位置并设置到currentX和currentY
@@ -544,10 +483,35 @@
 - **遗留问题/待优化**:
   - 无
 
+### 交互 #16: Merge Entities功能实现
+
+- **需求类型**: 功能开发
+- **需求内容**: 实现Merge Entities功能，添加Tree选择和无数据时显示根节点
+- **需求提交人**: 用户
+- **需求提出时间**: 2026-03-23
+- **完成时间**: 2026-03-23
+- **思考主要内容**:
+  - 设计Merge Entities对话框UI
+  - 实现类树选择功能
+  - 处理无数据时的默认根节点显示
+  - 集成后端搜索API
+- **任务拆分**:
+  1. 设计Merge Entities对话框UI，参考WebProtege风格
+  2. 实现类图标按钮、上移按钮、下移按钮和刷新按钮
+  3. 实现搜索输入框和搜索结果下拉框
+  4. 添加类层次结构Tree组件
+  5. 实现无数据时显示默认的owl:Thing根节点
+  6. 实现后端搜索接口
+  7. 测试和验证功能
+  8. 本地git提交并标记版本0.1.10
+  9. 更新README.md、ProjectTest.md、hci-log.md文档
+- **遗留问题/待优化**:
+  - 无
+
 ### 交互 #17: Class Hierarchy Tree组件拖拽功能实现
 
 - **需求类型**: 功能开发
-- **需求内容**: 检查"Class Hierarchy"中Tree对象中的数据节点，验证前端UI中的Tree是否支持拖拽，参考WebProtege项目实现对Class数据层级的拖拽改变功能
+- **需求内容**: 检查"Class Hierarchy"中Tree对象中的数据节点，验证前端UI中的Tree 是否支持拖拽，参考WebProtege项目实现对Class数据层级的拖拽改变功能
 - **需求提交人**: 用户
 - **需求提出时间**: 2026-03-24
 - **完成时间**: 2026-03-24
@@ -577,7 +541,7 @@
      - 配置`node-key="id"`确保节点唯一性
   2. **拖拽事件处理**：
      - `allowDrag`：禁止拖拽根节点owl:Thing
-     - `allowDrop`：只允许作为子节点放置，禁止放置到自己身上，禁止循环依赖
+     - `allowDrop`：只允许作为子节点放置，禁止放置到自己身上，禁止循环依赖      
      - `handleNodeDrop`：处理拖拽放置，调用后端接口更新数据
   3. **循环依赖检测**：
      - 实现递归查找节点和后代检查的完整算法
@@ -605,7 +569,7 @@
 ### 交互 #18: Maven依赖解析路径错误分析
 
 - **需求类型**: 技术问题分析
-- **需求内容**: 分析"当使用 mvn spring-boot:run -pl ontology-service-app 时，Maven仍然尝试从远程仓库下载 ontology-service-${project.version}.pom"的错误原因
+- **需求内容**: 分析"当使用 mvn spring-boot:run -pl ontology-service-app 时，Maven仍然尝试从远程仓库下载 ontology-service-${project.version}.pom"的错误原因     
 - **需求提交人**: 用户
 - **需求提出时间**: 2026-03-24
 - **完成时间**: 2026-03-24
@@ -621,17 +585,17 @@
      - 根项目：`openontology` (版本 0.1.10)
      - 子模块：`ontology-service` (作为 pom 类型的父模块)
      - 孙子模块：`ontology-service-app`、`ontology-service-core` 等
-     - 当使用 `-pl ontology-service-app` 单独构建时，Maven 无法正确解析父模块的依赖关系
+     - 当使用 `-pl ontology-service-app` 单独构建时，Maven 无法正确解析父模块的 依赖关系
   2. **版本变量解析问题**：
-     - `ontology-service-app` 的 pom.xml 中使用 `${project.version}` 引用父模块版本
+     - `ontology-service-app` 的 pom.xml 中使用 `${project.version}` 引用父模块 版本
      - 当单独构建子模块时，Maven 可能无法正确从父模块继承版本信息
      - 导致版本变量 `${project.version}` 没有被解析，直接作为字符串使用
   3. **本地仓库缓存问题**：
      - 之前的构建过程中，可能产生了错误的缓存
-     - 本地仓库中出现了 `${project.version}` 目录，说明版本变量没有被正确解析
-     - Maven 尝试从远程仓库下载 `ontology-service-${project.version}.pom`，而不是使用本地构建的依赖
+     - 本地仓库中出现了 `${project.version}` 目录，说明版本变量没有被正确解析   
+     - Maven 尝试从远程仓库下载 `ontology-service-${project.version}.pom`，而不 是使用本地构建的依赖
   4. **命令执行上下文问题**：
-     - 当在项目根目录执行 `mvn spring-boot:run -pl ontology-service-app` 时
+     - 当在项目根目录执行 `mvn spring-boot:run -pl ontology-service-app` 时     
      - Maven 可能没有正确识别模块间的父子关系
      - 导致依赖解析路径错误，尝试从远程仓库获取本地模块
 - **解决方案**:
@@ -639,14 +603,14 @@
      ```bash
      # 先在根目录执行完整构建，确保所有模块都正确安装到本地仓库
      mvn clean install -DskipTests -U
-     
+
      # 然后直接使用 java -jar 启动
      java -jar ontology-service/ontology-service-app/target/ontology-service-app-0.1.10.jar
      ```
   2. **指定版本参数**：
      ```bash
      # 在执行 spring-boot:run 时指定版本参数
-     mvn spring-boot:run -pl ontology-service-app -Dproject.version=0.1.10
+     mvn spring-boot:run -pl ontology-service-app -Dproject.version=0.1.10      
      ```
   3. **在模块目录中执行**：
      ```bash
@@ -658,16 +622,17 @@
      ```bash
      # 删除本地仓库中错误的目录
      rm -rf ~/.m2/repository/com/by/ontology/ontology-service/\${project.version}
-     
+
      # 重新构建
      mvn clean install -DskipTests -U
      ```
 - **根本原因**:
-  Maven 在处理多层嵌套的多模块项目时，当使用 `-pl` 参数单独构建子模块时，可能无法正确解析父模块的版本信息和依赖关系，导致版本变量未被解析，进而尝试从远程仓库下载不存在的依赖。
+  Maven 在处理多层嵌套的多模块项目时，当使用 `-pl` 参数单独构建子模块时，可能无 法正确解析父模块的版本信息和依赖关系，导致版本变量未被解析，进而尝试从远程仓库下载不存在的依赖。
 
   通过执行完整的构建流程，确保所有模块都正确安装到本地仓库，然后使用 `java -jar` 直接启动，可以绕过这个问题。
 - **遗留问题/待优化**:
   - 无
+
 ### 交互 #19: Class Details页面优化
 
 - **需求类型**: 功能优化
@@ -709,7 +674,7 @@
      - 添加实时输入字段
      - 实现添加和删除关系的功能
   5. **后端API验证**：
-     - 检查Class实体类是否支持多个父类（superClasses字段为List<String>）
+     - 检查Class实体类是否支持多个父类（superClasses字段为List<String>）        
      - 检查Annotation实体类是否支持语言标签（language字段）
      - 确保前端createClass方法正确传递语言标签和父类信息
   6. **CSS样式优化**：
@@ -727,3 +692,198 @@
   - ✅ 本地git提交成功（提交ID：66c19c0）
 - **遗留问题/待优化**:
   - 无
+
+### 交互 #20: ClassEditorPanel.vue代码错误修复
+
+- **需求类型**: Bug修复
+- **需求内容**: 修复ClassEditorPanel.vue中与Annotation相关的代码错误，包括重复函数定义和属性名不一致问题
+- **需求提交人**: 用户
+- **需求提出时间**: 2026-03-27
+- **完成时间**: 2026-03-27
+- **思考主要内容**:
+  - 分析ClassEditorPanel.vue中的重复函数定义问题
+  - 修复属性名不一致问题，确保前端与后端API保持一致
+  - 验证修复后的代码是否能正常编译
+- **任务拆分**:
+  1. 检查ClassEditorPanel.vue中的重复函数定义
+  2. 删除重复的removeParent函数
+  3. 删除重复的addAnnotation函数
+  4. 删除重复的removeAnnotation函数
+  5. 删除重复的removeRelationship函数
+  6. 修复Annotation对象属性名不一致问题，将'predicate'改为'property'，'languageTag'改为'language'
+  7. 验证修复后的代码是否能正常编译
+- **错误分析**:
+  - **错误1：重复函数定义**
+    - **错误现象**: 构建时出现"Identifier 'removeParent' has already been declared"等错误
+    - **根本原因**: 代码中存在多个相同名称的函数定义
+    - **解决思路**: 删除重复的函数定义，保留一个完整的实现
+  - **错误2：属性名不一致**
+    - **错误现象**: 前端与后端API使用的属性名不一致
+    - **根本原因**: 前端使用'predicate'和'languageTag'，后端使用'property'和'language'
+    - **解决思路**: 统一使用后端API的属性名，确保数据交互正常
+- **遗留问题/待优化**:
+  - 无
+
+### 交互 #21: 本地Git提交和hci-log.md文件修复
+
+- **需求类型**: 项目维护
+- **需求内容**: 本地Git提交，回退doc\hci-log.md文件到b5e6311时的内容，解决乱码问题
+- **需求提交人**: 用户
+- **需求提出时间**: 2026-03-28
+- **完成时间**: 2026-03-28
+- **思考主要内容**:
+  - 准备本地Git提交
+  - 回退hci-log.md文件到指定版本，解决乱码问题
+  - 验证文件内容是否恢复正常
+- **任务拆分**:
+  1. 检查当前Git状态
+  2. 准备提交修改
+  3. 使用git checkout命令回退doc/hci-log.md文件到b5e6311提交时的内容
+  4. 验证hci-log.md文件内容是否恢复正常
+- **遗留问题/待优化**:
+  - 无
+
+### 交互 #22: Annotation属性搜索功能实现
+
+- **需求类型**: 功能开发
+- **需求内容**: 持续优化"Annotation"的前后台功能实现，前端根据输入的字符来获取列表，解决填写S后没有看到列表数据的问题
+- **需求提交人**: 用户
+- **需求提出时间**: 2026-03-28
+- **完成时间**: 2026-03-28
+- **思考主要内容**:
+  - 分析Annotation属性搜索功能的实现
+  - 修复前端异步数据加载问题
+  - 优化事件处理函数
+  - 添加日志输出，便于调试
+- **任务拆分**:
+  1. 实现后端AnnotationPropertyService，提供根据关键字搜索Annotation属性的功能
+  2. 添加AnnotationController的searchAnnotationProperties端点
+  3. 优化前端searchAnnotationProperties方法，添加日志输出
+  4. 修改handleAnnotationPropertyInput方法，确保在annotationProperties为空时先从后端获取数据
+  5. 修改事件处理函数，确保下拉框能够正确显示
+  6. 测试搜索功能是否正常工作
+- **错误分析**:
+  - **错误：填写S后没有看到列表数据**
+    - **错误现象**: 前端输入S后，下拉列表没有显示数据
+    - **根本原因**: 前端异步数据加载问题，handleAnnotationPropertyInput方法中没有正确处理annotationProperties为空的情况
+    - **解决思路**: 修改handleAnnotationPropertyInput方法，确保在annotationProperties为空时先从后端获取数据，然后再显示下拉框
+- **遗留问题/待优化**:
+  - 无
+
+### 交互 #23: 项目编译和前端代理配置修复
+
+- **需求类型**: 技术问题修复
+- **需求内容**: 修复模块admin-service中的错误，编译整个项目，解决输入r字母时没有看到与输入字符匹配的Annotation属性列表的问题
+- **需求提交人**: 用户
+- **需求提出时间**: 2026-03-29
+- **完成时间**: 2026-03-29
+- **思考主要内容**:
+  - 修复admin-service模块中的错误
+  - 编译整个项目
+  - 分析前端代理配置问题
+  - 修复前端无法访问后端API的问题
+- **任务拆分**:
+  1. 修复admin-service模块中的错误
+  2. 执行mvn clean install -DskipTests命令编译整个项目
+  3. 分析前端无法访问后端API的问题
+  4. 修改vite.config.js文件，将代理配置从http://localhost:8080改为http://localhost:8082
+  5. 重新启动前端开发服务器
+  6. 测试Annotation属性搜索功能是否正常工作
+- **错误分析**:
+  - **错误：输入r字母时没有看到与输入字符匹配的Annotation属性列表**
+    - **错误现象**: 前端输入r后，下拉列表没有显示数据
+    - **根本原因**: 前端开发服务器的代理配置指向的是http://localhost:8080，但是后端服务实际运行在http://localhost:8082，导致前端无法正常访问后端API
+    - **解决思路**: 修改vite.config.js文件，将代理配置改为指向http://localhost:8082，确保前端能够正确访问后端API
+- **遗留问题/待优化**:
+  - 无
+
+### 交互 #24: 面板响应式加载优化
+
+- **需求类型**: 功能优化
+- **需求内容**: 优化Class Hierarchy中class数据节点点击时的面板加载逻辑，实现响应式加载4个面板（class、Comments、Project Feed、Description）中的数据
+- **需求提交人**: 用户
+- **需求提出时间**: 2026-03-30
+- **完成时间**: 2026-03-30
+- **思考主要内容**:
+  - 分析当前面板加载逻辑的问题
+  - 设计响应式数据加载方案
+  - 实现加载状态管理
+  - 优化面板UI显示
+  - 修复HTML标签未闭合的错误
+- **任务拆分**:
+  1. 添加加载状态管理变量（isClassLoading、isCommentsLoading、isFeedLoading、isDescriptionLoading）
+  2. 修改handleNodeClick方法，实现先清除数据区再加载数据的逻辑
+  3. 添加clearPanelData方法，用于清除所有面板的数据
+  4. 添加带加载状态的数据加载方法，确保加载过程中显示加载状态
+  5. 使用Promise.all并行加载数据，提高加载速度
+  6. 为每个面板添加加载状态的显示
+  7. 添加加载状态的CSS样式
+  8. 修复HTML标签未闭合的错误
+  9. 本地git提交
+  10. 更新hci-log.md、ProjectTest.md、function.md、README.md文档
+- **实现方案**:
+  1. **加载状态管理**：
+     - 添加isClassLoading、isCommentsLoading、isFeedLoading、isDescriptionLoading变量
+     - 用于控制每个面板的加载状态显示
+  2. **响应式数据加载**：
+     - 修改handleNodeClick方法，先调用clearPanelData清除数据
+     - 使用Promise.all并行加载4个面板的数据
+     - 每个面板都有独立的加载状态管理
+  3. **面板UI优化**：
+     - 为每个面板添加加载状态的显示
+     - 添加loading-spinner和loading-state的CSS样式
+     - 确保加载状态能够正确显示
+  4. **代码修复**：
+     - 修复v-else-if没有相邻v-if或v-else-if的错误
+     - 修复HTML标签未闭合的错误
+- **验证结果**:
+  - ✅ 加载状态管理实现完成
+  - ✅ 响应式数据加载逻辑实现完成
+  - ✅ 面板UI优化完成
+  - ✅ HTML标签错误修复完成
+  - ✅ 本地git提交成功
+- **遗留问题/待优化**:
+  - 无
+
+## 技术栈
+
+- **前端**: Vue3 + Bootstrap + ElementUI
+- **后端**: SpringCloud + MongoDB
+- **微服务**: Eureka, Config Server, Gateway
+- **国际化**: Vue I18n + 外部翻译API
+- **本体处理**: OWL API
+
+## 项目状态
+
+- ✅ 项目架构重构完成
+- ✅ 核心功能实现完成
+- ✅ 多语言支持实现完成
+- ✅ 国内翻译API集成完成
+- ✅ 本体导入导出功能实现完成
+- ✅ 管理员模块实现完成
+- ✅ 项目操作功能实现完成
+- ✅ 系统设置功能实现完成
+- ✅ 项目编辑器实现完成
+- ✅ DraggableModal组件移动功能实现完成
+- ✅ Class Hierarchy Tree组件拖拽功能实现完成
+- ✅ Annotation属性搜索功能实现完成
+- ⏳ 性能优化和测试
+
+## 版本历史
+
+- v0.1.0: 初始版本
+- v0.1.1: 功能完整性修复
+- v0.1.2: 多语言支持实现
+- v0.1.3: 项目重命名和配置更新
+- v0.1.4: 多语言支持优化
+- v0.1.5: 本体导入导出功能实现
+- v0.1.6: 管理员模块和项目操作功能实现
+- v0.1.7: 项目编辑器实现（Class Hierarchy、类编辑、立体视图、数据全生命周期、评论和动态）
+- v0.1.8: AlertModal组件8个方向缩放问题修复
+- v0.1.9: AlertModal和DraggableModal组件移动功能Bug修复
+- v0.1.10: 实现Merge Entities功能，添加Tree选择和无数据时显示根节点
+- v0.1.11: Class Hierarchy Tree组件拖拽功能实现
+- v0.1.12: Class Details页面优化
+- v0.1.13: ClassEditorPanel.vue代码错误修复，Annotation属性搜索功能实现
+- v0.1.14: 项目编译和前端代理配置修复
+- v0.1.15: 面板响应式加载优化，修复HTML标签错误

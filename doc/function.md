@@ -722,6 +722,82 @@ export default {
 
 ---
 
+### 6. ClassEditorPanel (类编辑器面板)
+
+**文件路径**：`frontend/src/components/modules/ClassEditorPanel.vue`
+
+**功能描述**：
+项目编辑器的核心组件，包含Class Hierarchy、Class Details、Comments、Project Feed、Description等多个面板。
+
+**特性**：
+- 支持多面板布局（左侧Class Hierarchy、中间Class Details、右侧Comments和Project Feed）
+- 支持面板响应式数据加载
+- 支持加载状态显示
+- 支持面板大小拖拽调整
+- 支持类层次结构树形展示
+- 支持类编辑（Annotations、Parents、Relationships）
+
+**响应式数据加载**：
+- 点击Class Hierarchy中的类节点时，4个面板（class、Comments、Project Feed、Description）先显示加载状态
+- 使用Promise.all并行加载数据，提高响应速度
+- 数据加载完成后显示正确内容
+- 面板结构保持不变，避免重新加载时的闪烁
+
+**加载状态管理**：
+```javascript
+// 加载状态变量
+const isClassLoading = ref(false)
+const isCommentsLoading = ref(false)
+const isFeedLoading = ref(false)
+const isDescriptionLoading = ref(false)
+
+// 清除面板数据
+const clearPanelData = () => {
+  selectedClass.value = null
+  isClassLoading.value = true
+  comments.value = []
+  isCommentsLoading.value = true
+  projectActivities.value = []
+  isFeedLoading.value = true
+  isDescriptionLoading.value = true
+}
+
+// 响应式数据加载
+const handleNodeClick = async (data) => {
+  clearPanelData()
+  await Promise.all([
+    loadClassDetailsWithLoading(data.id),
+    loadCommentsWithLoading(data.id),
+    loadProjectActivitiesWithLoading(),
+    loadDescriptionWithLoading(data.id)
+  ])
+}
+```
+
+**CSS样式**：
+```css
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  width: 100%;
+}
+
+.loading-spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #4a90d9;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+```
+
+---
+
 ## API接口汇总
 
 ### 接口前缀说明

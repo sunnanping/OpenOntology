@@ -219,7 +219,11 @@
           </div>
           
           <div class="panel-body">
-            <div class="description-section">
+            <div v-if="isDescriptionLoading" class="loading-state">
+              <div class="loading-spinner"></div>
+              <span>Loading description...</span>
+            </div>
+            <div v-else class="description-section">
               <!-- Equivalent To -->
               <div class="description-item" 
                    :class="{ 'focused': focusedDescriptionItem === 'equivalentTo' }"
@@ -415,11 +419,18 @@
           </div>
         </div>
         
-        <div class="panel-body" v-if="selectedClass && activeClassTab === 'details'">
-          <div class="detail-section">
-            <h6 class="section-title">IRI</h6>
-            <div class="iri-display">{{ selectedClass.iri || `http://www.w3.org/2002/07/owl#${selectedClass.name}` }}</div>
+        <div v-if="isClassLoading" class="panel-body">
+          <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <span>Loading class details...</span>
           </div>
+        </div>
+        <div v-else-if="selectedClass && activeClassTab === 'details'" class="panel-body">
+          <div class="panel-content">
+            <div class="detail-section">
+              <h6 class="section-title">IRI</h6>
+              <div class="iri-display">{{ selectedClass.iri || `http://www.w3.org/2002/07/owl#${selectedClass.name}` }}</div>
+            </div>
           
           <div class="detail-section">
             <h6 class="section-title">Annotations</h6>
@@ -434,6 +445,7 @@
                       placeholder="Search property..."
                       @input="handleAnnotationPropertyInput(index, ann.property)"
                       @focus="handleAnnotationPropertyFocus(index)"
+                      @blur="handleAnnotationPropertyBlur"
                     >
                     <div v-if="showAnnotationPropertyDropdown && currentAnnotationIndex === index" class="annotation-property-dropdown">
                       <div 
@@ -447,35 +459,97 @@
                     </div>
                   </div>
                   <input type="text" class="annotation-value-input" v-model="ann.value" placeholder="Enter value">
-                  <input type="text" class="annotation-lang-input" v-model="ann.language" placeholder="lang" @focus="handleAnnotationLangFocus(index)" @blur="handleAnnotationLangBlur(ann, index)">
-                </div>
-                <button class="annotation-delete" @click="removeAnnotation(index)">
-                  <span class="delete-icon">×</span>
-                </button>
-              </div>
-              <div class="annotation-input-row" v-if="showNewAnnotationInput">
-                <div class="annotation-property-search">
-                  <input 
-                    type="text" 
-                    class="annotation-property-input" 
-                    v-model="newAnnotation.property" 
-                    placeholder="Search property..."
-                    @input="handleAnnotationPropertyInput(-1, newAnnotation.property)"
-                    @focus="handleNewAnnotationPropertyFocus"
-                  >
-                  <div v-if="showAnnotationPropertyDropdown && currentAnnotationIndex === -1" class="annotation-property-dropdown">
-                    <div 
-                      v-for="prop in filteredAnnotationProperties" 
-                      :key="prop" 
-                      class="annotation-property-option"
-                      @mousedown="selectAnnotationProperty(-1, prop)"
-                    >
-                      {{ prop }}
+                  <div class="annotation-lang-container">
+                    <div class="annotation-lang-search">
+                      <input 
+                        type="text" 
+                        class="annotation-lang-input" 
+                        v-model="ann.language" 
+                        placeholder="lang"
+                        @input="handleAnnotationLangInput(index, ann.language)"
+                        @focus="handleAnnotationLangFocus(index)"
+                        @blur="handleAnnotationLangBlur(ann, index)"
+                        @keyup.enter="handleAnnotationLangBlur(ann, index)"
+                      >
+                      <div v-if="showLanguageDropdown && currentAnnotationLangIndex === index" class="annotation-language-dropdown">
+                        <div 
+                          v-for="lang in filteredLanguages" 
+                          :key="lang.code" 
+                          class="annotation-language-option"
+                          @mousedown="selectLanguage(index, lang)"
+                        >
+                          {{ lang.code }} ({{ lang.name }})
+                        </div>
+                      </div>
                     </div>
+                    <button 
+                      v-if="ann.property || ann.value || ann.language" 
+                      class="annotation-delete" 
+                      @click="removeAnnotation(index)"
+                      title="Delete"
+                    >
+                      <span class="delete-icon">×</span>
+                    </button>
                   </div>
                 </div>
-                <input type="text" class="annotation-value-input" v-model="newAnnotation.value" placeholder="Enter value">
-                <input type="text" class="annotation-lang-input" v-model="newAnnotation.language" placeholder="lang" @focus="handleNewAnnotationLangFocus" @blur="handleNewAnnotationLangBlur">
+              </div>
+              <div class="annotation-input-row" v-if="showNewAnnotationInput">
+                <div class="annotation-content">
+                  <div class="annotation-property-search">
+                    <input 
+                      type="text" 
+                      class="annotation-property-input" 
+                      v-model="newAnnotation.property" 
+                      placeholder="Search property..."
+                      @input="handleAnnotationPropertyInput(-1, newAnnotation.property)"
+                      @focus="handleNewAnnotationPropertyFocus"
+                      @blur="handleAnnotationPropertyBlur"
+                    >
+                    <div v-if="showAnnotationPropertyDropdown && currentAnnotationIndex === -1" class="annotation-property-dropdown">
+                      <div 
+                        v-for="prop in filteredAnnotationProperties" 
+                        :key="prop" 
+                        class="annotation-property-option"
+                        @mousedown="selectAnnotationProperty(-1, prop)"
+                      >
+                        {{ prop }}
+                      </div>
+                    </div>
+                  </div>
+                  <input type="text" class="annotation-value-input" v-model="newAnnotation.value" placeholder="Enter value">
+                  <div class="annotation-lang-container">
+                    <div class="annotation-lang-search">
+                      <input 
+                        type="text" 
+                        class="annotation-lang-input" 
+                        v-model="newAnnotation.language" 
+                        placeholder="lang"
+                        @input="handleNewAnnotationLangInput(newAnnotation.language)"
+                        @focus="handleNewAnnotationLangFocus"
+                        @blur="handleNewAnnotationLangBlur"
+                        @keyup.enter="handleNewAnnotationLangBlur"
+                      >
+                      <div v-if="showLanguageDropdown && currentAnnotationLangIndex === -1" class="annotation-language-dropdown">
+                        <div 
+                          v-for="lang in filteredLanguages" 
+                          :key="lang.code" 
+                          class="annotation-language-option"
+                          @mousedown="selectNewAnnotationLanguage(lang)"
+                        >
+                          {{ lang.code }} ({{ lang.name }})
+                        </div>
+                      </div>
+                    </div>
+                    <button 
+                      v-if="newAnnotation.property || newAnnotation.value || newAnnotation.language" 
+                      class="annotation-delete" 
+                      @click="cancelNewAnnotation"
+                      title="Delete"
+                    >
+                      <span class="delete-icon">×</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -558,6 +632,7 @@
             </div>
           </div>
         </div>
+        </div>
         
         <div class="panel-body" v-else-if="selectedClass && activeClassTab === 'graph'">
           <div class="graph-container">
@@ -624,7 +699,11 @@
             </div>
           </div>
           <div class="panel-body">
-            <div v-if="filteredComments && filteredComments.length > 0" class="comments-list">
+            <div v-if="isCommentsLoading" class="loading-state">
+              <div class="loading-spinner"></div>
+              <span>Loading comments...</span>
+            </div>
+            <div v-else-if="filteredComments && filteredComments.length > 0" class="comments-list">
               <div v-for="comment in filteredComments" :key="comment.id" class="comment-item">
                 <div class="comment-header">
                   <span class="comment-author">{{ comment.author }}</span>
@@ -670,7 +749,11 @@
             </div>
           </div>
           <div class="panel-body">
-            <div v-if="projectActivities && projectActivities.length > 0" class="activities-list">
+            <div v-if="isFeedLoading" class="loading-state">
+              <div class="loading-spinner"></div>
+              <span>Loading project feed...</span>
+            </div>
+            <div v-else-if="projectActivities && projectActivities.length > 0" class="activities-list">
               <div v-for="activity in projectActivities" :key="activity.id" class="activity-item">
                 <div class="activity-header">
                   <span class="activity-author">{{ activity.author }}</span>
@@ -1315,6 +1398,7 @@ import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import * as echarts from 'echarts'
 import http from '@/utils/http'
+import { ElMessage } from 'element-plus'
 
 const { t } = useI18n()
 
@@ -1630,7 +1714,16 @@ const newAnnotation = ref({
   language: ''
 })
 
-const showNewAnnotationInput = ref(true)
+const showNewAnnotationInput = ref(false)
+
+// 存储原始Annotations数据，用于比较是否有更改
+const originalAnnotations = ref([])
+
+// 加载状态管理
+const isClassLoading = ref(false)
+const isCommentsLoading = ref(false)
+const isFeedLoading = ref(false)
+const isDescriptionLoading = ref(false)
 
 // Annotation属性搜索相关
 const annotationProperties = ref([])
@@ -1638,6 +1731,29 @@ const filteredAnnotationProperties = ref([])
 const showAnnotationPropertyDropdown = ref(false)
 const annotationPropertySearchKeyword = ref('')
 const currentAnnotationIndex = ref(-1) // -1表示新annotation，>=0表示已有annotation的索引
+
+// 语言列表相关
+const languages = ref([
+  { code: 'en', name: 'English' },
+  { code: 'zh', name: 'Chinese' },
+  { code: 'zh-CN', name: 'Chinese; PRC' },
+  { code: 'zh-HK', name: 'Chinese; Hong Kong' },
+  { code: 'zh-TW', name: 'Chinese; Taiwan' },
+  { code: 'fr', name: 'French' },
+  { code: 'de', name: 'German' },
+  { code: 'es', name: 'Spanish' },
+  { code: 'it', name: 'Italian' },
+  { code: 'ja', name: 'Japanese' },
+  { code: 'ko', name: 'Korean' },
+  { code: 'ru', name: 'Russian' },
+  { code: 'pt', name: 'Portuguese' },
+  { code: 'ar', name: 'Arabic' },
+  { code: 'zu', name: 'Zulu' },
+  { code: 'za', name: 'Zhuang; Chuang' }
+])
+const filteredLanguages = ref([])
+const showLanguageDropdown = ref(false)
+const currentAnnotationLangIndex = ref(-1)
 
 const newParent = ref({
   name: ''
@@ -1881,6 +1997,9 @@ const loadClassDetails = async (classId) => {
     selectedClass.value = response.data
     emit('class-selected', selectedClass.value)
     
+    // 保存原始Annotations数据，用于比较是否有更改
+    originalAnnotations.value = JSON.parse(JSON.stringify(selectedClass.value.annotations || []))
+    
     // 加载类变更历史
     // 注意：暂时注释掉这个调用，因为我们还没有实现 change 相关的 API
     // const changesResponse = await http.get(`/change/findByEntityId/${classId}`)
@@ -1890,9 +2009,88 @@ const loadClassDetails = async (classId) => {
   }
 }
 
+// 清除面板数据
+const clearPanelData = () => {
+  // 清除class数据
+  selectedClass.value = null
+  isClassLoading.value = true
+  
+  // 清除comments数据
+  comments.value = []
+  isCommentsLoading.value = true
+  
+  // 清除project feed数据
+  projectActivities.value = []
+  isFeedLoading.value = true
+  
+  // 清除description数据
+  isDescriptionLoading.value = true
+}
+
+// 带加载状态的class详情加载
+const loadClassDetailsWithLoading = async (classId) => {
+  try {
+    isClassLoading.value = true
+    await loadClassDetails(classId)
+  } finally {
+    isClassLoading.value = false
+  }
+}
+
+// 带加载状态的评论加载
+const loadCommentsWithLoading = async (classId) => {
+  try {
+    isCommentsLoading.value = true
+    // 尝试根据classId加载评论
+    try {
+      const response = await http.get(`/collaboration/comment/findByEntityId/${classId}`)
+      comments.value = response.data || []
+    } catch (error) {
+      // 如果失败，回退到加载所有评论
+      await loadComments()
+    }
+  } finally {
+    isCommentsLoading.value = false
+  }
+}
+
+// 带加载状态的项目活动加载
+const loadProjectActivitiesWithLoading = async () => {
+  try {
+    isFeedLoading.value = true
+    await loadProjectActivities()
+  } finally {
+    isFeedLoading.value = false
+  }
+}
+
+// 带加载状态的描述加载
+const loadDescriptionWithLoading = async (classId) => {
+  try {
+    isDescriptionLoading.value = true
+    // 描述数据包含在class详情中
+    await loadClassDetails(classId)
+  } finally {
+    isDescriptionLoading.value = false
+  }
+}
+
 // 节点点击处理
-const handleNodeClick = (data) => {
-  loadClassDetails(data.id)
+const handleNodeClick = async (data) => {
+  // 清除现有数据，显示加载状态
+  clearPanelData()
+  
+  try {
+    // 并行加载所有数据
+    await Promise.all([
+      loadClassDetailsWithLoading(data.id),
+      loadCommentsWithLoading(data.id),
+      loadProjectActivitiesWithLoading(),
+      loadDescriptionWithLoading(data.id)
+    ])
+  } catch (error) {
+    console.error('Failed to load panel data:', error)
+  }
 }
 
 // 节点右键菜单处理
@@ -2029,7 +2227,7 @@ const handleMoveClass = async () => {
   if (!contextMenuNode.value || !moveTargetParent.value) return
   
   try {
-    await http.post('/api/class/move', {
+    await http.post('/class/move', {
       classId: contextMenuNode.value.id,
       newParentId: moveTargetParent.value
     })
@@ -2048,7 +2246,7 @@ const handleMergeClass = async () => {
   if (!contextMenuNode.value || !mergeTargetParent.value) return
   
   try {
-    await http.post('/api/class/merge', {
+    await http.post('/class/merge', {
       sourceId: contextMenuNode.value.id,
       targetId: mergeTargetParent.value
     })
@@ -2299,25 +2497,55 @@ const handleAnnotationPropertyInput = (index, keyword) => {
   currentAnnotationIndex.value = index
   annotationPropertySearchKeyword.value = keyword
   
-  // 如果annotationProperties为空，先从后端获取数据
-  if (annotationProperties.value.length === 0) {
-    console.log('annotationProperties is empty, fetching from backend')
-    searchAnnotationProperties(keyword).then(() => {
-      showAnnotationPropertyDropdown.value = true
-    })
-  } else {
-    // 否则，根据关键字过滤
-    if (keyword) {
-      filteredAnnotationProperties.value = annotationProperties.value.filter(prop =>
-        prop.toLowerCase().includes(keyword.toLowerCase())
-      )
-    } else {
-      filteredAnnotationProperties.value = annotationProperties.value
-    }
+  // 直接从后端获取数据，不管annotationProperties是否为空
+  searchAnnotationProperties(keyword).then(() => {
     showAnnotationPropertyDropdown.value = true
-  }
+  })
+  
   console.log('filteredAnnotationProperties:', filteredAnnotationProperties.value)
   console.log('showAnnotationPropertyDropdown:', showAnnotationPropertyDropdown.value)
+}
+
+// 处理Annotation语言输入
+const handleAnnotationLangInput = (index, keyword) => {
+  console.log('handleAnnotationLangInput called with index:', index, 'keyword:', keyword)
+  currentAnnotationLangIndex.value = index
+  
+  // 根据关键字过滤语言列表
+  if (keyword) {
+    const query = keyword.toLowerCase()
+    filteredLanguages.value = languages.value.filter(lang => 
+      lang.code.toLowerCase().includes(query) || 
+      lang.name.toLowerCase().includes(query)
+    )
+  } else {
+    filteredLanguages.value = languages.value
+  }
+  showLanguageDropdown.value = true
+  
+  console.log('filteredLanguages:', filteredLanguages.value)
+  console.log('showLanguageDropdown:', showLanguageDropdown.value)
+}
+
+// 处理新Annotation语言输入
+const handleNewAnnotationLangInput = (keyword) => {
+  console.log('handleNewAnnotationLangInput called with keyword:', keyword)
+  currentAnnotationLangIndex.value = -1
+  
+  // 根据关键字过滤语言列表
+  if (keyword) {
+    const query = keyword.toLowerCase()
+    filteredLanguages.value = languages.value.filter(lang => 
+      lang.code.toLowerCase().includes(query) || 
+      lang.name.toLowerCase().includes(query)
+    )
+  } else {
+    filteredLanguages.value = languages.value
+  }
+  showLanguageDropdown.value = true
+  
+  console.log('filteredLanguages:', filteredLanguages.value)
+  console.log('showLanguageDropdown:', showLanguageDropdown.value)
 }
 
 // 选择Annotation属性
@@ -2335,6 +2563,20 @@ const selectAnnotationProperty = (index, property) => {
   console.log('showAnnotationPropertyDropdown set to false')
 }
 
+// 选择语言
+const selectLanguage = (index, language) => {
+  console.log('selectLanguage called with index:', index, 'language:', language)
+  selectedClass.value.annotations[index].language = language.code
+  showLanguageDropdown.value = false
+}
+
+// 选择新Annotation语言
+const selectNewAnnotationLanguage = (language) => {
+  console.log('selectNewAnnotationLanguage called with language:', language)
+  newAnnotation.value.language = language.code
+  showLanguageDropdown.value = false
+}
+
 // 关闭Annotation属性下拉框
 const closeAnnotationPropertyDropdown = () => {
   console.log('closeAnnotationPropertyDropdown called')
@@ -2342,6 +2584,16 @@ const closeAnnotationPropertyDropdown = () => {
     showAnnotationPropertyDropdown.value = false
     console.log('showAnnotationPropertyDropdown set to false')
   }, 300)
+}
+
+// 处理Annotation属性输入框的blur事件
+const handleAnnotationPropertyBlur = () => {
+  console.log('handleAnnotationPropertyBlur called')
+  // 延迟隐藏下拉框，以便点击下拉项时能触发选择事件
+  setTimeout(() => {
+    showAnnotationPropertyDropdown.value = false
+    console.log('showAnnotationPropertyDropdown set to false on blur')
+  }, 200)
 }
 
 // 处理Annotation属性输入框的focus事件
@@ -2368,7 +2620,13 @@ const handleNewAnnotationPropertyFocus = () => {
   })
 }
 
+// 处理Annotation语言焦点
 const handleAnnotationLangFocus = (index) => {
+  console.log('handleAnnotationLangFocus called with index:', index)
+  currentAnnotationLangIndex.value = index
+  showLanguageDropdown.value = true
+  filteredLanguages.value = languages.value
+  
   // 当标签和value都有数据时，点击lang输入框会在下边新增加1行数据
   const ann = selectedClass.value.annotations[index]
   if (ann && ann.property && ann.value) {
@@ -2379,9 +2637,26 @@ const handleAnnotationLangFocus = (index) => {
   }
 }
 
+// 处理Annotation语言失焦
 const handleAnnotationLangBlur = async (ann, index) => {
+  console.log('handleAnnotationLangBlur called with annotation:', ann, 'index:', index)
+  showLanguageDropdown.value = false
+  
   // 当焦点离开lang输入框时，向后台更新数据
   if (ann && (ann.property || ann.value || ann.language)) {
+    // 检查数据是否有变化
+    if (!isAnnotationChanged(ann, index)) {
+      console.log('Annotation data unchanged, skipping submit')
+      return
+    }
+    
+    // 检查是否有重复的Annotation
+    const hasDuplicate = checkAnnotationDuplicate(ann, index)
+    if (hasDuplicate) {
+      ElMessage.warning('Duplicate annotation: same property and language combination')
+      return
+    }
+    
     try {
       await http.post('/annotation/set', {
         entityId: selectedClass.value.id,
@@ -2391,20 +2666,41 @@ const handleAnnotationLangBlur = async (ann, index) => {
         value: ann.value
       })
       await loadClassDetails(selectedClass.value.id)
+      
+      // 更新class名称
+      updateClassName()
     } catch (error) {
       console.error('Failed to update annotation:', error)
+      ElMessage.error('Failed to update annotation')
     }
   }
 }
 
+// 处理新Annotation语言焦点
 const handleNewAnnotationLangFocus = () => {
+  console.log('handleNewAnnotationLangFocus called')
+  currentAnnotationLangIndex.value = -1
+  showLanguageDropdown.value = true
+  filteredLanguages.value = languages.value
+  
   // 当新annotation的lang输入框获得焦点时，确保显示新输入行
   showNewAnnotationInput.value = true
 }
 
+// 处理新Annotation语言失焦
 const handleNewAnnotationLangBlur = async () => {
+  console.log('handleNewAnnotationLangBlur called with newAnnotation:', newAnnotation.value)
+  showLanguageDropdown.value = false
+  
   // 当新annotation的lang输入框失去焦点时，添加新数据
   if (newAnnotation.value.property && newAnnotation.value.value) {
+    // 检查是否有重复的Annotation
+    const hasDuplicate = checkAnnotationDuplicate(newAnnotation.value, -1)
+    if (hasDuplicate) {
+      ElMessage.warning('Duplicate annotation: same property and language combination')
+      return
+    }
+    
     try {
       await http.post('/annotation/set', {
         entityId: selectedClass.value.id,
@@ -2414,15 +2710,76 @@ const handleNewAnnotationLangBlur = async () => {
         value: newAnnotation.value.value
       })
       await loadClassDetails(selectedClass.value.id)
+      
       // 重置新annotation表单
       newAnnotation.value = {
         property: '',
         value: '',
         language: ''
       }
+      
+      // 更新class名称
+      updateClassName()
     } catch (error) {
       console.error('Failed to add annotation:', error)
+      ElMessage.error('Failed to add annotation')
     }
+  }
+}
+
+// 取消新Annotation
+const cancelNewAnnotation = () => {
+  console.log('cancelNewAnnotation called')
+  newAnnotation.value = {
+    property: '',
+    value: '',
+    language: ''
+  }
+  showNewAnnotationInput.value = false
+}
+
+// 检查Annotation重复
+const checkAnnotationDuplicate = (annotation, currentIndex) => {
+  console.log('checkAnnotationDuplicate called with annotation:', annotation, 'currentIndex:', currentIndex)
+  const annotations = selectedClass.value.annotations || []
+  return annotations.some((ann, index) => {
+    if (index === currentIndex) return false
+    return ann.property === annotation.property && ann.language === annotation.language
+  })
+}
+
+// 比较Annotation数据是否与原始数据一致
+const isAnnotationChanged = (annotation, index) => {
+  console.log('isAnnotationChanged called with annotation:', annotation, 'index:', index)
+  if (!originalAnnotations.value || index < 0 || index >= originalAnnotations.value.length) {
+    return true // 新添加的Annotation，视为有变化
+  }
+  
+  const originalAnn = originalAnnotations.value[index]
+  if (!originalAnn) {
+    return true // 原始数据中没有该Annotation，视为有变化
+  }
+  
+  // 比较property、value、language是否一致
+  return originalAnn.property !== annotation.property || 
+         originalAnn.value !== annotation.value || 
+         originalAnn.language !== annotation.language
+}
+
+// 更新class名称
+const updateClassName = () => {
+  console.log('updateClassName called')
+  const annotations = selectedClass.value.annotations || []
+  // 查找rdfs:label的Annotation
+  const labelAnnotation = annotations.find(ann => 
+    ann.property === 'rdfs:label' && (ann.language === projectLanguage.value || !ann.language)
+  )
+  
+  if (labelAnnotation && labelAnnotation.value) {
+    selectedClass.value.name = labelAnnotation.value
+  } else {
+    // 使用uid作为名称
+    selectedClass.value.name = selectedClass.value.id
   }
 }
 
@@ -2441,9 +2798,13 @@ const removeAnnotation = async (index) => {
         }
       })
       await loadClassDetails(selectedClass.value.id)
+      
+      // 更新class名称
+      updateClassName()
     }
   } catch (error) {
     console.error('Failed to remove annotation:', error)
+    ElMessage.error('Failed to remove annotation')
   }
 }
 
@@ -3290,6 +3651,36 @@ const initGraph = () => {
   flex-shrink: 0;
 }
 
+/* 加载状态样式 */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  width: 100%;
+}
+
+.loading-spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #4a90d9;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-state span {
+  color: #666;
+  font-size: 14px;
+}
+
 .panel.mobile-active {
   display: flex;
   width: 100% !important;
@@ -3742,17 +4133,88 @@ const initGraph = () => {
   width: 18px;
   height: 18px;
   padding: 0;
-  color: #999;
-  background: transparent;
+  color: #fff;
+  background: #ccc;
   border: none;
+  border-radius: 50%;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
 .annotation-delete:hover,
 .parent-delete:hover,
 .relationship-delete:hover {
-  color: #e74c3c;
+  background: #e74c3c;
+}
+
+.annotation-delete:focus,
+.parent-delete:focus,
+.relationship-delete:focus {
+  background: #e74c3c;
+  outline: none;
+}
+
+/* 删除按钮提示 */
+.annotation-delete::after,
+.parent-delete::after,
+.relationship-delete::after {
+  content: 'Delete';
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: normal;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.annotation-delete:hover::after,
+.parent-delete:hover::after,
+.relationship-delete:hover::after,
+.annotation-delete:focus::after,
+.parent-delete:focus::after,
+.relationship-delete:focus::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 删除按钮提示箭头 */
+.annotation-delete::before,
+.parent-delete::before,
+.relationship-delete::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #333;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.annotation-delete:hover::before,
+.parent-delete:hover::before,
+.relationship-delete:hover::before,
+.annotation-delete:focus::before,
+.parent-delete:focus::before,
+.relationship-delete:focus::before {
+  opacity: 1;
+  visibility: visible;
 }
 
 .annotation-input-row,
@@ -3767,7 +4229,6 @@ const initGraph = () => {
 }
 
 .annotation-property,
-.annotation-value-input,
 .annotation-lang-input,
 .parent-input,
 .relationship-property,
@@ -3780,11 +4241,86 @@ const initGraph = () => {
   flex: 1;
 }
 
-/* Annotation属性搜索样式 */
+/* value占5/8宽度 */
+.annotation-value-input {
+  font-size: 12px;
+  padding: 3px 6px;
+  border: 1px solid #ddd;
+  border-radius: 2px;
+  flex: 0 0 62.5%;
+}
+
+.annotation-content {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  /* 确保总宽度为100% */
+  box-sizing: border-box;
+  padding: 0;
+  /* 调整宽度比例，考虑gap的影响 */
+}
+
+/* property占25%宽度 */
 .annotation-property-search {
   position: relative;
+  flex: 0 0 calc(25% - 2px);
+  min-width: 100px;
+}
+
+/* value占62.5%宽度 */
+.annotation-value-input {
+  font-size: 12px;
+  padding: 3px 6px;
+  border: 1px solid #ddd;
+  border-radius: 2px;
+  flex: 0 0 calc(62.5% - 2px);
+}
+
+/* lang容器占12.5%宽度 */
+.annotation-lang-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 12.5%;
+  min-width: 60px;
+  /* 确保即使没有删除按钮，宽度也能正确应用 */
+  box-sizing: border-box;
+}
+
+.annotation-lang-search {
+  position: relative;
   flex: 1;
-  min-width: 120px;
+}
+
+.annotation-language-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 2px 2px;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.annotation-language-option {
+  padding: 6px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.annotation-language-option:hover {
+  background-color: #f5f5f5;
+}
+
+.annotation-language-option:last-child {
+  border-bottom: none;
 }
 
 .annotation-property-input {
@@ -3826,7 +4362,11 @@ const initGraph = () => {
   border-bottom: none;
 }
 
-.annotation-lang-input,
+.annotation-lang-input {
+  flex: 1;
+  width: 100%;
+}
+
 .relationship-lang-input {
   flex: 0 0 60px;
 }
