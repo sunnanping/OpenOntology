@@ -1995,6 +1995,10 @@ const loadClassDetails = async (classId) => {
     selectedClass.value = response.data
     emit('class-selected', selectedClass.value)
     
+    // 加载完整的Annotation数据（包含id）
+    const annotationsResponse = await http.get(`/annotation/findByEntityIdAndEntityType/${classId}/CLASS`)
+    selectedClass.value.annotations = annotationsResponse.data || []
+    
     // 保存原始Annotations数据，用于比较是否有更改
     originalAnnotations.value = JSON.parse(JSON.stringify(selectedClass.value.annotations || []))
     
@@ -2656,13 +2660,25 @@ const handleAnnotationLangBlur = async (ann, index) => {
     }
     
     try {
-      await http.post('/annotation/set', {
-        entityId: selectedClass.value.id,
-        entityType: 'CLASS',
-        property: ann.property,
-        language: ann.language,
-        value: ann.value
-      })
+      if (ann.id) {
+        // 更新操作
+        await http.put(`/annotation/update/${ann.id}`, {
+          entityId: selectedClass.value.id,
+          entityType: 'CLASS',
+          property: ann.property,
+          language: ann.language,
+          value: ann.value
+        })
+      } else {
+        // 新增操作
+        await http.post('/annotation/create', {
+          entityId: selectedClass.value.id,
+          entityType: 'CLASS',
+          property: ann.property,
+          language: ann.language,
+          value: ann.value
+        })
+      }
       await loadClassDetails(selectedClass.value.id)
       
       // 更新class名称
@@ -2700,7 +2716,7 @@ const handleNewAnnotationLangBlur = async () => {
     }
     
     try {
-      await http.post('/annotation/set', {
+      await http.post('/annotation/create', {
         entityId: selectedClass.value.id,
         entityType: 'CLASS',
         property: newAnnotation.value.property,
@@ -2787,14 +2803,20 @@ const removeAnnotation = async (index) => {
   try {
     const ann = selectedClass.value.annotations[index]
     if (ann) {
-      await http.delete('/annotation/delete', {
-        params: {
-          entityId: selectedClass.value.id,
-          entityType: 'CLASS',
-          property: ann.property,
-          language: ann.language
-        }
-      })
+      if (ann.id) {
+        // 使用id删除
+        await http.delete(`/annotation/delete/${ann.id}`)
+      } else {
+        // 使用property和language删除
+        await http.delete('/annotation/delete', {
+          params: {
+            entityId: selectedClass.value.id,
+            entityType: 'CLASS',
+            property: ann.property,
+            language: ann.language
+          }
+        })
+      }
       await loadClassDetails(selectedClass.value.id)
       
       // 更新class名称
@@ -2810,7 +2832,7 @@ const addAnnotation = async () => {
   if (!selectedClass.value || !newAnnotation.value.property || !newAnnotation.value.value) return
   
   try {
-    await http.post('/annotation/set', {
+    await http.post('/annotation/create', {
       entityId: selectedClass.value.id,
       entityType: 'CLASS',
       property: newAnnotation.value.property,

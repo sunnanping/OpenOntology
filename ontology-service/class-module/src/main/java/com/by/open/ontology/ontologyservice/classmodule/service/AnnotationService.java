@@ -1,7 +1,9 @@
 package com.by.open.ontology.ontologyservice.classmodule.service;
 
 import com.by.open.ontology.ontologyservice.classmodule.entity.Annotation;
+import com.by.open.ontology.ontologyservice.classmodule.entity.Class;
 import com.by.open.ontology.ontologyservice.classmodule.repository.AnnotationRepository;
+import com.by.open.ontology.ontologyservice.classmodule.repository.ClassRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,23 +15,19 @@ public class AnnotationService {
 
     @Autowired
     private AnnotationRepository annotationRepository;
+    
+    @Autowired
+    private ClassRepository classRepository;
 
     public Annotation create(Annotation annotation) {
         annotation.setCreatedDate(new Date());
         annotation.setLastModifiedDate(new Date());
-        return annotationRepository.save(annotation);
-    }
-
-    /**
-     * 创建Annotation
-     * @param classUid 选中的Class实体的ID
-     * @param annotation Annotation实体
-     * @return 创建的Annotation
-     */
-    public Annotation create(String classUid, Annotation annotation) {
-        annotation.setCreatedDate(new Date());
-        annotation.setLastModifiedDate(new Date());
-        return annotationRepository.save(annotation);
+        Annotation savedAnnotation = annotationRepository.save(annotation);
+        
+        // Update Class entity annotations
+        updateClassAnnotations(annotation.getEntityId());
+        
+        return savedAnnotation;
     }
 
     public List<Annotation> findByEntityIdAndEntityType(String entityId, String entityType) {
@@ -47,17 +45,32 @@ public class AnnotationService {
             existingAnnotation.setLanguage(annotation.getLanguage());
             existingAnnotation.setValue(annotation.getValue());
             existingAnnotation.setLastModifiedDate(new Date());
-            return annotationRepository.save(existingAnnotation);
+            Annotation updatedAnnotation = annotationRepository.save(existingAnnotation);
+            
+            // Update Class entity annotations
+            updateClassAnnotations(existingAnnotation.getEntityId());
+            
+            return updatedAnnotation;
         }
         return null;
     }
 
     public void delete(String id) {
-        annotationRepository.deleteById(id);
+        Annotation annotation = annotationRepository.findById(id).orElse(null);
+        if (annotation != null) {
+            String entityId = annotation.getEntityId();
+            annotationRepository.deleteById(id);
+            
+            // Update Class entity annotations
+            updateClassAnnotations(entityId);
+        }
     }
 
     public void deleteByEntityIdAndEntityType(String entityId, String entityType) {
         annotationRepository.deleteByEntityIdAndEntityType(entityId, entityType);
+        
+        // Update Class entity annotations
+        updateClassAnnotations(entityId);
     }
 
     public void deleteByEntityIdAndEntityTypeAndPropertyAndLanguage(String entityId, String entityType, String property, String language) {
@@ -69,6 +82,9 @@ public class AnnotationService {
                 annotationRepository.deleteById(annotation.getId());
             }
         }
+        
+        // Update Class entity annotations
+        updateClassAnnotations(entityId);
     }
 
     public Annotation setAnnotation(Annotation annotation) {
@@ -87,7 +103,12 @@ public class AnnotationService {
         // Create new annotation
         annotation.setCreatedDate(new Date());
         annotation.setLastModifiedDate(new Date());
-        return annotationRepository.save(annotation);
+        Annotation savedAnnotation = annotationRepository.save(annotation);
+        
+        // Update Class entity annotations
+        updateClassAnnotations(annotation.getEntityId());
+        
+        return savedAnnotation;
     }
 
     public List<Annotation> batchSaveAnnotations(String entityId, String entityType, List<Annotation> annotations) {
@@ -103,6 +124,33 @@ public class AnnotationService {
             annotation.setLastModifiedDate(now);
         }
         
-        return annotationRepository.saveAll(annotations);
+        List<Annotation> savedAnnotations = annotationRepository.saveAll(annotations);
+        
+        // Update Class entity annotations
+        updateClassAnnotations(entityId);
+        
+        return savedAnnotations;
+    }
+    
+    /**
+     * 更新Class实体的annotations字段
+     * @param entityId Class实体ID
+     */
+    private void updateClassAnnotations(String entityId) {
+        Class classEntity = classRepository.findById(entityId).orElse(null);
+        if (classEntity != null) {
+            List<Annotation> annotations = annotationRepository.findByEntityIdAndEntityType(entityId, "CLASS");
+            List<Class.Annotation> classAnnotations = new java.util.ArrayList<>();
+            for (Annotation annotation : annotations) {
+                Class.Annotation classAnnotation = new Class.Annotation(
+                    annotation.getProperty(),
+                    annotation.getValue(),
+                    annotation.getLanguage()
+                );
+                classAnnotations.add(classAnnotation);
+            }
+            classEntity.setAnnotations(classAnnotations);
+            classRepository.save(classEntity);
+        }
     }
 }
