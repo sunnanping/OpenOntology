@@ -3,7 +3,7 @@
 ## 项目信息
 
 - 项目名称: **OpenOntology**
-- 项目版本: **v0.1.15**
+- 项目版本: **v0.1.14**
 - 项目路径: d:\project\trae\java\OpenOntology
 - **首次时间**: 2026-03-15
 - **最后时间**: 2026-03-30
@@ -884,6 +884,5 @@
 - v0.1.10: 实现Merge Entities功能，添加Tree选择和无数据时显示根节点
 - v0.1.11: Class Hierarchy Tree组件拖拽功能实现
 - v0.1.12: Class Details页面优化
-- v0.1.13: ClassEditorPanel.vue代码错误修复，Annotation属性搜索功能实现
-- v0.1.14: 项目编译和前端代理配置修复
-- v0.1.15: 面板响应式加载优化，修复HTML标签错误
+- v0.1.13: 持续优化Annotations数据处理，添加默认annotation支持，优化按钮样式和提示
+- v0.1.14: 版本号递增，更新文档

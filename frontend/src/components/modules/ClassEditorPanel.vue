@@ -482,13 +482,22 @@
                         </div>
                       </div>
                     </div>
-                    <button 
-                      v-if="ann.property || ann.value || ann.language" 
-                      class="annotation-delete" 
-                      @click="removeAnnotation(index)"
-                    >
-                      <span class="delete-icon">×</span>
-                    </button>
+                    <div class="annotation-actions">
+                      <button 
+                        v-if="!ann.id" 
+                        class="annotation-submit" 
+                        @click="submitAnnotation(ann, index)"
+                      >
+                        <span class="submit-icon">✓</span>
+                      </button>
+                      <button 
+                        v-if="ann.property || ann.value || ann.language" 
+                        class="annotation-delete" 
+                        @click="removeAnnotation(index)"
+                      >
+                        <span class="delete-icon">×</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1999,6 +2008,15 @@ const loadClassDetails = async (classId) => {
     const annotationsResponse = await http.get(`/annotation/findByEntityIdAndEntityType/${classId}/CLASS`)
     selectedClass.value.annotations = annotationsResponse.data || []
     
+    // 如果annotations为空，添加默认的rdfs:label annotation
+    if (!selectedClass.value.annotations || selectedClass.value.annotations.length === 0) {
+      selectedClass.value.annotations = [{
+        property: 'rdfs:label',
+        value: selectedClass.value.name,
+        language: ''
+      }]
+    }
+    
     // 保存原始Annotations数据，用于比较是否有更改
     originalAnnotations.value = JSON.parse(JSON.stringify(selectedClass.value.annotations || []))
     
@@ -2741,15 +2759,34 @@ const handleNewAnnotationLangBlur = async () => {
   }
 }
 
-// 取消新Annotation
-const cancelNewAnnotation = () => {
-  console.log('cancelNewAnnotation called')
-  newAnnotation.value = {
-    property: '',
-    value: '',
-    language: ''
+// 提交Annotation
+const submitAnnotation = async (ann, index) => {
+  // 检查property和value是否为空
+  if (!ann.property) {
+    ElMessage.warning('Property is required')
+    return
   }
-  showNewAnnotationInput.value = false
+  if (!ann.value) {
+    ElMessage.warning('Value is required')
+    return
+  }
+  
+  try {
+    await http.post('/annotation/create', {
+      entityId: selectedClass.value.id,
+      entityType: 'CLASS',
+      property: ann.property,
+      language: ann.language,
+      value: ann.value
+    })
+    await loadClassDetails(selectedClass.value.id)
+    
+    // 更新class名称
+    updateClassName()
+  } catch (error) {
+    console.error('Failed to submit annotation:', error)
+    ElMessage.error('Failed to submit annotation')
+  }
 }
 
 // 检查Annotation重复
@@ -4142,6 +4179,60 @@ const initGraph = () => {
 .parent-name {
   flex: 1;
   color: #333;
+}
+
+.annotation-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.annotation-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  color: #666;
+  background: #f8f9fa;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.annotation-submit:hover {
+  background: #dc3545;
+  border-color: #dc3545;
+  color: white;
+}
+
+.annotation-submit::after {
+  content: 'Add default annotation';
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: normal;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.annotation-submit:hover::after {
+  opacity: 1;
+  visibility: visible;
 }
 
 .annotation-delete,
