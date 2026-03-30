@@ -845,6 +845,154 @@
 - **遗留问题/待优化**:
   - 无
 
+### 交互 #25: Annotations优化 - 默认annotation显示
+
+- **需求类型**: 功能开发
+- **需求内容**: 持续优化Annotations数据处理，当选中Class实体中的annotations为空时，前端需显示默认annotation数据并处理按钮逻辑
+- **需求提交人**: 用户
+- **需求提出时间**: 2026-03-30
+- **完成时间**: 2026-03-30
+- **思考主要内容**:
+  - 分析当Class实体annotations为空时的处理逻辑
+  - 设计默认annotation的显示和提交方案
+  - 优化打勾按钮和打叉按钮的样式和交互
+- **任务拆分**:
+  1. 修改loadClassDetails函数，当Class实体的annotations为空时，自动添加默认的rdfs:label annotation
+  2. 为默认annotation显示打勾按钮，用于提交系统默认annotation数据
+  3. 优化打勾按钮样式，使其与打叉按钮一致
+  4. 实现打勾按钮的提交功能
+  5. 验证功能是否正常工作
+- **实现方案**:
+  1. **默认Annotation显示**:
+     - 在loadClassDetails函数中检查annotations是否为空
+     - 若为空，自动添加默认的rdfs:label annotation（value为Class名称）
+     - 保存原始Annotations数据用于比较
+  2. **打勾按钮样式优化**:
+     - 实现annotation-submit样式，与annotation-delete样式保持一致
+     - 焦点时显示红底色、白勾
+     - 添加英文提示"Add default annotation"
+  3. **按钮逻辑处理**:
+     - 系统已存在的数据显示两个按钮
+     - 新增待提交的annotation数据只显示打勾按钮
+     - 提交前检查property和value是否为空
+- **验证结果**:
+  - ✅ 默认annotation显示功能实现完成
+  - ✅ 打勾按钮样式优化完成
+  - ✅ 按钮逻辑处理完成
+  - ✅ 本地git提交成功
+- **遗留问题/待优化**:
+  - 无
+
+### 交互 #26: Annotations优化 - 多annotation输入格式
+
+- **需求类型**: 功能开发
+- **需求内容**: 持续优化Annotation的value，在create以及update条件下，支持value中的多annotation数据的格式，对多条数据处理的规则都一样：检查annotation的key+annotation.lang是否存在，存在则是update；不存在则新增加
+- **需求提交人**: 用户
+- **需求提出时间**: 2026-03-30
+- **完成时间**: 2026-03-30
+- **思考主要内容**:
+  - 设计多annotation输入格式的解析规则
+  - 实现后端AnnotationParser工具类
+  - 实现前端对多annotation输入的处理
+  - 确保Class实体中的annotations字段与数据库同步
+- **任务拆分**:
+  1. 创建AnnotationParser工具类，解析多种格式的annotation value
+  2. 修改AnnotationService，添加processAnnotations方法处理多个annotation
+  3. 修改AnnotationController，添加process端点
+  4. 修改前端submitAnnotation函数，支持多annotation输入
+  5. 实现updateClassAnnotations方法，同步Class实体中的annotations字段
+  6. 验证功能是否正常工作
+- **实现方案**:
+  1. **后端AnnotationParser工具类**:
+     - 位置：`ontology-service/class-module/src/main/java/com/by/open/ontology/ontologyservice/classmodule/service/AnnotationParser.java`
+     - 功能：解析多种格式的annotation value，支持带引号、不带引号、@后为空等情况
+  2. **后端AnnotationService增强**:
+     - 新增processAnnotations方法，处理多个annotation的创建和更新
+     - 实现updateClassAnnotations方法，同步Class实体中的annotations字段
+  3. **前端ClassEditorPanel.vue优化**:
+     - 修改submitAnnotation函数，检测value包含逗号时调用新的process端点
+     - 优化提示文本，添加示例格式
+- **验证结果**:
+  - ✅ AnnotationParser工具类实现完成
+  - ✅ AnnotationService增强完成
+  - ✅ AnnotationController增强完成
+  - ✅ 前端多annotation输入支持完成
+  - ✅ Class实体annotations字段同步完成
+  - ✅ 本地git提交成功
+- **遗留问题/待优化**:
+  - 无
+
+### 交互 #27: Annotations优化 - 后台解析逻辑优化
+
+- **需求类型**: 功能优化
+- **需求内容**: 持续优化后台解析：当用户在前端输入多条annotation时，首先要去掉这个字符串后的分号";"，然后再去解析多条annotation数据；其次，取lang时，如果有引号，则取引号中内容，并且要去掉内容的前后空格
+- **需求提交人**: 用户
+- **需求提出时间**: 2026-03-30
+- **完成时间**: 2026-03-30
+- **思考主要内容**:
+  - 优化AnnotationParser的解析逻辑
+  - 处理带分号结尾的格式
+  - 处理带引号的lang格式
+  - 去掉内容的前后空格
+- **任务拆分**:
+  1. 修改AnnotationParser的parseAnnotations方法，去掉字符串后的分号
+  2. 修改parseSingleAnnotation方法，处理带引号的lang
+  3. 去掉解析后内容的前后空格
+  4. 验证各种格式的解析是否正确
+  5. 本地git提交
+- **实现方案**:
+  1. **分号处理**:
+     - 在parseAnnotations方法中，先去掉字符串后的分号
+     - 然后再按逗号分割多个annotation
+  2. **带引号的lang处理**:
+     - 在parseSingleAnnotation方法中，检查lang是否带引号
+     - 如果带引号，取引号中的内容
+     - 去掉内容的前后空格
+- **验证结果**:
+  - ✅ 分号处理功能实现完成
+  - ✅ 带引号的lang处理功能实现完成
+  - ✅ 前后空格处理功能实现完成
+  - ✅ 本地git提交成功
+- **遗留问题/待优化**:
+  - 无
+
+### 交互 #28: Annotations优化 - Class节点显示名称逻辑优化
+
+- **需求类型**: 功能开发
+- **需求内容**: Class Hierarchy中节点ClassName在前端显示的名称的规则，优先级从高到低，分别为：首先是该节点对应annotations中能匹配到("rdfs:label"+项目语言)的annotation；如果没有匹配的，其次就是匹配到("rdfs:label"+语言为空)的annotation，最后就是这个Class实体的ClassName
+- **需求提交人**: 用户
+- **需求提出时间**: 2026-03-30
+- **完成时间**: 2026-03-30
+- **思考主要内容**:
+  - 设计节点显示名称的优先级规则
+  - 实现getNodeDisplayName函数
+  - 修改buildTreeData函数，确保节点使用正确的显示名称
+  - 实现Annotation提交和删除后重新加载类层次结构的逻辑
+- **任务拆分**:
+  1. 实现getNodeDisplayName函数，按照优先级规则计算节点显示名称
+  2. 修改buildTreeData函数，使用getNodeDisplayName获取displayName
+  3. 修改submitAnnotation函数，当提交的是rdfs:label annotation时重新加载类层次结构
+  4. 修改handleAnnotationLangBlur和handleNewAnnotationLangBlur函数，同样处理rdfs:label annotation
+  5. 修改removeAnnotation函数，当删除的是rdfs:label annotation时重新加载类层次结构
+  6. 验证功能是否正常工作
+  7. 本地git提交
+- **实现方案**:
+  1. **显示名称优先级规则**:
+     - 首先查找匹配项目语言的rdfs:label annotation
+     - 其次查找语言为空的rdfs:label annotation
+     - 最后使用类名
+  2. **提交后更新**:
+     - 当提交的是rdfs:label annotation且语言符合条件时，调用loadClassHierarchy()重新加载类层次结构
+  3. **删除后更新**:
+     - 当删除的是rdfs:label annotation且语言符合条件时，调用loadClassHierarchy()重新加载类层次结构
+- **验证结果**:
+  - ✅ 节点显示名称优先级规则实现完成
+  - ✅ Annotation提交后更新节点名称功能实现完成
+  - ✅ Annotation删除后更新节点名称功能实现完成
+  - ✅ 本地git提交成功
+- **遗留问题/待优化**:
+  - 无
+
 ## 技术栈
 
 - **前端**: Vue3 + Bootstrap + ElementUI
