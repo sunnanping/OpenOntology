@@ -486,7 +486,6 @@
                       v-if="ann.property || ann.value || ann.language" 
                       class="annotation-delete" 
                       @click="removeAnnotation(index)"
-                      title="Delete"
                     >
                       <span class="delete-icon">×</span>
                     </button>
@@ -544,7 +543,6 @@
                       v-if="newAnnotation.property || newAnnotation.value || newAnnotation.language" 
                       class="annotation-delete" 
                       @click="cancelNewAnnotation"
-                      title="Delete"
                     >
                       <span class="delete-icon">×</span>
                     </button>
