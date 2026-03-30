@@ -20,6 +20,18 @@ public class AnnotationService {
         return annotationRepository.save(annotation);
     }
 
+    /**
+     * 创建Annotation
+     * @param classUid 选中的Class实体的ID
+     * @param annotation Annotation实体
+     * @return 创建的Annotation
+     */
+    public Annotation create(String classUid, Annotation annotation) {
+        annotation.setCreatedDate(new Date());
+        annotation.setLastModifiedDate(new Date());
+        return annotationRepository.save(annotation);
+    }
+
     public List<Annotation> findByEntityIdAndEntityType(String entityId, String entityType) {
         return annotationRepository.findByEntityIdAndEntityType(entityId, entityType);
     }

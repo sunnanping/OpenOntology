@@ -2770,7 +2770,7 @@ const updateClassName = () => {
   const annotations = selectedClass.value.annotations || []
   // 查找rdfs:label的Annotation
   const labelAnnotation = annotations.find(ann => 
-    ann.property === 'rdfs:label' && (ann.language === projectLanguage.value || !ann.language)
+    ann.property === 'rdfs:label' && (ann.language === projectDefaultLanguage.value || !ann.language)
   )
   
   if (labelAnnotation && labelAnnotation.value) {

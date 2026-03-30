@@ -52,9 +52,23 @@ spring:
           uri: lb://ontology-service
           predicates:
             - Path=/api/search/**
+        - id: annotation-service
+          uri: lb://ontology-service
+          predicates:
+            - Path=/api/annotation/**
 
 server:
-  port: 8080
+  port: 8082
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh,health,info,gateway
+
+  endpoint:
+    refresh:
+      enabled: true
 
 eureka:
   client:
