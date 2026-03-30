@@ -3,7 +3,7 @@
 ## 项目信息
 
 - 项目名称: **OpenOntology**
-- 项目版本: **v0.1.14**
+- 项目版本: **v0.1.15**
 - 项目路径: d:\project\trae\java\OpenOntology
 - **首次时间**: 2026-03-15
 - **最后时间**: 2026-03-30
@@ -886,3 +886,4 @@
 - v0.1.12: Class Details页面优化
 - v0.1.13: 持续优化Annotations数据处理，添加默认annotation支持，优化按钮样式和提示
 - v0.1.14: 版本号递增，更新文档
+- v0.1.15: Annotations优化，支持多annotation输入格式，优化Class节点显示名称逻辑
