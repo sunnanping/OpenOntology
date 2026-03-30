@@ -2745,6 +2745,11 @@ const handleAnnotationLangBlur = async (ann, index) => {
       
       // 更新class名称
       updateClassName()
+      
+      // 如果提交的是rdfs:label annotation，重新加载类层次结构以更新节点显示名称
+      if (ann.property === 'rdfs:label' && (ann.language === projectDefaultLanguage.value || !ann.language)) {
+        await loadClassHierarchy()
+      }
     } catch (error) {
       console.error('Failed to update annotation:', error)
       ElMessage.error('Failed to update annotation')
@@ -2796,13 +2801,22 @@ const handleNewAnnotationLangBlur = async () => {
           value: newAnnotation.value.value
         })
       }
+      // 保存提交的annotation属性，用于后续检查
+      const submittedProperty = newAnnotation.value.property
+      const submittedLanguage = newAnnotation.value.language
+      
       await loadClassDetails(selectedClass.value.id)
       
-      // 重置新annotation表单
+      // 重置新Annotation输入
       newAnnotation.value = {
         property: '',
         value: '',
         language: ''
+      }
+      
+      // 如果提交的是rdfs:label annotation，重新加载类层次结构以更新节点显示名称
+      if (submittedProperty === 'rdfs:label' && (submittedLanguage === projectDefaultLanguage.value || !submittedLanguage)) {
+        await loadClassHierarchy()
       }
       
       // 更新class名称
@@ -2849,6 +2863,11 @@ const submitAnnotation = async (ann, index) => {
     
     // 更新class名称
     updateClassName()
+    
+    // 如果提交的是rdfs:label annotation，重新加载类层次结构以更新节点显示名称
+    if (ann.property === 'rdfs:label' && (ann.language === projectDefaultLanguage.value || !ann.language)) {
+      await loadClassHierarchy()
+    }
   } catch (error) {
     console.error('Failed to submit annotation:', error)
     ElMessage.error('Failed to submit annotation')
