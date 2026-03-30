@@ -7,6 +7,7 @@ import com.by.open.ontology.ontologyservice.classmodule.repository.ClassReposito
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -130,6 +131,56 @@ public class AnnotationService {
         updateClassAnnotations(entityId);
         
         return savedAnnotations;
+    }
+    
+    /**
+     * 处理批量Annotation的创建和更新
+     * 支持从单个value字段解析多个annotation
+     * 
+     * @param entityId 实体ID
+     * @param entityType 实体类型
+     * @param property 注解属性
+     * @param value 包含多个annotation的value字符串,数据示例：
+     * @return 处理后的Annotation列表
+     */
+    public List<Annotation> processAnnotations(String entityId, String entityType, String property, String value) {
+        // 解析value字段为多个Annotation对象
+        List<Annotation> parsedAnnotations = AnnotationParser.parseAnnotations(value, property, entityId, entityType);
+        
+        List<Annotation> result = new ArrayList<>();
+        Date now = new Date();
+        
+        // 检查现有注解
+        List<Annotation> existingAnnotations = annotationRepository.findByEntityIdAndEntityType(entityId, entityType);
+        
+        for (Annotation parsedAnnotation : parsedAnnotations) {
+            // 检查是否已存在相同的property和language
+            boolean found = false;
+            for (Annotation existing : existingAnnotations) {
+                if (existing.getProperty().equals(parsedAnnotation.getProperty()) &&
+                    (existing.getLanguage() == null ? parsedAnnotation.getLanguage() == null : 
+                     existing.getLanguage().equals(parsedAnnotation.getLanguage()))) {
+                    // 更新现有注解
+                    existing.setValue(parsedAnnotation.getValue());
+                    existing.setLastModifiedDate(now);
+                    result.add(annotationRepository.save(existing));
+                    found = true;
+                    break;
+                }
+            }
+            
+            if (!found) {
+                // 创建新注解
+                parsedAnnotation.setCreatedDate(now);
+                parsedAnnotation.setLastModifiedDate(now);
+                result.add(annotationRepository.save(parsedAnnotation));
+            }
+        }
+        
+        // Update Class entity annotations
+        updateClassAnnotations(entityId);
+        
+        return result;
     }
     
     /**

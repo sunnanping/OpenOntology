@@ -80,11 +80,61 @@ public class AnnotationController {
         );
         return ResponseEntity.ok(savedAnnotations);
     }
-
+    
+    @PostMapping("/process")
+    public ResponseEntity<List<Annotation>> processAnnotations(@RequestBody ProcessAnnotationsRequest request) {
+        List<Annotation> processedAnnotations = annotationService.processAnnotations(
+            request.getEntityId(), 
+            request.getEntityType(), 
+            request.getProperty(), 
+            request.getValue()
+        );
+        return ResponseEntity.ok(processedAnnotations);
+    }
+    
     @GetMapping("/properties")
     public ResponseEntity<List<String>> searchAnnotationProperties(
             @RequestParam(required = false) String keyword) {
         List<String> properties = annotationPropertyService.searchAnnotationProperties(keyword);
         return ResponseEntity.ok(properties);
+    }
+}
+
+class ProcessAnnotationsRequest {
+    private String entityId;
+    private String entityType;
+    private String property;
+    private String value;
+    
+    public String getEntityId() {
+        return entityId;
+    }
+    
+    public void setEntityId(String entityId) {
+        this.entityId = entityId;
+    }
+    
+    public String getEntityType() {
+        return entityType;
+    }
+    
+    public void setEntityType(String entityType) {
+        this.entityType = entityType;
+    }
+    
+    public String getProperty() {
+        return property;
+    }
+    
+    public void setProperty(String property) {
+        this.property = property;
+    }
+    
+    public String getValue() {
+        return value;
+    }
+    
+    public void setValue(String value) {
+        this.value = value;
     }
 }

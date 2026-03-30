@@ -458,7 +458,7 @@
                       </div>
                     </div>
                   </div>
-                  <input type="text" class="annotation-value-input" v-model="ann.value" placeholder="Enter value">
+                  <input type="text" class="annotation-value-input" v-model="ann.value" placeholder="Enter value, for example: value-1@lang, value-2@lang">
                   <div class="annotation-lang-container">
                     <div class="annotation-lang-search">
                       <input 
@@ -524,7 +524,7 @@
                       </div>
                     </div>
                   </div>
-                  <input type="text" class="annotation-value-input" v-model="newAnnotation.value" placeholder="Enter value">
+                  <input type="text" class="annotation-value-input" v-model="newAnnotation.value" placeholder="Enter value, for example: value-1@lang, value-2@lang">
                   <div class="annotation-lang-container">
                     <div class="annotation-lang-search">
                       <input 
@@ -2670,32 +2670,43 @@ const handleAnnotationLangBlur = async (ann, index) => {
       return
     }
     
-    // 检查是否有重复的Annotation
-    const hasDuplicate = checkAnnotationDuplicate(ann, index)
-    if (hasDuplicate) {
-      ElMessage.warning('Duplicate annotation: same property and language combination')
-      return
-    }
-    
     try {
-      if (ann.id) {
-        // 更新操作
-        await http.put(`/annotation/update/${ann.id}`, {
+      // 检查value是否包含多个annotation
+      if (ann.value && ann.value.includes(',')) {
+        // 使用新的process端点处理多个annotation
+        await http.post('/annotation/process', {
           entityId: selectedClass.value.id,
           entityType: 'CLASS',
           property: ann.property,
-          language: ann.language,
           value: ann.value
         })
       } else {
-        // 新增操作
-        await http.post('/annotation/create', {
-          entityId: selectedClass.value.id,
-          entityType: 'CLASS',
-          property: ann.property,
-          language: ann.language,
-          value: ann.value
-        })
+        // 检查是否有重复的Annotation
+        const hasDuplicate = checkAnnotationDuplicate(ann, index)
+        if (hasDuplicate) {
+          ElMessage.warning('Duplicate annotation: same property and language combination')
+          return
+        }
+        
+        if (ann.id) {
+          // 更新操作
+          await http.put(`/annotation/update/${ann.id}`, {
+            entityId: selectedClass.value.id,
+            entityType: 'CLASS',
+            property: ann.property,
+            language: ann.language,
+            value: ann.value
+          })
+        } else {
+          // 新增操作
+          await http.post('/annotation/create', {
+            entityId: selectedClass.value.id,
+            entityType: 'CLASS',
+            property: ann.property,
+            language: ann.language,
+            value: ann.value
+          })
+        }
       }
       await loadClassDetails(selectedClass.value.id)
       
@@ -2726,21 +2737,32 @@ const handleNewAnnotationLangBlur = async () => {
   
   // 当新annotation的lang输入框失去焦点时，添加新数据
   if (newAnnotation.value.property && newAnnotation.value.value) {
-    // 检查是否有重复的Annotation
-    const hasDuplicate = checkAnnotationDuplicate(newAnnotation.value, -1)
-    if (hasDuplicate) {
-      ElMessage.warning('Duplicate annotation: same property and language combination')
-      return
-    }
-    
     try {
-      await http.post('/annotation/create', {
-        entityId: selectedClass.value.id,
-        entityType: 'CLASS',
-        property: newAnnotation.value.property,
-        language: newAnnotation.value.language,
-        value: newAnnotation.value.value
-      })
+      // 检查value是否包含多个annotation
+      if (newAnnotation.value.value.includes(',')) {
+        // 使用新的process端点处理多个annotation
+        await http.post('/annotation/process', {
+          entityId: selectedClass.value.id,
+          entityType: 'CLASS',
+          property: newAnnotation.value.property,
+          value: newAnnotation.value.value
+        })
+      } else {
+        // 检查是否有重复的Annotation
+        const hasDuplicate = checkAnnotationDuplicate(newAnnotation.value, -1)
+        if (hasDuplicate) {
+          ElMessage.warning('Duplicate annotation: same property and language combination')
+          return
+        }
+        
+        await http.post('/annotation/create', {
+          entityId: selectedClass.value.id,
+          entityType: 'CLASS',
+          property: newAnnotation.value.property,
+          language: newAnnotation.value.language,
+          value: newAnnotation.value.value
+        })
+      }
       await loadClassDetails(selectedClass.value.id)
       
       // 重置新annotation表单
@@ -2772,13 +2794,24 @@ const submitAnnotation = async (ann, index) => {
   }
   
   try {
-    await http.post('/annotation/create', {
-      entityId: selectedClass.value.id,
-      entityType: 'CLASS',
-      property: ann.property,
-      language: ann.language,
-      value: ann.value
-    })
+    // 检查value是否包含多个annotation
+    if (ann.value.includes(',')) {
+      // 使用新的process端点处理多个annotation
+      await http.post('/annotation/process', {
+        entityId: selectedClass.value.id,
+        entityType: 'CLASS',
+        property: ann.property,
+        value: ann.value
+      })
+    } else {
+      await http.post('/annotation/create', {
+        entityId: selectedClass.value.id,
+        entityType: 'CLASS',
+        property: ann.property,
+        language: ann.language,
+        value: ann.value
+      })
+    }
     await loadClassDetails(selectedClass.value.id)
     
     // 更新class名称
