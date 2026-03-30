@@ -4,10 +4,10 @@
 
 | 项目名称 | OpenOntology |
 |---------|-------------|
-| 项目版本 | v0.1.14 |
-| 文档版本 | v1.0 |
+| 项目版本 | v0.1.15 |
+| 文档版本 | v1.1 |
 | 创建日期 | 2026-03-30 |
-| 最后更新 | 2026-03-30 |
+| 最后更新 | 2026-03-31 |
 | 文档作者 | sunnanping |
 
 ---
@@ -414,7 +414,100 @@ mvn spring-boot:run -Dspring-boot.run.debug
 - 测试搜索属性：GET /api/search/property
 - 测试搜索实例：GET /api/search/instance
 
-#### 6.2.11 前端Admin模块测试
+#### 6.2.11 Annotation服务测试
+
+- **基础CRUD测试**：
+  - 测试创建Annotation：POST /api/annotation/create
+    - 请求体示例：
+      ```json
+      {
+        "entityId": "class-id-123",
+        "entityType": "CLASS",
+        "property": "rdfs:label",
+        "language": "en",
+        "value": "Office"
+      }
+      ```
+  - 测试查询Annotation列表：GET /api/annotation/findByEntityIdAndEntityType/{entityId}/{entityType}
+  - 测试查询Annotation详情：GET /api/annotation/findById/{id}
+  - 测试更新Annotation：PUT /api/annotation/update
+  - 测试删除Annotation：DELETE /api/annotation/delete/{id}
+
+- **多Annotation输入测试**：
+  - 测试批量处理Annotation：POST /api/annotation/process
+    - 请求体示例（不带引号）：
+      ```json
+      {
+        "entityId": "class-id-123",
+        "entityType": "CLASS",
+        "property": "rdfs:label",
+        "value": "办公室@zh, Office@en"
+      }
+      ```
+    - 请求体示例（带引号）：
+      ```json
+      {
+        "entityId": "class-id-123",
+        "entityType": "CLASS",
+        "property": "rdfs:label",
+        "value": "\"办公室\"@zh, \"Office\"@en"
+      }
+      ```
+    - 请求体示例（带分号结尾）：
+      ```json
+      {
+        "entityId": "class-id-123",
+        "entityType": "CLASS",
+        "property": "rdfs:label",
+        "value": "办公室@zh, Office@en;"
+      }
+      ```
+    - 请求体示例（语言为空）：
+      ```json
+      {
+        "entityId": "class-id-123",
+        "entityType": "CLASS",
+        "property": "rdfs:label",
+        "value": "办公室@, Office@en"
+      }
+      ```
+
+- **Annotation属性搜索测试**：
+  - 测试搜索Annotation属性：GET /api/annotation/searchProperties?keyword=rdfs
+    - 返回匹配的Annotation属性列表
+  - 测试搜索所有Annotation属性：GET /api/annotation/searchProperties（不传keyword参数）
+
+- **测试案例**：
+  1. **创建单个Annotation**：
+     - 创建一个rdfs:label annotation，语言为en
+     - 验证创建成功，返回annotation id
+     - 查询该annotation，验证数据正确
+  
+  2. **创建多个Annotation**：
+     - 使用process端点创建多个annotation（不同语言）
+     - 验证所有annotation都创建成功
+     - 查询该实体的所有annotation，验证数量和内容正确
+  
+  3. **更新已存在的Annotation**：
+     - 创建一个rdfs:label annotation，语言为en，value为"Office"
+     - 再次使用process端点，相同property和language，value改为"Workplace"
+     - 验证annotation被更新而不是重复创建
+     - 查询该实体的annotation，验证value已更新
+  
+  4. **删除Annotation**：
+     - 创建一个annotation
+     - 删除该annotation
+     - 查询该annotation，验证已删除
+  
+  5. **Class节点显示名称测试**：
+     - 创建一个Class，不添加任何annotation
+     - 验证节点显示名称为类名
+     - 添加rdfs:label annotation，语言为项目默认语言
+     - 验证节点显示名称更新为annotation的value
+     - 删除该annotation
+     - 验证节点显示名称恢复为类名
+
+#### 6.2.12 前端Admin模块测试
 
 - **管理员登录页面**：访问 http://localhost:5173/admin/login
   - 输入用户名和密码
@@ -441,7 +534,7 @@ mvn spring-boot:run -Dspring-boot.run.debug
   - 测试保存功能
   - 保存成功后显示成功提示
 
-#### 6.2.12 前端Projects模块测试
+#### 6.2.13 前端Projects模块测试
 
 - **项目清单页面**：访问 http://localhost:5173/projects/list
   - 查看项目列表（显示项目名称、所有者、最后打开时间、最后修改时间）
@@ -486,7 +579,7 @@ mvn spring-boot:run -Dspring-boot.run.debug
     - 测试拖拽移动模态框
     - 点击"×"按钮关闭模态框
 
-#### 6.2.13 项目编辑器测试
+#### 6.2.14 项目编辑器测试
 
 - **项目编辑器页面**：访问 http://localhost:5173/projects/edit/{projectId}
   - 页面布局验证：
