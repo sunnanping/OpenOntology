@@ -110,7 +110,7 @@
             <template #default="{ node, data }">
               <div class="custom-tree-node">
                 <span class="custom-node-icon"></span>
-                <span class="custom-node-label">{{ data.name }}</span>
+                <span class="custom-node-label">{{ data.displayName || data.name }}</span>
               </div>
             </template>
           </el-tree>
@@ -1920,6 +1920,7 @@ const buildTreeData = (classes) => {
   const owlThingNode = {
     id: 'owl:Thing',
     name: 'owl:Thing',
+    displayName: 'owl:Thing',
     children: []
   }
   
@@ -1930,8 +1931,12 @@ const buildTreeData = (classes) => {
   // 创建类ID到类对象的映射
   const classMap = new Map()
   classes.forEach(cls => {
+    // 计算节点的显示名称
+    const displayName = getNodeDisplayName(cls)
+    
     classMap.set(cls.id, {
       ...cls,
+      displayName,
       children: []
     })
   })
@@ -1964,6 +1969,34 @@ const buildTreeData = (classes) => {
   })
   
   return [owlThingNode]
+}
+
+// 根据优先级规则获取节点的显示名称
+const getNodeDisplayName = (cls) => {
+  // 项目默认语言
+  const defaultLanguage = projectDefaultLanguage.value
+  
+  // 首先查找匹配项目语言的rdfs:label
+  if (cls.annotations && Array.isArray(cls.annotations)) {
+    // 查找rdfs:label且语言匹配项目语言的annotation
+    const labelWithLanguage = cls.annotations.find(ann => 
+      ann.property === 'rdfs:label' && ann.language === defaultLanguage
+    )
+    if (labelWithLanguage && labelWithLanguage.value) {
+      return labelWithLanguage.value
+    }
+    
+    // 其次查找rdfs:label且语言为空的annotation
+    const labelWithoutLanguage = cls.annotations.find(ann => 
+      ann.property === 'rdfs:label' && (!ann.language || ann.language === '')
+    )
+    if (labelWithoutLanguage && labelWithoutLanguage.value) {
+      return labelWithoutLanguage.value
+    }
+  }
+  
+  // 最后使用类名
+  return cls.name
 }
 
 // 加载评论
