@@ -2925,6 +2925,10 @@ const removeAnnotation = async (index) => {
   try {
     const ann = selectedClass.value.annotations[index]
     if (ann) {
+      // 保存要删除的annotation属性，用于后续检查
+      const deletedProperty = ann.property
+      const deletedLanguage = ann.language
+      
       if (ann.id) {
         // 使用id删除
         await http.delete(`/annotation/delete/${ann.id}`)
@@ -2943,6 +2947,11 @@ const removeAnnotation = async (index) => {
       
       // 更新class名称
       updateClassName()
+      
+      // 如果删除的是rdfs:label annotation，重新加载类层次结构以更新节点显示名称
+      if (deletedProperty === 'rdfs:label' && (deletedLanguage === projectDefaultLanguage.value || !deletedLanguage)) {
+        await loadClassHierarchy()
+      }
     }
   } catch (error) {
     console.error('Failed to remove annotation:', error)
