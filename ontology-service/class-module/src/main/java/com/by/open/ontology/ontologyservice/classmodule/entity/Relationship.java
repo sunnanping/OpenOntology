@@ -12,7 +12,7 @@ public class Relationship {
     private String entityId;
     private String entityType;
     private String property;
-    private String target;
+    private String value;
     private String language;
     private Date createdDate;
     private Date lastModifiedDate;
@@ -20,11 +20,11 @@ public class Relationship {
     public Relationship() {
     }
 
-    public Relationship(String entityId, String entityType, String property, String target, String language) {
+    public Relationship(String entityId, String entityType, String property, String value, String language) {
         this.entityId = entityId;
         this.entityType = entityType;
         this.property = property;
-        this.target = target;
+        this.value = value;
         this.language = language;
     }
 
@@ -60,12 +60,12 @@ public class Relationship {
         this.property = property;
     }
 
-    public String getTarget() {
-        return target;
+    public String getValue() {
+        return value;
     }
 
-    public void setTarget(String target) {
-        this.target = target;
+    public void setValue(String value) {
+        this.value = value;
     }
 
     public String getLanguage() {

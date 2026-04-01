@@ -32,7 +32,7 @@ public class RelationshipService {
         Relationship existingRelationship = relationshipRepository.findById(id).orElse(null);
         if (existingRelationship != null) {
             existingRelationship.setProperty(relationship.getProperty());
-            existingRelationship.setTarget(relationship.getTarget());
+            existingRelationship.setValue(relationship.getValue());
             existingRelationship.setLanguage(relationship.getLanguage());
             existingRelationship.setLastModifiedDate(new Date());
             return relationshipRepository.save(existingRelationship);
@@ -48,24 +48,25 @@ public class RelationshipService {
         relationshipRepository.deleteByEntityIdAndEntityType(entityId, entityType);
     }
 
-    public void deleteByEntityIdAndEntityTypeAndPropertyAndTarget(String entityId, String entityType, String property, String target) {
+    public void deleteByEntityIdAndEntityTypeAndPropertyAndValue(String entityId, String entityType, String property, String value) {
         List<Relationship> relationships = relationshipRepository.findByEntityIdAndEntityType(entityId, entityType);
         for (Relationship relationship : relationships) {
             if (relationship.getProperty().equals(property) &&
-                relationship.getTarget().equals(target)) {
+                relationship.getValue().equals(value)) {
                 relationshipRepository.deleteById(relationship.getId());
             }
         }
     }
 
     public Relationship setRelationship(Relationship relationship) {
-        // Delete existing relationship with same property and target
+        // Delete existing relationship with same property and language
         List<Relationship> existingRelationships = relationshipRepository.findByEntityIdAndEntityType(
             relationship.getEntityId(), relationship.getEntityType());
         
         for (Relationship existing : existingRelationships) {
             if (existing.getProperty().equals(relationship.getProperty()) &&
-                existing.getTarget().equals(relationship.getTarget())) {
+                (existing.getLanguage() == null ? relationship.getLanguage() == null : 
+                 existing.getLanguage().equals(relationship.getLanguage()))) {
                 relationshipRepository.deleteById(existing.getId());
             }
         }

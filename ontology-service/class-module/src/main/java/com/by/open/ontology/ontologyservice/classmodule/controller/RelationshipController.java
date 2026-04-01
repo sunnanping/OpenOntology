@@ -52,12 +52,12 @@ public class RelationshipController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteByEntityIdAndEntityTypeAndPropertyAndTarget(
+    public ResponseEntity<Void> deleteByEntityIdAndEntityTypeAndPropertyAndValue(
             @RequestParam String entityId,
             @RequestParam String entityType,
             @RequestParam String property,
-            @RequestParam String target) {
-        relationshipService.deleteByEntityIdAndEntityTypeAndPropertyAndTarget(entityId, entityType, property, target);
+            @RequestParam String value) {
+        relationshipService.deleteByEntityIdAndEntityTypeAndPropertyAndValue(entityId, entityType, property, value);
         return ResponseEntity.ok().build();
     }
 

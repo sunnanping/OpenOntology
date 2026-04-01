@@ -604,37 +604,221 @@
           
           <div class="detail-section">
             <h6 class="section-title">Relationships</h6>
-            <div class="relationship-list">
-              <div v-for="(rel, index) in selectedClass.relationships || []" :key="index" class="relationship-item">
-                <div class="relationship-content">
-                  <select class="relationship-property-select" v-model="rel.property">
-                    <option value="rdfs:subClassOf">rdfs:subClassOf</option>
-                    <option value="owl:equivalentClass">owl:equivalentClass</option>
-                    <option value="owl:disjointWith">owl:disjointWith</option>
-                  </select>
-                  <select class="relationship-target-select" v-model="rel.target">
-                    <option v-for="cls in availableClasses" :key="cls.id" :value="cls.name">
-                      {{ cls.name }}
-                    </option>
-                  </select>
-                  <input type="text" class="relationship-lang-input" v-model="rel.language" placeholder="lang" @focus="handleRelationshipLangFocus(index)" @blur="handleRelationshipLangBlur(rel, index)">
+            <div class="annotation-list">
+              <div v-for="(rel, index) in selectedClass.relationships || []" :key="index" class="annotation-item">
+                <div class="annotation-content">
+                  <div class="annotation-property-search">
+                    <input 
+                      type="text" 
+                      class="annotation-property-input" 
+                      v-model="rel.property" 
+                      placeholder="Enter property"
+                      @focus="handleRelationshipPropertyFocus(index)"
+                      @input="handleRelationshipPropertyInput(index)"
+                      @blur="handleRelationshipPropertyBlur"
+                    >
+                    <div v-if="showRelationshipPropertyDropdown && currentRelationshipIndex === index" class="annotation-property-dropdown">
+                      <div 
+                        v-for="prop in filteredRelationshipProperties" 
+                        :key="prop"
+                        class="annotation-property-option"
+                        @click="selectRelationshipProperty(prop, index)"
+                      >
+                        {{ prop }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="annotation-value-search">
+                    <input 
+                      type="text" 
+                      class="annotation-value-input" 
+                      v-model="rel.value" 
+                      placeholder="Enter value"
+                      @focus="handleRelationshipValueFocus(index)"
+                      @input="handleRelationshipValueInput(index)"
+                      @blur="handleRelationshipValueBlur"
+                    >
+                    <div v-if="showValueDropdown && currentValueIndex === index" class="annotation-property-dropdown">
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">Classes</div>
+                        <div 
+                          v-for="cls in filteredValues.classes" 
+                          :key="cls.id"
+                          class="annotation-property-option"
+                          @click="selectRelationshipValue(cls.name, index)"
+                        >
+                          {{ cls.name }}
+                        </div>
+                      </div>
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">Individuals</div>
+                        <div 
+                          v-for="individual in filteredValues.individuals" 
+                          :key="individual.id"
+                          class="annotation-property-option"
+                          @click="selectRelationshipValue(individual.name, index)"
+                        >
+                          {{ individual.name }}
+                        </div>
+                      </div>
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">Data Types</div>
+                        <div 
+                          v-for="datatype in filteredValues.dataTypes" 
+                          :key="datatype"
+                          class="annotation-property-option"
+                          @click="selectRelationshipValue(datatype, index)"
+                        >
+                          {{ datatype }}
+                        </div>
+                      </div>
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">New</div>
+                        <div class="annotation-property-option new-option" @click="createNewValue('individual', index)">
+                          New Individual named {{ rel.value }}
+                        </div>
+                        <div class="annotation-property-option new-option" @click="createNewValue('class', index)">
+                          New Class named {{ rel.value }}
+                        </div>
+                        <div class="annotation-property-option new-option" @click="createNewValue('datatype', index)">
+                          New Datatype named {{ rel.value }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="annotation-lang-container">
+                    <div class="annotation-lang-search">
+                      <input 
+                      type="text" 
+                      class="annotation-lang-input" 
+                      v-model="rel.language" 
+                      placeholder="lang"
+                      @focus="handleRelationshipLangFocus(index)"
+                      @input="handleRelationshipLangInput(index, rel.language)"
+                      @blur="handleRelationshipLangBlur(rel, index)"
+                    >
+                    <div v-if="showLanguageDropdown && currentRelationshipLangIndex === index" class="annotation-language-dropdown">
+                      <div 
+                        v-for="lang in filteredLanguages" 
+                        :key="lang.code" 
+                        class="annotation-language-option"
+                        @mousedown="selectRelationshipLanguage(index, lang)"
+                      >
+                        {{ lang.code }} ({{ lang.name }})
+                      </div>
+                    </div>
+                    </div>
+                  </div>
+                  <button class="annotation-delete" @click="removeRelationship(index)">
+                    <span class="delete-icon">×</span>
+                  </button>
                 </div>
-                <button class="relationship-delete" @click="removeRelationship(index)">
-                  <span class="delete-icon">×</span>
-                </button>
               </div>
-              <div class="relationship-input-row" v-if="showNewRelationshipInput">
-                <select class="relationship-property-select" v-model="newRelationship.property">
-                  <option value="rdfs:subClassOf">rdfs:subClassOf</option>
-                  <option value="owl:equivalentClass">owl:equivalentClass</option>
-                  <option value="owl:disjointWith">owl:disjointWith</option>
-                </select>
-                <select class="relationship-target-select" v-model="newRelationship.target">
-                  <option v-for="cls in availableClasses" :key="cls.id" :value="cls.name">
-                    {{ cls.name }}
-                  </option>
-                </select>
-                <input type="text" class="relationship-lang-input" v-model="newRelationship.language" placeholder="lang" @focus="handleNewRelationshipLangFocus" @blur="handleNewRelationshipLangBlur">
+              <div class="annotation-input-row" v-if="showNewRelationshipInput">
+                <div class="annotation-content">
+                  <div class="annotation-property-search">
+                    <input 
+                      type="text" 
+                      class="annotation-property-input" 
+                      v-model="newRelationship.property" 
+                      placeholder="Enter property"
+                      @focus="handleNewRelationshipPropertyFocus"
+                      @input="handleNewRelationshipPropertyInput"
+                      @blur="handleRelationshipPropertyBlur"
+                    >
+                    <div v-if="showRelationshipPropertyDropdown && currentRelationshipIndex === -1" class="annotation-property-dropdown">
+                      <div 
+                        v-for="prop in filteredRelationshipProperties" 
+                        :key="prop"
+                        class="annotation-property-option"
+                        @click="selectNewRelationshipProperty(prop)"
+                      >
+                        {{ prop }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="annotation-value-search">
+                    <input 
+                      type="text" 
+                      class="annotation-value-input" 
+                      v-model="newRelationship.value" 
+                      placeholder="Enter value"
+                      @focus="handleNewRelationshipValueFocus"
+                      @input="handleNewRelationshipValueInput"
+                      @blur="handleNewRelationshipValueBlur"
+                    >
+                    <div v-if="showValueDropdown && currentValueIndex === -1" class="annotation-property-dropdown">
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">Classes</div>
+                        <div 
+                          v-for="cls in filteredValues.classes" 
+                          :key="cls.id"
+                          class="annotation-property-option"
+                          @click="selectNewRelationshipValue(cls.name)"
+                        >
+                          {{ cls.name }}
+                        </div>
+                      </div>
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">Individuals</div>
+                        <div 
+                          v-for="individual in filteredValues.individuals" 
+                          :key="individual.id"
+                          class="annotation-property-option"
+                          @click="selectNewRelationshipValue(individual.name)"
+                        >
+                          {{ individual.name }}
+                        </div>
+                      </div>
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">Data Types</div>
+                        <div 
+                          v-for="datatype in filteredValues.dataTypes" 
+                          :key="datatype"
+                          class="annotation-property-option"
+                          @click="selectNewRelationshipValue(datatype)"
+                        >
+                          {{ datatype }}
+                        </div>
+                      </div>
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">New</div>
+                        <div class="annotation-property-option new-option" @click="createNewValue('individual', -1)">
+                          New Individual named {{ newRelationship.value }}
+                        </div>
+                        <div class="annotation-property-option new-option" @click="createNewValue('class', -1)">
+                          New Class named {{ newRelationship.value }}
+                        </div>
+                        <div class="annotation-property-option new-option" @click="createNewValue('datatype', -1)">
+                          New Datatype named {{ newRelationship.value }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="annotation-lang-container">
+                    <div class="annotation-lang-search">
+                      <input 
+                        type="text" 
+                        class="annotation-lang-input" 
+                        v-model="newRelationship.language" 
+                        placeholder="lang"
+                        @focus="handleNewRelationshipLangFocus"
+                        @input="handleNewRelationshipLangInput(newRelationship.language)"
+                        @blur="handleNewRelationshipLangBlur"
+                      >
+                      <div v-if="showLanguageDropdown && currentRelationshipLangIndex === -1" class="annotation-language-dropdown">
+                        <div 
+                          v-for="lang in filteredLanguages" 
+                          :key="lang.code" 
+                          class="annotation-language-option"
+                          @mousedown="selectNewRelationshipLanguage(lang)"
+                        >
+                          {{ lang.code }} ({{ lang.name }})
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1762,6 +1946,60 @@ const filteredLanguages = ref([])
 const showLanguageDropdown = ref(false)
 const currentAnnotationLangIndex = ref(-1)
 
+// Relationship属性相关
+const relationshipProperties = ref([])
+const filteredRelationshipProperties = ref([])
+const showRelationshipPropertyDropdown = ref(false)
+const relationshipPropertySearchKeyword = ref('')
+const currentRelationshipIndex = ref(-1)
+const currentRelationshipLangIndex = ref(-1)
+
+// 默认的OWL属性
+const defaultOWLProperties = ref([
+  'owl:bottomDataProperty',
+  'owl:bottomObjectProperty',
+  'owl:topDataProperty',
+  'owl:topObjectProperty'
+])
+
+// 可用的value数据源
+const valueDataSources = ref({
+  classes: [],
+  individuals: [],
+  dataTypes: [
+    'xsd:anyURI',
+    'xsd:base64Binary',
+    'xsd:boolean',
+    'xsd:byte',
+    'xsd:dateTime',
+    'xsd:dateTimeStamp',
+    'xsd:decimal',
+    'xsd:double',
+    'xsd:float',
+    'xsd:hexBinary',
+    'xsd:int',
+    'xsd:integer',
+    'xsd:language',
+    'xsd:long',
+    'xsd:Name',
+    'xsd:NCName',
+    'xsd:negativeInteger',
+    'xsd:NMTOKEN',
+    'xsd:nonNegativeInteger',
+    'xsd:nonPositiveInteger',
+    'owl:Nothing',
+    'owl:rational',
+    'owl:real',
+    'owl:Thing'
+  ]
+})
+
+// Value相关状态
+const showValueDropdown = ref(false)
+const currentValueIndex = ref(-1)
+const filteredValues = ref([])
+const valueSearchKeyword = ref('')
+
 const newParent = ref({
   name: ''
 })
@@ -2052,6 +2290,16 @@ const loadClassDetails = async (classId) => {
     
     // 保存原始Annotations数据，用于比较是否有更改
     originalAnnotations.value = JSON.parse(JSON.stringify(selectedClass.value.annotations || []))
+    
+    // 加载Relationship数据
+    const relationshipsResponse = await http.get(`/relationship/findByEntityIdAndEntityType/${classId}/CLASS`)
+    selectedClass.value.relationships = relationshipsResponse.data || []
+    
+    // 加载Relationship属性数据
+    await loadRelationshipProperties()
+    
+    // 加载value数据源
+    await loadValueDataSources()
     
     // 加载类变更历史
     // 注意：暂时注释掉这个调用，因为我们还没有实现 change 相关的 API
@@ -3059,68 +3307,339 @@ const removeParent = async (index) => {
   }
 }
 
-// Relationships相关方法
-const handleRelationshipLangFocus = (index) => {
-  // 当标签和target都有数据时，点击lang输入框会在下边新增加1行数据
-  const rel = selectedClass.value.relationships[index]
-  if (rel && rel.property && rel.target) {
-    // 检查是否已经有新的输入行
-    if (!showNewRelationshipInput.value) {
-      showNewRelationshipInput.value = true
-    }
+// 加载Relationship属性数据
+const loadRelationshipProperties = async () => {
+  try {
+    // 加载ObjectProperty数据
+    const objectPropertiesResponse = await http.get('/property/findByType/OBJECT')
+    const objectProperties = objectPropertiesResponse.data || []
+    
+    // 合并默认OWL属性和ObjectProperty
+    const properties = [...defaultOWLProperties.value]
+    objectProperties.forEach(prop => {
+      if (prop.name) {
+        properties.push(prop.name)
+      }
+    })
+    
+    // 去重并排序
+    relationshipProperties.value = [...new Set(properties)].sort()
+  } catch (error) {
+    console.error('Failed to load relationship properties:', error)
   }
 }
 
+// 加载value数据源
+const loadValueDataSources = async () => {
+  try {
+    // 加载Class数据
+    const classesResponse = await http.get('/class/findAll')
+    valueDataSources.value.classes = classesResponse.data || []
+    
+    // 加载Individual数据
+    const individualsResponse = await http.get('/individual/findAll')
+    valueDataSources.value.individuals = individualsResponse.data || []
+  } catch (error) {
+    console.error('Failed to load value data sources:', error)
+  }
+}
+
+// Relationships相关方法
+const handleRelationshipPropertyFocus = (index) => {
+  currentRelationshipIndex.value = index
+  showRelationshipPropertyDropdown.value = true
+  handleRelationshipPropertyInput(index)
+}
+
+const handleRelationshipPropertyInput = (index) => {
+  const rel = selectedClass.value.relationships[index]
+  if (rel) {
+    const keyword = rel.property.toLowerCase()
+    filteredRelationshipProperties.value = relationshipProperties.value.filter(prop => 
+      prop.toLowerCase().includes(keyword)
+    )
+  }
+}
+
+const selectRelationshipProperty = (property, index) => {
+  if (selectedClass.value.relationships[index]) {
+    selectedClass.value.relationships[index].property = property
+  }
+  showRelationshipPropertyDropdown.value = false
+}
+
+const handleNewRelationshipPropertyFocus = () => {
+  currentRelationshipIndex.value = -1
+  showRelationshipPropertyDropdown.value = true
+  handleNewRelationshipPropertyInput()
+}
+
+const handleNewRelationshipPropertyInput = () => {
+  const keyword = newRelationship.value.property.toLowerCase()
+  filteredRelationshipProperties.value = relationshipProperties.value.filter(prop => 
+    prop.toLowerCase().includes(keyword)
+  )
+}
+
+const selectNewRelationshipProperty = (property) => {
+  newRelationship.value.property = property
+  showRelationshipPropertyDropdown.value = false
+}
+
+const handleRelationshipValueFocus = (index) => {
+  currentValueIndex.value = index
+  showValueDropdown.value = true
+  handleRelationshipValueInput(index)
+}
+
+const handleRelationshipValueInput = (index) => {
+  const rel = selectedClass.value.relationships[index]
+  if (rel) {
+    const keyword = rel.value.toLowerCase()
+    
+    // 过滤classes
+    filteredValues.value.classes = valueDataSources.value.classes.filter(cls => 
+      cls.name.toLowerCase().includes(keyword)
+    )
+    
+    // 过滤individuals
+    filteredValues.value.individuals = valueDataSources.value.individuals.filter(individual => 
+      individual.name.toLowerCase().includes(keyword)
+    )
+    
+    // 过滤dataTypes
+    filteredValues.value.dataTypes = valueDataSources.value.dataTypes.filter(datatype => 
+      datatype.toLowerCase().includes(keyword)
+    )
+  }
+}
+
+// 处理Relationship的Value输入框失去焦点
+const handleRelationshipValueBlur = () => {
+  // 延迟关闭下拉框，以便点击选项时能触发选择事件
+  setTimeout(() => {
+    showValueDropdown.value = false
+    currentValueIndex.value = -1
+  }, 200)
+}
+
+// 处理新Relationship的Value输入框失去焦点
+const handleNewRelationshipValueBlur = () => {
+  // 延迟关闭下拉框，以便点击选项时能触发选择事件
+  setTimeout(() => {
+    showValueDropdown.value = false
+    currentValueIndex.value = -1
+  }, 200)
+}
+
+const selectRelationshipValue = (value, index) => {
+  if (selectedClass.value.relationships[index]) {
+    selectedClass.value.relationships[index].value = value
+  }
+  showValueDropdown.value = false
+}
+
+const handleNewRelationshipValueFocus = () => {
+  currentValueIndex.value = -1
+  showValueDropdown.value = true
+  handleNewRelationshipValueInput()
+}
+
+const handleNewRelationshipValueInput = () => {
+  const keyword = newRelationship.value.toLowerCase()
+  
+  // 过滤classes
+  filteredValues.value.classes = valueDataSources.value.classes.filter(cls => 
+    cls.name.toLowerCase().includes(keyword)
+  )
+  
+  // 过滤individuals
+  filteredValues.value.individuals = valueDataSources.value.individuals.filter(individual => 
+    individual.name.toLowerCase().includes(keyword)
+  )
+  
+  // 过滤dataTypes
+  filteredValues.value.dataTypes = valueDataSources.value.dataTypes.filter(datatype => 
+    datatype.toLowerCase().includes(keyword)
+  )
+}
+
+// 处理Relationship语言输入框获取焦点
+const handleRelationshipLangFocus = (index) => {
+  currentRelationshipLangIndex.value = index
+  filteredLanguages.value = languages.value
+  showLanguageDropdown.value = true
+}
+
+// 处理Relationship语言输入
+const handleRelationshipLangInput = (index, keyword) => {
+  currentRelationshipLangIndex.value = index
+  
+  // 根据关键字过滤语言列表
+  if (keyword) {
+    const query = keyword.toLowerCase()
+    filteredLanguages.value = languages.value.filter(lang => 
+      lang.code.toLowerCase().includes(query) || 
+      lang.name.toLowerCase().includes(query)
+    )
+  } else {
+    filteredLanguages.value = languages.value
+  }
+  showLanguageDropdown.value = true
+}
+
+
+
+// 选择Relationship语言
+const selectRelationshipLanguage = (index, lang) => {
+  if (selectedClass.value && selectedClass.value.relationships && selectedClass.value.relationships[index]) {
+    selectedClass.value.relationships[index].language = lang.code
+  }
+  showLanguageDropdown.value = false
+  currentRelationshipLangIndex.value = -1
+  
+  // 验证(property+lang)唯一性
+  validateRelationshipUniqueness()
+}
+
+
+
+const selectNewRelationshipValue = (value) => {
+  newRelationship.value = value
+  showValueDropdown.value = false
+}
+
+const createNewValue = async (type, index) => {
+  let name = ''
+  if (index === -1) {
+    name = newRelationship.value
+  } else if (selectedClass.value.relationships[index]) {
+    name = selectedClass.value.relationships[index].value
+  }
+  
+  if (!name) {
+    ElMessage.warning('Please enter a name for the new value')
+    return
+  }
+  
+  let result = null
+  switch (type) {
+    case 'individual':
+      result = await createNewIndividual(name)
+      break
+    case 'class':
+      result = await createNewClass(name)
+      break
+    case 'datatype':
+      result = await createNewDatatype(name)
+      break
+  }
+  
+  if (result) {
+    if (index === -1) {
+      newRelationship.value = name
+    } else if (selectedClass.value.relationships[index]) {
+      selectedClass.value.relationships[index].value = name
+    }
+    showValueDropdown.value = false
+  }
+}
+
+
+
 const handleRelationshipLangBlur = async (rel, index) => {
   // 当焦点离开lang输入框时，向后台更新数据
-  if (rel && (rel.property || rel.target || rel.language)) {
+  if (rel && (rel.property && rel.value)) {
     try {
+      // 检查(property+lang)组合的唯一性
+      const isUnique = checkRelationshipUniqueness(rel, index)
+      if (!isUnique) {
+        ElMessage.warning('Relationship with this property and language already exists')
+        return
+      }
+      
       await http.post('/relationship/set', {
         entityId: selectedClass.value.id,
         entityType: 'CLASS',
         property: rel.property,
-        target: rel.target,
+        value: rel.value,
         language: rel.language
       })
       await loadClassDetails(selectedClass.value.id)
     } catch (error) {
       console.error('Failed to update relationship:', error)
+      ElMessage.error('Failed to update relationship')
     }
   }
 }
 
 const handleNewRelationshipLangFocus = () => {
-  // 当新relationship的lang输入框获得焦点时，确保显示新输入行
-  showNewRelationshipInput.value = true
+  // 当新行的lang输入框获得焦点时，检查property和value是否有值
+  if (newRelationship.value.property && newRelationship.value.value) {
+    // 可以在这里添加逻辑
+  }
 }
 
 const handleNewRelationshipLangBlur = async () => {
-  // 当新relationship的lang输入框失去焦点时，添加新数据
-  if (newRelationship.value.property && newRelationship.value.target) {
+  // 当新行的lang输入框失去焦点时，向后台添加数据
+  if (newRelationship.value.property && newRelationship.value.value) {
     try {
+      // 检查(property+lang)组合的唯一性
+      const isUnique = checkNewRelationshipUniqueness()
+      if (!isUnique) {
+        ElMessage.warning('Relationship with this property and language already exists')
+        return
+      }
+      
       await http.post('/relationship/set', {
         entityId: selectedClass.value.id,
         entityType: 'CLASS',
         property: newRelationship.value.property,
-        target: newRelationship.value.target,
+        value: newRelationship.value.value,
         language: newRelationship.value.language
       })
       await loadClassDetails(selectedClass.value.id)
-      // 重置新relationship表单
+      // 重置新行数据
       newRelationship.value = {
         property: '',
         value: '',
-        target: '',
         language: ''
       }
     } catch (error) {
       console.error('Failed to add relationship:', error)
+      ElMessage.error('Failed to add relationship')
     }
   }
 }
 
+const checkRelationshipUniqueness = (currentRel, currentIndex) => {
+  if (!selectedClass.value.relationships) return true
+  
+  for (let i = 0; i < selectedClass.value.relationships.length; i++) {
+    if (i === currentIndex) continue
+    const rel = selectedClass.value.relationships[i]
+    if (rel.property === currentRel.property && 
+        rel.language === currentRel.language) {
+      return false
+    }
+  }
+  return true
+}
+
+const checkNewRelationshipUniqueness = () => {
+  if (!selectedClass.value.relationships) return true
+  
+  for (const rel of selectedClass.value.relationships) {
+    if (rel.property === newRelationship.value.property && 
+        rel.language === newRelationship.value.language) {
+      return false
+    }
+  }
+  return true
+}
+
 const removeRelationship = async (index) => {
-  if (!selectedClass.value) return
+  if (!selectedClass.value || !selectedClass.value.relationships) return
   
   try {
     const rel = selectedClass.value.relationships[index]
@@ -3130,25 +3649,78 @@ const removeRelationship = async (index) => {
           entityId: selectedClass.value.id,
           entityType: 'CLASS',
           property: rel.property,
-          target: rel.target
+          value: rel.value
         }
       })
       await loadClassDetails(selectedClass.value.id)
     }
   } catch (error) {
     console.error('Failed to remove relationship:', error)
+    ElMessage.error('Failed to remove relationship')
+  }
+}
+
+// 3类New操作
+const createNewIndividual = async (name) => {
+  try {
+    const response = await http.post('/individual/create', {
+      name: name,
+      classId: selectedClass.value.id
+    })
+    await loadValueDataSources()
+    return response.data
+  } catch (error) {
+    console.error('Failed to create new individual:', error)
+    ElMessage.error('Failed to create new individual')
+    return null
+  }
+}
+
+const createNewClass = async (name) => {
+  try {
+    const response = await http.post('/class/create', {
+      name: name,
+      parentId: 'owl:Thing'
+    })
+    await loadValueDataSources()
+    return response.data
+  } catch (error) {
+    console.error('Failed to create new class:', error)
+    ElMessage.error('Failed to create new class')
+    return null
+  }
+}
+
+const createNewDatatype = async (name) => {
+  try {
+    const response = await http.post('/datatype/create', {
+      name: name
+    })
+    await loadValueDataSources()
+    return response.data
+  } catch (error) {
+    console.error('Failed to create new datatype:', error)
+    ElMessage.error('Failed to create new datatype')
+    return null
   }
 }
 
 const addRelationship = async () => {
-  if (!selectedClass.value || !newRelationship.value.property || !newRelationship.value.target) return
+  if (!selectedClass.value || !newRelationship.value.property || !newRelationship.value.value) return
   
   try {
+    // 检查(property+lang)组合的唯一性
+    const isUnique = checkNewRelationshipUniqueness()
+    if (!isUnique) {
+      ElMessage.warning('Relationship with this property and language already exists')
+      return
+    }
+    
     await http.post('/relationship/set', {
       entityId: selectedClass.value.id,
       entityType: 'CLASS',
       property: newRelationship.value.property,
-      target: newRelationship.value.target,
+      value: newRelationship.value.value,
       language: newRelationship.value.language
     })
     await loadClassDetails(selectedClass.value.id)
@@ -4474,12 +5046,20 @@ const initGraph = () => {
 }
 
 /* value占62.5%宽度 */
+.annotation-value-search {
+  position: relative;
+  flex: 0 0 calc(62.5% - 2px);
+  min-width: 200px;
+}
+
+/* value占62.5%宽度 */
 .annotation-value-input {
   font-size: 12px;
   padding: 3px 6px;
   border: 1px solid #ddd;
   border-radius: 2px;
-  flex: 0 0 calc(62.5% - 2px);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* lang容器占12.5%宽度 */
