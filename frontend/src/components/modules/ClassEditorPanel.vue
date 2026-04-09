@@ -3481,6 +3481,11 @@ const loadValueDataSources = async () => {
 
 // Relationships相关方法
 const handleRelationshipPropertyFocus = (index) => {
+  // 关闭其他所有下拉框
+  showValueDropdown.value = false
+  showLanguageDropdown.value = false
+  showAnnotationPropertyDropdown.value = false
+  
   currentRelationshipIndex.value = index
   showRelationshipPropertyDropdown.value = true
   handleRelationshipPropertyInput(index)
@@ -3509,6 +3514,11 @@ const selectRelationshipProperty = (property, index) => {
 }
 
 const handleNewRelationshipPropertyFocus = () => {
+  // 关闭其他所有下拉框
+  showValueDropdown.value = false
+  showLanguageDropdown.value = false
+  showAnnotationPropertyDropdown.value = false
+  
   currentRelationshipIndex.value = -1
   showRelationshipPropertyDropdown.value = true
   handleNewRelationshipPropertyInput()
@@ -3532,6 +3542,11 @@ const selectNewRelationshipProperty = (property) => {
 }
 
 const handleRelationshipValueFocus = (index) => {
+  // 关闭其他所有下拉框
+  showRelationshipPropertyDropdown.value = false
+  showLanguageDropdown.value = false
+  showAnnotationPropertyDropdown.value = false
+  
   currentValueIndex.value = index
   showValueDropdown.value = true
   handleRelationshipValueInput(index)
@@ -3585,6 +3600,11 @@ const selectRelationshipValue = (value, index) => {
 }
 
 const handleNewRelationshipValueFocus = () => {
+  // 关闭其他所有下拉框
+  showRelationshipPropertyDropdown.value = false
+  showLanguageDropdown.value = false
+  showAnnotationPropertyDropdown.value = false
+  
   currentValueIndex.value = -1
   showValueDropdown.value = true
   handleNewRelationshipValueInput()
@@ -3611,6 +3631,11 @@ const handleNewRelationshipValueInput = () => {
 
 // 处理Relationship语言输入框获取焦点
 const handleRelationshipLangFocus = (index) => {
+  // 关闭其他所有下拉框
+  showRelationshipPropertyDropdown.value = false
+  showValueDropdown.value = false
+  showAnnotationPropertyDropdown.value = false
+  
   currentRelationshipLangIndex.value = index
   filteredLanguages.value = languages.value
   showLanguageDropdown.value = true
@@ -3618,6 +3643,11 @@ const handleRelationshipLangFocus = (index) => {
 
 // 处理Relationship语言输入
 const handleRelationshipLangInput = (index, keyword) => {
+  // 关闭其他所有下拉框
+  showRelationshipPropertyDropdown.value = false
+  showValueDropdown.value = false
+  showAnnotationPropertyDropdown.value = false
+  
   currentRelationshipLangIndex.value = index
   
   // 根据关键字过滤语言列表
