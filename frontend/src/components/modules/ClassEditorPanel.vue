@@ -633,7 +633,7 @@
                       type="text" 
                       class="annotation-value-input" 
                       v-model="rel.value" 
-                      placeholder="Enter class or individual name"
+                      :placeholder="getRelationshipConfig(rel.property).placeholder"
                       @focus="handleRelationshipValueFocus(index)"
                       @input="handleRelationshipValueInput(index)"
                       @blur="handleRelationshipValueBlur"
@@ -686,7 +686,7 @@
                       </div>
                     </div>
                   </div>
-                  <div class="annotation-lang-container">
+                  <div v-if="getRelationshipConfig(rel.property).showLang" class="annotation-lang-container">
                     <div class="annotation-lang-search">
                       <input 
                       type="text" 
@@ -742,7 +742,7 @@
                       type="text" 
                       class="annotation-value-input" 
                       v-model="newRelationship.value" 
-                      placeholder="Enter class or individual name"
+                      :placeholder="getRelationshipConfig(newRelationship.property).placeholder"
                       @focus="handleNewRelationshipValueFocus"
                       @input="handleNewRelationshipValueInput"
                       @blur="handleNewRelationshipValueBlur"
@@ -795,7 +795,7 @@
                       </div>
                     </div>
                   </div>
-                  <div class="annotation-lang-container">
+                  <div v-if="getRelationshipConfig(newRelationship.property).showLang" class="annotation-lang-container">
                     <div class="annotation-lang-search">
                       <input 
                         type="text" 
@@ -3675,6 +3675,39 @@ const selectRelationshipLanguage = (index, lang) => {
   
   // 验证(property+lang)唯一性
   validateRelationshipUniqueness()
+}
+
+// 获取Relationship的配置信息（根据property类型）
+const getRelationshipConfig = (property) => {
+  if (!property) {
+    return {
+      placeholder: 'Enter value',
+      showLang: true
+    }
+  }
+  
+  // 检查是否是owl属性
+  if (property.startsWith('owl:')) {
+    if (property.includes('DataProperty')) {
+      // DataProperty类型
+      return {
+        placeholder: 'Enter datatype,string,number etc.',
+        showLang: true
+      }
+    } else if (property.includes('ObjectProperty')) {
+      // ObjectProperty类型
+      return {
+        placeholder: 'Enter class or individual name',
+        showLang: false
+      }
+    }
+  }
+  
+  // 其他情况（ObjectProperty中定义的数据）
+  return {
+    placeholder: 'Enter class or individual name',
+    showLang: false
+  }
 }
 
 
