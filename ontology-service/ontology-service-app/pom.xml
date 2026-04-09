@@ -57,7 +57,7 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.by.open.ontology</groupId>
+            <groupId>com.by.ontology</groupId>
             <artifactId>search-module</artifactId>
             <version>${project.version}</version>
         </dependency>
