@@ -59,6 +59,7 @@ OS: Windows_NT x64 10.0.26100
    - **version-module**: 版本控制模块
    - **project-module**: 项目管理模块
    - **individual-module**: 个体管理模块
+   - **metadata-module**: 标准元数据管理模块
    - **ontology-service-app**: 应用入口
 5. **user-service**: 用户管理服务
 6. **admin-service**: 管理员管理服务
@@ -379,8 +380,9 @@ npm run dev
 | v0.1.11 | 2026-03-24 | Class Hierarchy Tree组件拖拽功能实现                    |
 | v0.1.12 | 2026-03-26 | Class Details页面优化                               |
 | v0.1.13 | 2026-03-27 | ClassEditorPanel.vue代码错误修复，Annotation属性搜索功能实现 |
+| v0.1.16 | 2026-04-09 | 标准元数据管理模块实现，添加缓存能力，优化前端数据加载和缓存策略 |
 | v0.1.15 | 2026-03-31 | Annotations优化，支持默认annotation显示和多annotation输入格式，优化Class节点显示名称逻辑 |
-| v0.1.14 | 2026-03-30 | 面板响应式加载优化，修复HTML标签错误，版本号统一对齐            |
+| v0.1.14 | 2026-03-30 | 面板响应式加载优化，修复HTML标签错误，版本号统一对齐 |
 
 ## 开发日志
 

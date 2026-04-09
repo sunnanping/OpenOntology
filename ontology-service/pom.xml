@@ -25,6 +25,7 @@
         <module>version-module</module>
         <module>reasoning-module</module>
         <module>search-module</module>
+        <module>metadata-module</module>
         <module>ontology-service-app</module>
     </modules>
 

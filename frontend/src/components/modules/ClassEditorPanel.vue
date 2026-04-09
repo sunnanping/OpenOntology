@@ -2116,6 +2116,9 @@ onMounted(async () => {
   handleResize()
   window.addEventListener('resize', handleResize)
   
+  // 加载Relationship属性数据
+  await loadRelationshipProperties()
+  
   await loadClassHierarchy()
   await loadComments()
   await loadProjectActivities()
@@ -2279,6 +2282,10 @@ const loadClassDetails = async (classId) => {
     const annotationsResponse = await http.get(`/annotation/findByEntityIdAndEntityType/${classId}/CLASS`)
     selectedClass.value.annotations = annotationsResponse.data || []
     
+    // 加载Relationships数据
+    const relationshipsResponse = await http.get(`/api/relationship/findByEntityIdAndEntityType/${classId}/CLASS`)
+    selectedClass.value.relationships = relationshipsResponse.data || []
+    
     // 如果annotations为空，添加默认的rdfs:label annotation
     if (!selectedClass.value.annotations || selectedClass.value.annotations.length === 0) {
       selectedClass.value.annotations = [{
@@ -2291,9 +2298,7 @@ const loadClassDetails = async (classId) => {
     // 保存原始Annotations数据，用于比较是否有更改
     originalAnnotations.value = JSON.parse(JSON.stringify(selectedClass.value.annotations || []))
     
-    // 加载Relationship数据
-    const relationshipsResponse = await http.get(`/relationship/findByEntityIdAndEntityType/${classId}/CLASS`)
-    selectedClass.value.relationships = relationshipsResponse.data || []
+
     
     // 加载Relationship属性数据
     await loadRelationshipProperties()
@@ -3310,37 +3315,167 @@ const removeParent = async (index) => {
 // 加载Relationship属性数据
 const loadRelationshipProperties = async () => {
   try {
-    // 加载ObjectProperty数据
-    const objectPropertiesResponse = await http.get('/property/findByType/OBJECT')
-    const objectProperties = objectPropertiesResponse.data || []
-    
-    // 合并默认OWL属性和ObjectProperty
-    const properties = [...defaultOWLProperties.value]
-    objectProperties.forEach(prop => {
-      if (prop.name) {
-        properties.push(prop.name)
+    // 从缓存中获取数据
+    const cachedProperties = localStorage.getItem('relationshipProperties')
+    if (cachedProperties) {
+      try {
+        relationshipProperties.value = JSON.parse(cachedProperties)
+        console.log('Using cached relationship properties:', relationshipProperties.value)
+      } catch (error) {
+        console.error('Failed to parse cached relationship properties:', error)
       }
-    })
+    }
+    
+    // 从后端API获取标准OWL属性
+    let standardOWLProperties = []
+    try {
+      const owlPropertiesResponse = await http.get('/api/metadata/owl/properties')
+      standardOWLProperties = owlPropertiesResponse.data || []
+    } catch (error) {
+      console.error('Failed to load standard OWL properties:', error)
+      // 如果API调用失败，使用前端默认值
+      standardOWLProperties = [...defaultOWLProperties.value]
+    }
+    
+    // 合并标准OWL属性和ObjectProperty
+    const properties = [...standardOWLProperties]
+    
+    // 尝试加载ObjectProperty数据
+    try {
+      const objectPropertiesResponse = await http.get('/property/findByType/OBJECT')
+      const objectProperties = objectPropertiesResponse.data || []
+      objectProperties.forEach(prop => {
+        if (prop.name) {
+          properties.push(prop.name)
+        }
+      })
+    } catch (error) {
+      console.error('Failed to load object properties:', error)
+      // 即使加载ObjectProperty失败，也要确保标准的OWL属性被添加
+    }
     
     // 去重并排序
-    relationshipProperties.value = [...new Set(properties)].sort()
+    const sortedProperties = [...new Set(properties)].sort()
+    relationshipProperties.value = sortedProperties
+    
+    // 缓存数据到localStorage
+    try {
+      localStorage.setItem('relationshipProperties', JSON.stringify(sortedProperties))
+      console.log('Relationship properties cached:', sortedProperties)
+    } catch (error) {
+      console.error('Failed to cache relationship properties:', error)
+    }
+    
+    console.log('Relationship properties loaded:', relationshipProperties.value)
   } catch (error) {
     console.error('Failed to load relationship properties:', error)
+    // 即使发生错误，也要确保默认的OWL属性被添加
+    const defaultProperties = [...new Set(defaultOWLProperties.value)].sort()
+    relationshipProperties.value = defaultProperties
+    
+    // 缓存默认数据
+    try {
+      localStorage.setItem('relationshipProperties', JSON.stringify(defaultProperties))
+      console.log('Default OWL properties cached:', defaultProperties)
+    } catch (error) {
+      console.error('Failed to cache default OWL properties:', error)
+    }
+    
+    console.log('Using default OWL properties:', relationshipProperties.value)
   }
 }
 
 // 加载value数据源
 const loadValueDataSources = async () => {
   try {
+    // 从缓存中获取数据
+    const cachedValueData = localStorage.getItem('valueDataSources')
+    if (cachedValueData) {
+      try {
+        const cachedData = JSON.parse(cachedValueData)
+        valueDataSources.value = { ...valueDataSources.value, ...cachedData }
+        console.log('Using cached value data sources:', valueDataSources.value)
+      } catch (error) {
+        console.error('Failed to parse cached value data sources:', error)
+      }
+    }
+    
     // 加载Class数据
-    const classesResponse = await http.get('/class/findAll')
-    valueDataSources.value.classes = classesResponse.data || []
+    try {
+      const classesResponse = await http.get('/class/findAll')
+      valueDataSources.value.classes = classesResponse.data || []
+    } catch (error) {
+      console.error('Failed to load class data:', error)
+      // 使用缓存数据或空数组
+      if (!valueDataSources.value.classes) {
+        valueDataSources.value.classes = []
+      }
+    }
     
     // 加载Individual数据
-    const individualsResponse = await http.get('/individual/findAll')
-    valueDataSources.value.individuals = individualsResponse.data || []
+    try {
+      const individualsResponse = await http.get('/individual/findAll')
+      valueDataSources.value.individuals = individualsResponse.data || []
+    } catch (error) {
+      console.error('Failed to load individual data:', error)
+      // 使用缓存数据或空数组
+      if (!valueDataSources.value.individuals) {
+        valueDataSources.value.individuals = []
+      }
+    }
+    
+    // 加载数据类型
+    try {
+      const datatypesResponse = await http.get('/api/metadata/datatypes')
+      valueDataSources.value.datatypes = datatypesResponse.data || []
+    } catch (error) {
+      console.error('Failed to load data types from API:', error)
+      // 使用默认数据类型
+      if (!valueDataSources.value.datatypes) {
+        valueDataSources.value.datatypes = [
+          'string', 'int', 'integer', 'boolean', 'float', 'double',
+          'date', 'datetime', 'long', 'short', 'byte',
+          'unsignedInt', 'unsignedLong', 'unsignedShort', 'unsignedByte',
+          'decimal', 'negativeInteger', 'nonNegativeInteger', 'nonPositiveInteger', 'positiveInteger',
+          'real', 'rational', 'literal', 'thing'
+        ]
+      }
+    }
+    
+    // 缓存数据到localStorage
+    try {
+      localStorage.setItem('valueDataSources', JSON.stringify(valueDataSources.value))
+      console.log('Value data sources cached:', valueDataSources.value)
+    } catch (error) {
+      console.error('Failed to cache value data sources:', error)
+    }
   } catch (error) {
     console.error('Failed to load value data sources:', error)
+    
+    // 确保所有数据源都有默认值
+    if (!valueDataSources.value.classes) {
+      valueDataSources.value.classes = []
+    }
+    if (!valueDataSources.value.individuals) {
+      valueDataSources.value.individuals = []
+    }
+    if (!valueDataSources.value.datatypes) {
+      valueDataSources.value.datatypes = [
+        'string', 'int', 'integer', 'boolean', 'float', 'double',
+        'date', 'datetime', 'long', 'short', 'byte',
+        'unsignedInt', 'unsignedLong', 'unsignedShort', 'unsignedByte',
+        'decimal', 'negativeInteger', 'nonNegativeInteger', 'nonPositiveInteger', 'positiveInteger',
+        'real', 'rational', 'literal', 'thing'
+      ]
+    }
+    
+    // 缓存默认数据
+    try {
+      localStorage.setItem('valueDataSources', JSON.stringify(valueDataSources.value))
+      console.log('Default value data sources cached:', valueDataSources.value)
+    } catch (error) {
+      console.error('Failed to cache default value data sources:', error)
+    }
   }
 }
 
@@ -3355,9 +3490,14 @@ const handleRelationshipPropertyInput = (index) => {
   const rel = selectedClass.value.relationships[index]
   if (rel) {
     const keyword = rel.property.toLowerCase()
-    filteredRelationshipProperties.value = relationshipProperties.value.filter(prop => 
-      prop.toLowerCase().includes(keyword)
-    )
+    if (keyword) {
+      filteredRelationshipProperties.value = relationshipProperties.value.filter(prop => 
+        prop.toLowerCase().includes(keyword)
+      )
+    } else {
+      // 当输入框为空时，显示所有属性
+      filteredRelationshipProperties.value = relationshipProperties.value
+    }
   }
 }
 
@@ -3376,9 +3516,14 @@ const handleNewRelationshipPropertyFocus = () => {
 
 const handleNewRelationshipPropertyInput = () => {
   const keyword = newRelationship.value.property.toLowerCase()
-  filteredRelationshipProperties.value = relationshipProperties.value.filter(prop => 
-    prop.toLowerCase().includes(keyword)
-  )
+  if (keyword) {
+    filteredRelationshipProperties.value = relationshipProperties.value.filter(prop => 
+      prop.toLowerCase().includes(keyword)
+    )
+  } else {
+    // 当输入框为空时，显示所有属性
+    filteredRelationshipProperties.value = relationshipProperties.value
+  }
 }
 
 const selectNewRelationshipProperty = (property) => {
@@ -3558,7 +3703,7 @@ const handleRelationshipLangBlur = async (rel, index) => {
         return
       }
       
-      await http.post('/relationship/set', {
+      await http.post('/api/relationship/set', {
         entityId: selectedClass.value.id,
         entityType: 'CLASS',
         property: rel.property,
@@ -3574,10 +3719,38 @@ const handleRelationshipLangBlur = async (rel, index) => {
 }
 
 const handleNewRelationshipLangFocus = () => {
+  currentRelationshipLangIndex.value = -1
+  filteredLanguages.value = languages.value
+  showLanguageDropdown.value = true
+  
   // 当新行的lang输入框获得焦点时，检查property和value是否有值
   if (newRelationship.value.property && newRelationship.value.value) {
     // 可以在这里添加逻辑
   }
+}
+
+// 处理新Relationship语言输入
+const handleNewRelationshipLangInput = (keyword) => {
+  currentRelationshipLangIndex.value = -1
+  
+  // 根据关键字过滤语言列表
+  if (keyword) {
+    const query = keyword.toLowerCase()
+    filteredLanguages.value = languages.value.filter(lang => 
+      lang.code.toLowerCase().includes(query) || 
+      lang.name.toLowerCase().includes(query)
+    )
+  } else {
+    filteredLanguages.value = languages.value
+  }
+  showLanguageDropdown.value = true
+}
+
+// 选择新Relationship语言
+const selectNewRelationshipLanguage = (lang) => {
+  newRelationship.value.language = lang.code
+  showLanguageDropdown.value = false
+  currentRelationshipLangIndex.value = -1
 }
 
 const handleNewRelationshipLangBlur = async () => {
@@ -3591,7 +3764,7 @@ const handleNewRelationshipLangBlur = async () => {
         return
       }
       
-      await http.post('/relationship/set', {
+      await http.post('/api/relationship/set', {
         entityId: selectedClass.value.id,
         entityType: 'CLASS',
         property: newRelationship.value.property,
@@ -3644,7 +3817,7 @@ const removeRelationship = async (index) => {
   try {
     const rel = selectedClass.value.relationships[index]
     if (rel) {
-      await http.delete('/relationship/delete', {
+      await http.delete('/api/relationship/delete', {
         params: {
           entityId: selectedClass.value.id,
           entityType: 'CLASS',
@@ -3716,7 +3889,7 @@ const addRelationship = async () => {
       return
     }
     
-    await http.post('/relationship/set', {
+    await http.post('/api/relationship/set', {
       entityId: selectedClass.value.id,
       entityType: 'CLASS',
       property: newRelationship.value.property,
@@ -4021,7 +4194,7 @@ const handleAddRelationship = async () => {
   if (!selectedClass.value || !newRelationship.value.property || !newRelationship.value.target) return
   
   try {
-    await http.post('/relationship/create', {
+    await http.post('/api/relationship/create', {
       sourceId: selectedClass.value.id,
       property: newRelationship.value.property,
       target: newRelationship.value.target

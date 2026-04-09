@@ -57,8 +57,13 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.by.ontology</groupId>
+            <groupId>com.by.open.ontology</groupId>
             <artifactId>search-module</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.by.ontology</groupId>
+            <artifactId>metadata-module</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
