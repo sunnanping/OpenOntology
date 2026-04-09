@@ -2,6 +2,8 @@ package com.by.open.ontology.ontologyservice.metadatamodule.service;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.vocab.OWL2Datatype;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,14 +23,15 @@ public class MetadataService {
     /**
      * 获取标准的OWL属性
      */
+    @Cacheable(value = "owlProperties", key = "'standard'", unless = "#result == null or #result.isEmpty()")
     public List<String> getStandardOWLProperties() {
         List<String> properties = new ArrayList<>();
         
         // 添加基础的OWL属性
-        properties.add(OWLVocabulary.OWL_BOTTOM_DATA_PROPERTY.getIRI().getFragment());
-        properties.add(OWLVocabulary.OWL_BOTTOM_OBJECT_PROPERTY.getIRI().getFragment());
-        properties.add(OWLVocabulary.OWL_TOP_DATA_PROPERTY.getIRI().getFragment());
-        properties.add(OWLVocabulary.OWL_TOP_OBJECT_PROPERTY.getIRI().getFragment());
+        properties.add(factory.getOWLBottomDataProperty().getIRI().getFragment());
+        properties.add(factory.getOWLBottomObjectProperty().getIRI().getFragment());
+        properties.add(factory.getOWLTopDataProperty().getIRI().getFragment());
+        properties.add(factory.getOWLTopObjectProperty().getIRI().getFragment());
         
         return properties;
     }
@@ -36,36 +39,31 @@ public class MetadataService {
     /**
      * 获取标准的数据类型
      */
+    @Cacheable(value = "datatypes", key = "'standard'", unless = "#result == null or #result.isEmpty()")
     public List<String> getStandardDatatypes() {
         List<String> datatypes = new ArrayList<>();
         
-        // 添加XSD数据类型
-        datatypes.add(XSDVocabulary.STRING.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.INT.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.INTEGER.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.BOOLEAN.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.FLOAT.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.DOUBLE.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.DATE.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.DATETIME.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.LONG.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.SHORT.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.BYTE.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.UNSIGNED_INT.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.UNSIGNED_LONG.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.UNSIGNED_SHORT.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.UNSIGNED_BYTE.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.DECIMAL.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.NEGATIVE_INTEGER.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.NON_NEGATIVE_INTEGER.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.NON_POSITIVE_INTEGER.getIRI().getFragment());
-        datatypes.add(XSDVocabulary.POSITIVE_INTEGER.getIRI().getFragment());
+        // 添加XSD数据类型 - 使用OWL2Datatype
+        datatypes.add(OWL2Datatype.XSD_STRING.getIRI().getFragment());
+        datatypes.add(OWL2Datatype.XSD_INT.getIRI().getFragment());
+        datatypes.add(OWL2Datatype.XSD_INTEGER.getIRI().getFragment());
+        datatypes.add(OWL2Datatype.XSD_BOOLEAN.getIRI().getFragment());
+        datatypes.add(OWL2Datatype.XSD_FLOAT.getIRI().getFragment());
+        datatypes.add(OWL2Datatype.XSD_DOUBLE.getIRI().getFragment());
+        datatypes.add(OWL2Datatype.XSD_DATE_TIME.getIRI().getFragment());
+        datatypes.add(OWL2Datatype.XSD_LONG.getIRI().getFragment());
+        datatypes.add(OWL2Datatype.XSD_SHORT.getIRI().getFragment());
+        datatypes.add(OWL2Datatype.XSD_BYTE.getIRI().getFragment());
+        datatypes.add(OWL2Datatype.XSD_DECIMAL.getIRI().getFragment());
+        datatypes.add(OWL2Datatype.XSD_NEGATIVE_INTEGER.getIRI().getFragment());
+        datatypes.add(OWL2Datatype.XSD_NON_NEGATIVE_INTEGER.getIRI().getFragment());
+        datatypes.add(OWL2Datatype.XSD_NON_POSITIVE_INTEGER.getIRI().getFragment());
+        datatypes.add(OWL2Datatype.XSD_POSITIVE_INTEGER.getIRI().getFragment());
         
         // 添加OWL数据类型
-        datatypes.add(OWLVocabulary.OWL_REAL.getIRI().getFragment());
-        datatypes.add(OWLVocabulary.OWL_RATIONAL.getIRI().getFragment());
-        datatypes.add(OWLVocabulary.OWL_LITERAL.getIRI().getFragment());
-        datatypes.add(OWLVocabulary.OWL_THING.getIRI().getFragment());
+        datatypes.add(OWL2Datatype.RDF_XML_LITERAL.getIRI().getFragment());
+        datatypes.add(OWL2Datatype.OWL_REAL.getIRI().getFragment());
+        datatypes.add(OWL2Datatype.OWL_RATIONAL.getIRI().getFragment());
         
         return datatypes;
     }
@@ -73,18 +71,19 @@ public class MetadataService {
     /**
      * 获取标准的RDFS属性
      */
+    @Cacheable(value = "rdfsProperties", key = "'standard'", unless = "#result == null or #result.isEmpty()")
     public List<String> getStandardRDFSProperties() {
         List<String> properties = new ArrayList<>();
         
-        // 添加RDFS属性
-        properties.add(RDFSVocabulary.RDFS_LABEL.getIRI().getFragment());
-        properties.add(RDFSVocabulary.RDFS_COMMENT.getIRI().getFragment());
-        properties.add(RDFSVocabulary.RDFS_DOMAIN.getIRI().getFragment());
-        properties.add(RDFSVocabulary.RDFS_RANGE.getIRI().getFragment());
-        properties.add(RDFSVocabulary.RDFS_SUB_CLASS_OF.getIRI().getFragment());
-        properties.add(RDFSVocabulary.RDFS_SUB_PROPERTY_OF.getIRI().getFragment());
-        properties.add(RDFSVocabulary.RDFS_IS_DEFINED_BY.getIRI().getFragment());
-        properties.add(RDFSVocabulary.RDFS_SEE_ALSO.getIRI().getFragment());
+        // 添加RDFS属性 - 使用IRI字符串
+        properties.add("label");
+        properties.add("comment");
+        properties.add("domain");
+        properties.add("range");
+        properties.add("subClassOf");
+        properties.add("subPropertyOf");
+        properties.add("isDefinedBy");
+        properties.add("seeAlso");
         
         return properties;
     }
@@ -92,17 +91,18 @@ public class MetadataService {
     /**
      * 获取标准的RDF属性
      */
+    @Cacheable(value = "rdfProperties", key = "'standard'", unless = "#result == null or #result.isEmpty()")
     public List<String> getStandardRDFProperties() {
         List<String> properties = new ArrayList<>();
         
-        // 添加RDF属性
-        properties.add(RDFVocabulary.RDF_TYPE.getIRI().getFragment());
-        properties.add(RDFVocabulary.RDF_SUBJECT.getIRI().getFragment());
-        properties.add(RDFVocabulary.RDF_PREDICATE.getIRI().getFragment());
-        properties.add(RDFVocabulary.RDF_OBJECT.getIRI().getFragment());
-        properties.add(RDFVocabulary.RDF_FIRST.getIRI().getFragment());
-        properties.add(RDFVocabulary.RDF_REST.getIRI().getFragment());
-        properties.add(RDFVocabulary.RDF_NIL.getIRI().getFragment());
+        // 添加RDF属性 - 使用IRI字符串
+        properties.add("type");
+        properties.add("subject");
+        properties.add("predicate");
+        properties.add("object");
+        properties.add("first");
+        properties.add("rest");
+        properties.add("nil");
         
         return properties;
     }
