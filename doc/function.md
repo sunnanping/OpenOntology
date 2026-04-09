@@ -210,6 +210,7 @@ public class Ontology {
 - **version-module**: 版本控制模块
 - **project-module**: 项目管理模块
 - **individual-module**: 个体管理模块
+- **metadata-module**: 标准元数据管理模块
 - **ontology-service-app**: 应用入口
 
 **类管理模块 (class-module)**
@@ -254,7 +255,32 @@ public class OntologyClass {
 
 ---
 
-### 6. collaboration-service (协作服务)
+### 6. metadata-module (标准元数据管理模块)
+
+**功能描述**：
+- 管理标准的OWL属性、RDFS属性、RDF属性和数据类型
+- 提供缓存机制，提高API响应速度
+- 支持获取基础的OWL属性（owl:bottomDataProperty、owl:bottomObjectProperty、owl:topDataProperty、owl:topObjectProperty）
+- 统一管理标准元数据，避免前端数据固化
+
+**API接口**：
+
+| 接口 | 方法 | 路径 | 参数 | 返回值 |
+|------|------|------|------|--------|
+| 获取标准OWL属性 | GET | /api/metadata/owl/properties | - | List<String> |
+| 获取标准RDFS属性 | GET | /api/metadata/rdfs/properties | - | List<String> |
+| 获取标准RDF属性 | GET | /api/metadata/rdf/properties | - | List<String> |
+| 获取标准数据类型 | GET | /api/metadata/datatypes | - | List<String> |
+
+**核心功能**：
+- 使用OWLAPI获取标准元数据
+- 实现Spring Cache缓存机制
+- 提供统一的标准元数据管理接口
+- 支持API不可用时的缓存降级策略
+
+---
+
+### 7. collaboration-service (协作服务)
 
 **功能描述**：
 - 多用户实时协作
@@ -809,8 +835,9 @@ const handleNodeClick = async (data) => {
 | property-module | /api/property |
 | instance-module | /api/instance |
 | reasoning-module | /api/reasoning |
-| search-module | /api/search |
 | version-module | /api/version |
+| search-module | /api/search |
+| metadata-module | /api/metadata |
 | collaboration-service | /api/collaboration |
 | user-service | /api/user |
 | admin-service | /api/admin |
@@ -910,6 +937,7 @@ spring:
 
 | 日期 | 版本 | 更新内容 |
 |------|------|----------|
+| 2026-04-09 | v1.4 | 更新项目版本到v0.1.16，添加标准元数据管理模块 |
 | 2026-03-31 | v1.3 | 更新项目版本到v0.1.15，完善文档结构 |
 | 2026-03-19 | v1.1 | 新增配置说明章节 |
 | 2026-03-18 | v1.0 | 初始版本，系统架构和微服务模块功能说明 |
