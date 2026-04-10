@@ -3962,15 +3962,21 @@ const createNewValue = async (type, index) => {
     }
     
     if (result) {
+      // 先更新本地数据
       if (index === -1) {
         newRelationship.value.target = name
-        // 保存新的Relationship到后端
+      } else if (selectedClass.value.relationships[index]) {
+        selectedClass.value.relationships[index].target = name
+      }
+      
+      // 然后保存Relationship到后端
+      if (index === -1) {
+        // 新关系
         if (newRelationship.value.property) {
           await addRelationship()
         }
       } else if (selectedClass.value.relationships[index]) {
-        selectedClass.value.relationships[index].target = name
-        // 保存更新后的Relationship到后端
+        // 现有关系
         await http.post('/relationship/set', {
           entityId: selectedClass.value.id,
           entityType: 'CLASS',
@@ -3978,8 +3984,11 @@ const createNewValue = async (type, index) => {
           value: name,
           language: selectedClass.value.relationships[index].language
         })
-        await loadClassDetails(selectedClass.value.id)
       }
+      
+      // 重新加载类详情，确保界面显示最新数据
+      await loadClassDetails(selectedClass.value.id)
+      
       showValueDropdown.value = false
       ElMessage.success(`New ${type} created successfully`)
     }
