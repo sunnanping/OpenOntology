@@ -3969,14 +3969,29 @@ const createNewValue = async (type, index) => {
         selectedClass.value.relationships[index].target = name
       }
       
+      // 延迟一段时间，确保实体创建成功后再保存Relationship
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
       // 然后保存Relationship到后端
       if (index === -1) {
         // 新关系
         if (newRelationship.value.property) {
+          console.log('Calling addRelationship with:', {
+            selectedClass: selectedClass.value,
+            newRelationship: newRelationship.value
+          })
           await addRelationship()
+        } else {
+          console.log('Skipping addRelationship because property is empty:', newRelationship.value)
         }
       } else if (selectedClass.value.relationships[index]) {
         // 现有关系
+        console.log('Updating existing relationship with:', {
+          entityId: selectedClass.value.id,
+          property: selectedClass.value.relationships[index].property,
+          value: name,
+          language: selectedClass.value.relationships[index].language
+        })
         await http.post('/relationship/set', {
           entityId: selectedClass.value.id,
           entityType: 'CLASS',
