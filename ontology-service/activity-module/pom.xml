@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ontology-service</artifactId>
         <groupId>com.by.ontology</groupId>
-        <version>0.1.15</version>
+        <version>${project.version}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
