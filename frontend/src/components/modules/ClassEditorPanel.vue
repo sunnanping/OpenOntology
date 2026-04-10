@@ -3802,6 +3802,19 @@ const selectRelationshipValue = (value, index) => {
 }
 
 const handleNewRelationshipValueFocus = () => {
+  // 检查property是否为空
+  if (!newRelationship.value.property) {
+    ElMessage.warning('First, please enter property')
+    // 将焦点移动到property输入框
+    nextTick(() => {
+      const propertyInput = document.querySelector('.annotation-input-row .annotation-property-input')
+      if (propertyInput) {
+        propertyInput.focus()
+      }
+    })
+    return
+  }
+  
   // 关闭其他所有下拉框
   showRelationshipPropertyDropdown.value = false
   showLanguageDropdown.value = false
@@ -3951,8 +3964,21 @@ const createNewValue = async (type, index) => {
     if (result) {
       if (index === -1) {
         newRelationship.value.target = name
+        // 保存新的Relationship到后端
+        if (newRelationship.value.property) {
+          await addRelationship()
+        }
       } else if (selectedClass.value.relationships[index]) {
         selectedClass.value.relationships[index].target = name
+        // 保存更新后的Relationship到后端
+        await http.post('/relationship/set', {
+          entityId: selectedClass.value.id,
+          entityType: 'CLASS',
+          property: selectedClass.value.relationships[index].property,
+          value: name,
+          language: selectedClass.value.relationships[index].language
+        })
+        await loadClassDetails(selectedClass.value.id)
       }
       showValueDropdown.value = false
       ElMessage.success(`New ${type} created successfully`)
@@ -3982,7 +4008,7 @@ const handleRelationshipLangBlur = async (rel, index) => {
         entityId: selectedClass.value.id,
         entityType: 'CLASS',
         property: rel.property,
-        target: rel.target
+        value: rel.target
       }
       
       // 只有DataProperty类型才包含language字段
@@ -4009,7 +4035,7 @@ const handleNewRelationshipLangFocus = () => {
   showLanguageDropdown.value = true
   
   // 当新行的lang输入框获得焦点时，检查property和value是否有值
-  if (newRelationship.value.property && newRelationship.value.value) {
+  if (newRelationship.value.property && newRelationship.value.target) {
     // 可以在这里添加逻辑
   }
 }
@@ -4118,7 +4144,7 @@ const removeRelationship = async (index) => {
           entityId: selectedClass.value.id,
           entityType: 'CLASS',
           property: rel.property,
-          value: rel.value
+          target: rel.target
         }
       })
       await loadClassDetails(selectedClass.value.id)
@@ -4192,7 +4218,7 @@ const addRelationship = async () => {
       entityId: selectedClass.value.id,
       entityType: 'CLASS',
       property: newRelationship.value.property,
-      target: newRelationship.value.target,
+      value: newRelationship.value.target,
       language: newRelationship.value.language
     })
     await loadClassDetails(selectedClass.value.id)
