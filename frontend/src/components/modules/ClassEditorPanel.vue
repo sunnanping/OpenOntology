@@ -2407,7 +2407,7 @@ const loadClassDetails = async (classId) => {
     selectedClass.value.annotations = annotationsResponse.data || []
     
     // 加载Relationships数据
-    const relationshipsResponse = await http.get(`/api/relationship/findByEntityIdAndEntityType/${classId}/CLASS`)
+    const relationshipsResponse = await http.get(`/relationship/findByEntityIdAndEntityType/${classId}/CLASS`)
     selectedClass.value.relationships = relationshipsResponse.data || []
     
     // 如果annotations为空，添加默认的rdfs:label annotation
@@ -2788,7 +2788,7 @@ const searchClassesForMove = async () => {
   }
   
   try {
-    const response = await http.get(`/api/class/search`, {
+    const response = await http.get(`/class/search`, {
       params: { query: moveTargetParent.value, projectId: props.projectId }
     })
     moveSearchResults.value = response.data || []
@@ -2813,7 +2813,7 @@ const selectMoveTarget = (cls) => {
 // 显示类列表
 const showClassesList = async () => {
   try {
-    const response = await http.get(`/api/class/findByOntologyId/${props.projectId}`)
+    const response = await http.get(`/class/findByOntologyId/${props.projectId}`)
     moveSearchResults.value = response.data || []
   } catch (error) {
     console.error('Failed to load classes list:', error)
@@ -2846,7 +2846,7 @@ const showMergeClassesTreeFlag = ref(false)
 // 显示Merge类列表
 const showMergeClassesList = async () => {
   try {
-    const response = await http.get(`/api/class/findByOntologyId/${props.projectId}`)
+    const response = await http.get(`/class/findByOntologyId/${props.projectId}`)
     mergeSearchResults.value = response.data || []
   } catch (error) {
     console.error('Failed to load classes list:', error)
@@ -3453,7 +3453,7 @@ const loadRelationshipProperties = async () => {
     // 从后端API获取标准OWL属性
     let standardOWLProperties = []
     try {
-      const owlPropertiesResponse = await http.get('/api/metadata/owl/properties')
+      const owlPropertiesResponse = await http.get('/metadata/owl/properties')
       standardOWLProperties = owlPropertiesResponse.data || []
     } catch (error) {
       console.error('Failed to load standard OWL properties:', error)
@@ -3550,7 +3550,7 @@ const loadValueDataSources = async () => {
     
     // 加载数据类型
     try {
-      const datatypesResponse = await http.get('/api/metadata/datatypes')
+      const datatypesResponse = await http.get('/metadata/datatypes')
       valueDataSources.value.datatypes = datatypesResponse.data || []
     } catch (error) {
       console.error('Failed to load data types from API:', error)
@@ -3801,7 +3801,7 @@ const handleNewRelationshipValueFocus = () => {
 }
 
 const handleNewRelationshipValueInput = () => {
-  const keyword = newRelationship.value.toLowerCase()
+  const keyword = newRelationship.value.value.toLowerCase()
   
   // 过滤classes
   filteredValues.value.classes = valueDataSources.value.classes.filter(cls => 
@@ -3974,7 +3974,7 @@ const handleRelationshipLangBlur = async (rel, index) => {
         requestData.language = rel.language
       }
       
-      await http.post('/api/relationship/set', requestData)
+      await http.post('/relationship/set', requestData)
       await loadClassDetails(selectedClass.value.id)
       
       // 检查是否需要新增空白行
@@ -4046,7 +4046,7 @@ const handleNewRelationshipLangBlur = async () => {
         requestData.language = newRelationship.value.language
       }
       
-      await http.post('/api/relationship/set', requestData)
+      await http.post('/relationship/set', requestData)
       await loadClassDetails(selectedClass.value.id)
       // 重置新行数据
       newRelationship.value = {
@@ -4096,7 +4096,7 @@ const removeRelationship = async (index) => {
   try {
     const rel = selectedClass.value.relationships[index]
     if (rel) {
-      await http.delete('/api/relationship/delete', {
+      await http.delete('/relationship/delete', {
         params: {
           entityId: selectedClass.value.id,
           entityType: 'CLASS',
@@ -4168,7 +4168,7 @@ const addRelationship = async () => {
       return
     }
     
-    await http.post('/api/relationship/set', {
+    await http.post('/relationship/set', {
       entityId: selectedClass.value.id,
       entityType: 'CLASS',
       property: newRelationship.value.property,
@@ -4473,7 +4473,7 @@ const handleAddRelationship = async () => {
   if (!selectedClass.value || !newRelationship.value.property || !newRelationship.value.target) return
   
   try {
-    await http.post('/api/relationship/create', {
+    await http.post('/relationship/create', {
       sourceId: selectedClass.value.id,
       property: newRelationship.value.property,
       target: newRelationship.value.target
