@@ -3526,14 +3526,18 @@ const loadValueDataSources = async () => {
     
     // 加载Class数据
     try {
+      console.log('Loading classes from API...')
       const classesResponse = await http.get('/class/findAll')
+      console.log('Classes response:', classesResponse)
       valueDataSources.value.classes = classesResponse.data || []
+      console.log('Loaded classes:', valueDataSources.value.classes)
     } catch (error) {
       console.error('Failed to load class data:', error)
       // 使用缓存数据或空数组
       if (!valueDataSources.value.classes) {
         valueDataSources.value.classes = []
       }
+      console.log('Using classes:', valueDataSources.value.classes)
     }
     
     // 加载Individual数据
@@ -3679,22 +3683,30 @@ const handleRelationshipValueFocus = (index) => {
 const handleRelationshipValueInput = (index) => {
   const rel = selectedClass.value.relationships[index]
   if (rel) {
+    console.log('handleRelationshipValueInput called:', index, rel.value)
+    console.log('Current classes in valueDataSources:', valueDataSources.value.classes)
+    
     const keyword = rel.value.toLowerCase()
     
     // 过滤classes
-    filteredValues.value.classes = valueDataSources.value.classes.filter(cls => 
-      cls.name.toLowerCase().includes(keyword)
-    )
+    filteredValues.value.classes = valueDataSources.value.classes.filter(cls => {
+      const matches = cls.name.toLowerCase().includes(keyword)
+      console.log('Checking class:', cls.name, 'matches:', matches)
+      return matches
+    })
+    console.log('Filtered classes:', filteredValues.value.classes)
     
     // 过滤individuals
     filteredValues.value.individuals = valueDataSources.value.individuals.filter(individual => 
       individual.name.toLowerCase().includes(keyword)
     )
+    console.log('Filtered individuals:', filteredValues.value.individuals)
     
     // 过滤dataTypes
     filteredValues.value.dataTypes = valueDataSources.value.dataTypes.filter(datatype => 
       datatype.toLowerCase().includes(keyword)
     )
+    console.log('Filtered dataTypes:', filteredValues.value.dataTypes)
   }
 }
 
@@ -3731,7 +3743,7 @@ const handleNewRelationshipValueBlur = async () => {
   // 保存新Relationship数据
   if (newRelationship.value.property && newRelationship.value.value) {
     try {
-      await addNewRelationship()
+      await addRelationship()
       
       // 检查是否需要新增空白行
       checkAndAddNewRelationshipRow()
@@ -3939,7 +3951,7 @@ const createNewValue = async (type, index) => {
   
   if (result) {
     if (index === -1) {
-      newRelationship.value = name
+      newRelationship.value.value = name
     } else if (selectedClass.value.relationships[index]) {
       selectedClass.value.relationships[index].value = name
     }
@@ -4132,7 +4144,9 @@ const createNewClass = async (name) => {
   try {
     const response = await http.post('/class/create', {
       name: name,
-      parentId: 'owl:Thing'
+      parentId: 'owl:Thing',
+      ontologyId: props.projectId,
+      languageTag: projectDefaultLanguage.value
     })
     await loadValueDataSources()
     return response.data

@@ -5,13 +5,13 @@
     <parent>
         <artifactId>ontology-service</artifactId>
         <groupId>com.by.ontology</groupId>
-        <version>${project.version}</version>
+        <version>0.1.15</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>ontology-service-app</artifactId>
-    <version>${project.version}</version>
+    <version>0.1.15</version>
     <name>ontology-service-app</name>
     <description>Application module for ontology service - contains startup class and configuration</description>
 
@@ -64,6 +64,26 @@
         <dependency>
             <groupId>com.by.ontology</groupId>
             <artifactId>metadata-module</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.by.ontology</groupId>
+            <artifactId>datatype-module</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.by.ontology</groupId>
+            <artifactId>comment-module</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.by.ontology</groupId>
+            <artifactId>collaboration-module</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.by.ontology</groupId>
+            <artifactId>activity-module</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

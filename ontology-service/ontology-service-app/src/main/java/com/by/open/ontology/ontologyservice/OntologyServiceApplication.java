@@ -14,7 +14,12 @@ import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
     "com.by.open.ontology.ontologyservice.instancemodule",
     "com.by.open.ontology.ontologyservice.versionmodule",
     "com.by.open.ontology.ontologyservice.reasoningmodule",
-    "com.by.open.ontology.ontologyservice.searchmodule"
+    "com.by.open.ontology.ontologyservice.searchmodule",
+    "com.by.open.ontology.ontologyservice.metadatamodule",
+    "com.by.open.ontology.ontologyservice.datatypemodule",
+    "com.by.open.ontology.ontologyservice.commentmodule",
+    "com.by.open.ontology.ontologyservice.collaborationmodule",
+    "com.by.open.ontology.ontologyservice.activitymodule"
 })
 @EnableEurekaClient
 public class OntologyServiceApplication {
