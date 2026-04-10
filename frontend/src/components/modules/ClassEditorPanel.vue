@@ -632,7 +632,7 @@
                     <input 
                       type="text" 
                       class="annotation-value-input" 
-                      v-model="rel.value" 
+                      v-model="rel.target" 
                       :placeholder="getRelationshipConfig(rel.property).placeholder"
                       @focus="handleRelationshipValueFocus(index)"
                       @input="handleRelationshipValueInput(index)"
@@ -651,100 +651,96 @@
                           {{ datatype }}
                         </div>
                       </div>
-                      <div v-if="filteredValues.dataTypes.length === 0 && rel.value" class="dropdown-section">
+                      <div v-if="filteredValues.dataTypes.length === 0 && rel.target" class="dropdown-section">
                         <div class="dropdown-section-title">New</div>
                         <div class="annotation-property-option new-option" @click="createNewValue('datatype', index)">
-                          New Datatype named {{ rel.value }}
+                          New Datatype named {{ rel.target }}
                         </div>
                       </div>
                     </div>
                     
                     <!-- ObjectProperty类型：显示Classes/Individuals，有内容时显示New按钮 -->
-                    <div v-if="showValueDropdown && currentValueIndex === index && getRelationshipConfig(rel.property).propertyType === 'object'" class="annotation-property-dropdown">
-                      <template v-if="rel.value">
-                        <div class="dropdown-section">
-                          <div class="dropdown-section-title">Classes</div>
-                          <div 
-                            v-for="cls in filteredValues.classes" 
-                            :key="cls.id"
-                            class="annotation-property-option"
-                            @click="selectRelationshipValue(cls.name, index)"
-                          >
-                            {{ cls.name }}
-                          </div>
+                    <div v-if="showValueDropdown && currentValueIndex === index && getRelationshipConfig(rel.property).propertyType === 'object' && rel.target" class="annotation-property-dropdown">
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">Classes</div>
+                        <div 
+                          v-for="cls in filteredValues.classes" 
+                          :key="cls.id"
+                          class="annotation-property-option"
+                          @click="selectRelationshipValue(cls.name, index)"
+                        >
+                          {{ cls.name }}
                         </div>
-                        <div class="dropdown-section">
-                          <div class="dropdown-section-title">Individuals</div>
-                          <div 
-                            v-for="individual in filteredValues.individuals" 
-                            :key="individual.id"
-                            class="annotation-property-option"
-                            @click="selectRelationshipValue(individual.name, index)"
-                          >
-                            {{ individual.name }}
-                          </div>
+                      </div>
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">Individuals</div>
+                        <div 
+                          v-for="individual in filteredValues.individuals" 
+                          :key="individual.id"
+                          class="annotation-property-option"
+                          @click="selectRelationshipValue(individual.name, index)"
+                        >
+                          {{ individual.name }}
                         </div>
-                        <div v-if="filteredValues.classes.length === 0 && filteredValues.individuals.length === 0" class="dropdown-section">
-                          <div class="dropdown-section-title">New</div>
-                          <div class="annotation-property-option new-option" @click="createNewValue('individual', index)">
-                            New Individual named {{ rel.value }}
-                          </div>
-                          <div class="annotation-property-option new-option" @click="createNewValue('class', index)">
-                            New Class named {{ rel.value }}
-                          </div>
+                      </div>
+                      <div v-if="filteredValues.classes.length === 0 && filteredValues.individuals.length === 0" class="dropdown-section">
+                        <div class="dropdown-section-title">New</div>
+                        <div class="annotation-property-option new-option" @click="createNewValue('individual', index)">
+                          New Individual named {{ rel.target }}
                         </div>
-                      </template>
+                        <div class="annotation-property-option new-option" @click="createNewValue('class', index)">
+                          New Class named {{ rel.target }}
+                        </div>
+                      </div>
                     </div>
                     
                     <!-- Default类型：显示所有选项 -->
-                    <div v-if="showValueDropdown && currentValueIndex === index && getRelationshipConfig(rel.property).propertyType === 'default'" class="annotation-property-dropdown">
-                      <template v-if="rel.value">
-                        <div class="dropdown-section">
-                          <div class="dropdown-section-title">Classes</div>
-                          <div 
-                            v-for="cls in filteredValues.classes" 
-                            :key="cls.id"
-                            class="annotation-property-option"
-                            @click="selectRelationshipValue(cls.name, index)"
-                          >
-                            {{ cls.name }}
-                          </div>
+                    <div v-if="showValueDropdown && currentValueIndex === index && getRelationshipConfig(rel.property).propertyType === 'default' && rel.target" class="annotation-property-dropdown">
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">Classes</div>
+                        <div 
+                          v-for="cls in filteredValues.classes" 
+                          :key="cls.id"
+                          class="annotation-property-option"
+                          @click="selectRelationshipValue(cls.name, index)"
+                        >
+                          {{ cls.name }}
                         </div>
-                        <div class="dropdown-section">
-                          <div class="dropdown-section-title">Individuals</div>
-                          <div 
-                            v-for="individual in filteredValues.individuals" 
-                            :key="individual.id"
-                            class="annotation-property-option"
-                            @click="selectRelationshipValue(individual.name, index)"
-                          >
-                            {{ individual.name }}
-                          </div>
+                      </div>
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">Individuals</div>
+                        <div 
+                          v-for="individual in filteredValues.individuals" 
+                          :key="individual.id"
+                          class="annotation-property-option"
+                          @click="selectRelationshipValue(individual.name, index)"
+                        >
+                          {{ individual.name }}
                         </div>
-                        <div class="dropdown-section">
-                          <div class="dropdown-section-title">Data Types</div>
-                          <div 
-                            v-for="datatype in filteredValues.dataTypes" 
-                            :key="datatype"
-                            class="annotation-property-option"
-                            @click="selectRelationshipValue(datatype, index)"
-                          >
-                            {{ datatype }}
-                          </div>
+                      </div>
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">Data Types</div>
+                        <div 
+                          v-for="datatype in filteredValues.dataTypes" 
+                          :key="datatype"
+                          class="annotation-property-option"
+                          @click="selectRelationshipValue(datatype, index)"
+                        >
+                          {{ datatype }}
                         </div>
-                        <div class="dropdown-section">
-                          <div class="dropdown-section-title">New</div>
-                          <div class="annotation-property-option new-option" @click="createNewValue('individual', index)">
-                            New Individual named {{ rel.value }}
-                          </div>
-                          <div class="annotation-property-option new-option" @click="createNewValue('class', index)">
-                            New Class named {{ rel.value }}
-                          </div>
-                          <div class="annotation-property-option new-option" @click="createNewValue('datatype', index)">
-                            New Datatype named {{ rel.value }}
-                          </div>
+                      </div>
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">New</div>
+                        <div class="annotation-property-option new-option" @click="createNewValue('individual', index)">
+                          New Individual named {{ rel.target }}
                         </div>
-                      </template>
+                        <div class="annotation-property-option new-option" @click="createNewValue('class', index)">
+                          New Class named {{ rel.target }}
+                        </div>
+                        <div class="annotation-property-option new-option" @click="createNewValue('datatype', index)">
+                          New Datatype named {{ rel.target }}
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <div v-if="getRelationshipConfig(rel.property).showLang" class="annotation-lang-container">
@@ -802,7 +798,7 @@
                     <input 
                       type="text" 
                       class="annotation-value-input" 
-                      v-model="newRelationship.value" 
+                      v-model="newRelationship.target" 
                       :placeholder="getRelationshipConfig(newRelationship.property).placeholder"
                       @focus="handleNewRelationshipValueFocus"
                       @input="handleNewRelationshipValueInput"
@@ -821,100 +817,96 @@
                           {{ datatype }}
                         </div>
                       </div>
-                      <div v-if="filteredValues.dataTypes.length === 0 && newRelationship.value" class="dropdown-section">
+                      <div v-if="filteredValues.dataTypes.length === 0 && newRelationship.target" class="dropdown-section">
                         <div class="dropdown-section-title">New</div>
                         <div class="annotation-property-option new-option" @click="createNewValue('datatype', -1)">
-                          New Datatype named {{ newRelationship.value }}
+                          New Datatype named {{ newRelationship.target }}
                         </div>
                       </div>
                     </div>
                     
                     <!-- ObjectProperty类型：显示Classes/Individuals，有内容时显示New按钮 -->
-                    <div v-if="showValueDropdown && currentValueIndex === -1 && getRelationshipConfig(newRelationship.property).propertyType === 'object'" class="annotation-property-dropdown">
-                      <template v-if="newRelationship.value">
-                        <div class="dropdown-section">
-                          <div class="dropdown-section-title">Classes</div>
-                          <div 
-                            v-for="cls in filteredValues.classes" 
-                            :key="cls.id"
-                            class="annotation-property-option"
-                            @click="selectNewRelationshipValue(cls.name)"
-                          >
-                            {{ cls.name }}
-                          </div>
+                    <div v-if="showValueDropdown && currentValueIndex === -1 && getRelationshipConfig(newRelationship.property).propertyType === 'object' && newRelationship.target" class="annotation-property-dropdown">
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">Classes</div>
+                        <div 
+                          v-for="cls in filteredValues.classes" 
+                          :key="cls.id"
+                          class="annotation-property-option"
+                          @click="selectNewRelationshipValue(cls.name)"
+                        >
+                          {{ cls.name }}
                         </div>
-                        <div class="dropdown-section">
-                          <div class="dropdown-section-title">Individuals</div>
-                          <div 
-                            v-for="individual in filteredValues.individuals" 
-                            :key="individual.id"
-                            class="annotation-property-option"
-                            @click="selectNewRelationshipValue(individual.name)"
-                          >
-                            {{ individual.name }}
-                          </div>
+                      </div>
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">Individuals</div>
+                        <div 
+                          v-for="individual in filteredValues.individuals" 
+                          :key="individual.id"
+                          class="annotation-property-option"
+                          @click="selectNewRelationshipValue(individual.name)"
+                        >
+                          {{ individual.name }}
                         </div>
-                        <div v-if="filteredValues.classes.length === 0 && filteredValues.individuals.length === 0" class="dropdown-section">
-                          <div class="dropdown-section-title">New</div>
-                          <div class="annotation-property-option new-option" @click="createNewValue('individual', -1)">
-                            New Individual named {{ newRelationship.value }}
-                          </div>
-                          <div class="annotation-property-option new-option" @click="createNewValue('class', -1)">
-                            New Class named {{ newRelationship.value }}
-                          </div>
+                      </div>
+                      <div v-if="filteredValues.classes.length === 0 && filteredValues.individuals.length === 0" class="dropdown-section">
+                        <div class="dropdown-section-title">New</div>
+                        <div class="annotation-property-option new-option" @click="createNewValue('individual', -1)">
+                          New Individual named {{ newRelationship.target }}
                         </div>
-                      </template>
+                        <div class="annotation-property-option new-option" @click="createNewValue('class', -1)">
+                          New Class named {{ newRelationship.target }}
+                        </div>
+                      </div>
                     </div>
                     
                     <!-- Default类型：显示所有选项 -->
-                    <div v-if="showValueDropdown && currentValueIndex === -1 && getRelationshipConfig(newRelationship.property).propertyType === 'default'" class="annotation-property-dropdown">
-                      <template v-if="newRelationship.value">
-                        <div class="dropdown-section">
-                          <div class="dropdown-section-title">Classes</div>
-                          <div 
-                            v-for="cls in filteredValues.classes" 
-                            :key="cls.id"
-                            class="annotation-property-option"
-                            @click="selectNewRelationshipValue(cls.name)"
-                          >
-                            {{ cls.name }}
-                          </div>
+                    <div v-if="showValueDropdown && currentValueIndex === -1 && getRelationshipConfig(newRelationship.property).propertyType === 'default' && newRelationship.target" class="annotation-property-dropdown">
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">Classes</div>
+                        <div 
+                          v-for="cls in filteredValues.classes" 
+                          :key="cls.id"
+                          class="annotation-property-option"
+                          @click="selectNewRelationshipValue(cls.name)"
+                        >
+                          {{ cls.name }}
                         </div>
-                        <div class="dropdown-section">
-                          <div class="dropdown-section-title">Individuals</div>
-                          <div 
-                            v-for="individual in filteredValues.individuals" 
-                            :key="individual.id"
-                            class="annotation-property-option"
-                            @click="selectNewRelationshipValue(individual.name)"
-                          >
-                            {{ individual.name }}
-                          </div>
+                      </div>
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">Individuals</div>
+                        <div 
+                          v-for="individual in filteredValues.individuals" 
+                          :key="individual.id"
+                          class="annotation-property-option"
+                          @click="selectNewRelationshipValue(individual.name)"
+                        >
+                          {{ individual.name }}
                         </div>
-                        <div class="dropdown-section">
-                          <div class="dropdown-section-title">Data Types</div>
-                          <div 
-                            v-for="datatype in filteredValues.dataTypes" 
-                            :key="datatype"
-                            class="annotation-property-option"
-                            @click="selectNewRelationshipValue(datatype)"
-                          >
-                            {{ datatype }}
-                          </div>
+                      </div>
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">Data Types</div>
+                        <div 
+                          v-for="datatype in filteredValues.dataTypes" 
+                          :key="datatype"
+                          class="annotation-property-option"
+                          @click="selectNewRelationshipValue(datatype)"
+                        >
+                          {{ datatype }}
                         </div>
-                        <div class="dropdown-section">
-                          <div class="dropdown-section-title">New</div>
-                          <div class="annotation-property-option new-option" @click="createNewValue('individual', -1)">
-                            New Individual named {{ newRelationship.value }}
-                          </div>
-                          <div class="annotation-property-option new-option" @click="createNewValue('class', -1)">
-                            New Class named {{ newRelationship.value }}
-                          </div>
-                          <div class="annotation-property-option new-option" @click="createNewValue('datatype', -1)">
-                            New Datatype named {{ newRelationship.value }}
-                          </div>
+                      </div>
+                      <div class="dropdown-section">
+                        <div class="dropdown-section-title">New</div>
+                        <div class="annotation-property-option new-option" @click="createNewValue('individual', -1)">
+                          New Individual named {{ newRelationship.target }}
                         </div>
-                      </template>
+                        <div class="annotation-property-option new-option" @click="createNewValue('class', -1)">
+                          New Class named {{ newRelationship.target }}
+                        </div>
+                        <div class="annotation-property-option new-option" @click="createNewValue('datatype', -1)">
+                          New Datatype named {{ newRelationship.target }}
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <div v-if="getRelationshipConfig(newRelationship.property).showLang" class="annotation-lang-container">
@@ -2121,7 +2113,11 @@ const valueDataSources = ref({
 // Value相关状态
 const showValueDropdown = ref(false)
 const currentValueIndex = ref(-1)
-const filteredValues = ref([])
+const filteredValues = ref({
+  classes: [],
+  individuals: [],
+  dataTypes: []
+})
 const valueSearchKeyword = ref('')
 
 const newParent = ref({
@@ -2133,7 +2129,6 @@ const showParentSearchResults = ref(false)
 
 const newRelationship = ref({
   property: '',
-  value: '',
   target: '',
   language: ''
 })
@@ -2407,8 +2402,11 @@ const loadClassDetails = async (classId) => {
     selectedClass.value.annotations = annotationsResponse.data || []
     
     // 加载Relationships数据
+    console.log('Loading relationships for class:', classId)
     const relationshipsResponse = await http.get(`/relationship/findByEntityIdAndEntityType/${classId}/CLASS`)
+    console.log('Relationships response:', relationshipsResponse.data)
     selectedClass.value.relationships = relationshipsResponse.data || []
+    console.log('Relationships loaded:', selectedClass.value.relationships)
     
     // 如果annotations为空，添加默认的rdfs:label annotation
     if (!selectedClass.value.annotations || selectedClass.value.annotations.length === 0) {
@@ -3555,12 +3553,12 @@ const loadValueDataSources = async () => {
     // 加载数据类型
     try {
       const datatypesResponse = await http.get('/metadata/datatypes')
-      valueDataSources.value.datatypes = datatypesResponse.data || []
+      valueDataSources.value.dataTypes = datatypesResponse.data || []
     } catch (error) {
       console.error('Failed to load data types from API:', error)
       // 使用默认数据类型
-      if (!valueDataSources.value.datatypes) {
-        valueDataSources.value.datatypes = [
+      if (!valueDataSources.value.dataTypes) {
+        valueDataSources.value.dataTypes = [
           'string', 'int', 'integer', 'boolean', 'float', 'double',
           'date', 'datetime', 'long', 'short', 'byte',
           'unsignedInt', 'unsignedLong', 'unsignedShort', 'unsignedByte',
@@ -3587,8 +3585,8 @@ const loadValueDataSources = async () => {
     if (!valueDataSources.value.individuals) {
       valueDataSources.value.individuals = []
     }
-    if (!valueDataSources.value.datatypes) {
-      valueDataSources.value.datatypes = [
+    if (!valueDataSources.value.dataTypes) {
+      valueDataSources.value.dataTypes = [
         'string', 'int', 'integer', 'boolean', 'float', 'double',
         'date', 'datetime', 'long', 'short', 'byte',
         'unsignedInt', 'unsignedLong', 'unsignedShort', 'unsignedByte',
@@ -3683,10 +3681,10 @@ const handleRelationshipValueFocus = (index) => {
 const handleRelationshipValueInput = (index) => {
   const rel = selectedClass.value.relationships[index]
   if (rel) {
-    console.log('handleRelationshipValueInput called:', index, rel.value)
+    console.log('handleRelationshipValueInput called:', index, rel.target)
     console.log('Current classes in valueDataSources:', valueDataSources.value.classes)
     
-    const keyword = rel.value.toLowerCase()
+    const keyword = rel.target.toLowerCase()
     
     // 过滤classes
     filteredValues.value.classes = valueDataSources.value.classes.filter(cls => {
@@ -3777,7 +3775,7 @@ const saveRelationship = async (rel) => {
     const config = getRelationshipConfig(rel.property)
     const relationshipData = {
       property: rel.property,
-      value: rel.value
+      target: rel.target
     }
     
     // 只有DataProperty类型才包含language字段
@@ -3788,15 +3786,17 @@ const saveRelationship = async (rel) => {
     // 调用后端API保存数据
     await http.post('/relationship/save', relationshipData)
     console.log('Relationship saved successfully:', relationshipData)
+    ElMessage.success('Relationship saved successfully')
   } catch (error) {
     console.error('Failed to save relationship:', error)
+    ElMessage.error('Failed to save relationship. Please try again.')
     throw error
   }
 }
 
 const selectRelationshipValue = (value, index) => {
   if (selectedClass.value.relationships[index]) {
-    selectedClass.value.relationships[index].value = value
+    selectedClass.value.relationships[index].target = value
   }
   showValueDropdown.value = false
 }
@@ -3813,7 +3813,7 @@ const handleNewRelationshipValueFocus = () => {
 }
 
 const handleNewRelationshipValueInput = () => {
-  const keyword = newRelationship.value.value.toLowerCase()
+  const keyword = newRelationship.value.target.toLowerCase()
   
   // 过滤classes
   filteredValues.value.classes = valueDataSources.value.classes.filter(cls => 
@@ -3889,22 +3889,20 @@ const getRelationshipConfig = (property) => {
     }
   }
   
-  // 检查是否是owl属性
-  if (property.startsWith('owl:')) {
-    if (property.includes('DataProperty')) {
-      // DataProperty类型：只显示DataTypes，可以输入任意字符串/数值
-      return {
-        placeholder: 'Enter datatype,string,number etc.',
-        showLang: true,
-        propertyType: 'datatype'
-      }
-    } else if (property.includes('ObjectProperty')) {
-      // ObjectProperty类型：显示Classes/Individuals，可以输入任意字符串
-      return {
-        placeholder: 'Enter class or individual name',
-        showLang: false,
-        propertyType: 'object'
-      }
+  // 检查是否是DataProperty类型
+  if (property.includes('DataProperty')) {
+    // DataProperty类型：只显示DataTypes，可以输入任意字符串/数值
+    return {
+      placeholder: 'Enter datatype,string,number etc.',
+      showLang: true,
+      propertyType: 'datatype'
+    }
+  } else if (property.includes('ObjectProperty')) {
+    // ObjectProperty类型：显示Classes/Individuals，可以输入任意字符串
+    return {
+      placeholder: 'Enter class or individual name',
+      showLang: false,
+      propertyType: 'object'
     }
   }
   
@@ -3919,16 +3917,16 @@ const getRelationshipConfig = (property) => {
 
 
 const selectNewRelationshipValue = (value) => {
-  newRelationship.value = value
+  newRelationship.value.target = value
   showValueDropdown.value = false
 }
 
 const createNewValue = async (type, index) => {
   let name = ''
   if (index === -1) {
-    name = newRelationship.value
+    name = newRelationship.value.target
   } else if (selectedClass.value.relationships[index]) {
-    name = selectedClass.value.relationships[index].value
+    name = selectedClass.value.relationships[index].target
   }
   
   if (!name) {
@@ -3937,25 +3935,31 @@ const createNewValue = async (type, index) => {
   }
   
   let result = null
-  switch (type) {
-    case 'individual':
-      result = await createNewIndividual(name)
-      break
-    case 'class':
-      result = await createNewClass(name)
-      break
-    case 'datatype':
-      result = await createNewDatatype(name)
-      break
-  }
-  
-  if (result) {
-    if (index === -1) {
-      newRelationship.value.value = name
-    } else if (selectedClass.value.relationships[index]) {
-      selectedClass.value.relationships[index].value = name
+  try {
+    switch (type) {
+      case 'individual':
+        result = await createNewIndividual(name)
+        break
+      case 'class':
+        result = await createNewClass(name)
+        break
+      case 'datatype':
+        result = await createNewDatatype(name)
+        break
     }
-    showValueDropdown.value = false
+    
+    if (result) {
+      if (index === -1) {
+        newRelationship.value.target = name
+      } else if (selectedClass.value.relationships[index]) {
+        selectedClass.value.relationships[index].target = name
+      }
+      showValueDropdown.value = false
+      ElMessage.success(`New ${type} created successfully`)
+    }
+  } catch (error) {
+    console.error(`Failed to create new ${type}:`, error)
+    ElMessage.error(`Failed to create new ${type}. Please try again.`)
   }
 }
 
@@ -3963,7 +3967,7 @@ const createNewValue = async (type, index) => {
 
 const handleRelationshipLangBlur = async (rel, index) => {
   // 当焦点离开lang输入框时，向后台更新数据
-  if (rel && (rel.property && rel.value)) {
+  if (rel && (rel.property && rel.target)) {
     try {
       // 检查(property+lang)组合的唯一性
       const isUnique = checkRelationshipUniqueness(rel, index)
@@ -3978,7 +3982,7 @@ const handleRelationshipLangBlur = async (rel, index) => {
         entityId: selectedClass.value.id,
         entityType: 'CLASS',
         property: rel.property,
-        value: rel.value
+        target: rel.target
       }
       
       // 只有DataProperty类型才包含language字段
@@ -3988,6 +3992,7 @@ const handleRelationshipLangBlur = async (rel, index) => {
       
       await http.post('/relationship/set', requestData)
       await loadClassDetails(selectedClass.value.id)
+      ElMessage.success('Relationship updated successfully')
       
       // 检查是否需要新增空白行
       checkAndAddNewRelationshipRow()
@@ -4149,6 +4154,7 @@ const createNewClass = async (name) => {
       languageTag: projectDefaultLanguage.value
     })
     await loadValueDataSources()
+    await loadClassHierarchy() // 成功创建Class后更新Class Hierarchy树
     return response.data
   } catch (error) {
     console.error('Failed to create new class:', error)
@@ -4172,7 +4178,7 @@ const createNewDatatype = async (name) => {
 }
 
 const addRelationship = async () => {
-  if (!selectedClass.value || !newRelationship.value.property || !newRelationship.value.value) return
+  if (!selectedClass.value || !newRelationship.value.property || !newRelationship.value.target) return
   
   try {
     // 检查(property+lang)组合的唯一性
@@ -4186,19 +4192,20 @@ const addRelationship = async () => {
       entityId: selectedClass.value.id,
       entityType: 'CLASS',
       property: newRelationship.value.property,
-      value: newRelationship.value.value,
+      target: newRelationship.value.target,
       language: newRelationship.value.language
     })
     await loadClassDetails(selectedClass.value.id)
     // 重置新relationship表单
     newRelationship.value = {
       property: '',
-      value: '',
       target: '',
       language: ''
     }
+    ElMessage.success('Relationship added successfully')
   } catch (error) {
     console.error('Failed to add relationship:', error)
+    ElMessage.error('Failed to add relationship. Please try again.')
   }
 }
 
