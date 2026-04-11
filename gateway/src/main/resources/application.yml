@@ -64,6 +64,10 @@ spring:
           uri: lb://ontology-service
           predicates:
             - Path=/api/relationship/**
+        - id: activity-service
+          uri: lb://ontology-service
+          predicates:
+            - Path=/api/activity/**
 
 server:
   port: 8082
