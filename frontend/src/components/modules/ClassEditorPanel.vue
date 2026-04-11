@@ -2431,6 +2431,9 @@ const loadClassDetails = async (classId) => {
     })
     console.log('Relationships loaded:', selectedClass.value.relationships)
     
+    // 确保始终有一个空白行用于添加新数据
+    checkAndAddNewRelationshipRow()
+    
     // 如果annotations为空，添加默认的rdfs:label annotation
     if (!selectedClass.value.annotations || selectedClass.value.annotations.length === 0) {
       selectedClass.value.annotations = [{
@@ -4104,8 +4107,8 @@ const handleRelationshipLangBlur = async (rel, index) => {
       await loadClassDetails(selectedClass.value.id)
       ElMessage.success('Relationship updated successfully')
       
-      // 检查是否需要新增空白行
-      checkAndAddNewRelationshipRow()
+      // 不需要在这里检查添加空白行，因为loadClassDetails会重新加载数据
+      // checkAndAddNewRelationshipRow()
     } catch (error) {
       console.error('Failed to update relationship:', error)
       ElMessage.error('Failed to update relationship')
