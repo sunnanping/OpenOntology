@@ -4171,7 +4171,7 @@ const removeRelationship = async (index) => {
           entityId: selectedClass.value.id,
           entityType: 'CLASS',
           property: rel.property,
-          target: rel.target
+          value: rel.target
         }
       })
       await loadClassDetails(selectedClass.value.id)
