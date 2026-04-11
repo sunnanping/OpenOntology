@@ -505,3 +505,10 @@ eureka:
    - 配置负载均衡
    - 启用HTTPS
    - 配置详细的监控和告警
+
+## 8. 版本更新记录
+
+| 版本号 | 更新日期 | 更新内容 |
+|-------|---------|----------|
+| v0.1.16 | 2026-04-11 | 1. 修复Relationship相关问题：删除数据后出现多条空白行<br>2. 修复Relationship相关问题：修改lang后出现两条数据<br>3. 更新版本号到0.1.16<br>4. 更新README.md、ProjectTest.md、function.md、hci-log.md文档 |
+| v0.1.15 | 2026-03-30 | 1. 优化Annotation的value，在create以及update条件下，支持value中的多annotation数据的格式<br>2. 优化后台解析：当用户在前端输入多条annotation时，首先要去掉这个字符串后的分号";"，然后再去解析多条annotation数据；其次，取lang时，如果有引号，则取引号中内容，并且要去掉内容的前后空格<br>3. 优化Class Hierarchy中节点ClassName在前端显示的名称的规则，优先级从高到低，分别为：首先是该节点对应annotations中能匹配到("rdfs:label"+项目语言)的annotation；如果没有匹配的，其次就是匹配到("rdfs:label"+语言为空)的annotation，最后就是这个Class实体的ClassName |

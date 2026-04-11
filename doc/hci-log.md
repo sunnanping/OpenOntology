@@ -3,10 +3,10 @@
 ## 项目信息
 
 - 项目名称: **OpenOntology**
-- 项目版本: **v0.1.15**
+- 项目版本: **v0.1.16**
 - 项目路径: d:\project\trae\java\OpenOntology
 - **首次时间**: 2026-03-15
-- **最后时间**: 2026-03-30
+- **最后时间**: 2026-04-11
 
 ## 交互记录
 
@@ -901,95 +901,38 @@
   3. 修改AnnotationController，添加process端点
   4. 修改前端submitAnnotation函数，支持多annotation输入
   5. 实现updateClassAnnotations方法，同步Class实体中的annotations字段
-  6. 验证功能是否正常工作
-- **实现方案**:
-  1. **后端AnnotationParser工具类**:
-     - 位置：`ontology-service/class-module/src/main/java/com/by/open/ontology/ontologyservice/classmodule/service/AnnotationParser.java`
-     - 功能：解析多种格式的annotation value，支持带引号、不带引号、@后为空等情况
-  2. **后端AnnotationService增强**:
-     - 新增processAnnotations方法，处理多个annotation的创建和更新
-     - 实现updateClassAnnotations方法，同步Class实体中的annotations字段
-  3. **前端ClassEditorPanel.vue优化**:
-     - 修改submitAnnotation函数，检测value包含逗号时调用新的process端点
-     - 优化提示文本，添加示例格式
-- **验证结果**:
-  - ✅ AnnotationParser工具类实现完成
-  - ✅ AnnotationService增强完成
-  - ✅ AnnotationController增强完成
-  - ✅ 前端多annotation输入支持完成
-  - ✅ Class实体annotations字段同步完成
-  - ✅ 本地git提交成功
-- **遗留问题/待优化**:
-  - 无
 
-### 交互 #27: Annotations优化 - 后台解析逻辑优化
+### 交互 #27: Relationship相关问题修复
 
-- **需求类型**: 功能优化
-- **需求内容**: 持续优化后台解析：当用户在前端输入多条annotation时，首先要去掉这个字符串后的分号";"，然后再去解析多条annotation数据；其次，取lang时，如果有引号，则取引号中内容，并且要去掉内容的前后空格
+- **需求类型**: Bug修复
+- **需求内容**: 修复Relationship相关问题：1. 删除数据后出现多条空白行 2. 修改lang后出现两条数据
 - **需求提交人**: 用户
-- **需求提出时间**: 2026-03-30
-- **完成时间**: 2026-03-30
+- **需求提出时间**: 2026-04-11
+- **完成时间**: 2026-04-11
 - **思考主要内容**:
-  - 优化AnnotationParser的解析逻辑
-  - 处理带分号结尾的格式
-  - 处理带引号的lang格式
-  - 去掉内容的前后空格
+  - 分析删除数据后出现多条空白行的原因
+  - 分析修改lang后出现两条数据的原因
+  - 设计修复方案
+  - 实现前端和后端的修复
 - **任务拆分**:
-  1. 修改AnnotationParser的parseAnnotations方法，去掉字符串后的分号
-  2. 修改parseSingleAnnotation方法，处理带引号的lang
-  3. 去掉解析后内容的前后空格
-  4. 验证各种格式的解析是否正确
-  5. 本地git提交
-- **实现方案**:
-  1. **分号处理**:
-     - 在parseAnnotations方法中，先去掉字符串后的分号
-     - 然后再按逗号分割多个annotation
-  2. **带引号的lang处理**:
-     - 在parseSingleAnnotation方法中，检查lang是否带引号
-     - 如果带引号，取引号中的内容
-     - 去掉内容的前后空格
+  1. 修复前端删除数据后出现多条空白行的问题
+  2. 修复后端修改lang后出现两条数据的问题
+  3. 本地git提交
+  4. 更新版本号到0.1.16
+  5. 更新README.md、ProjectTest.md、function.md、hci-log.md文档
+- **修复方案**:
+  1. **前端修复**:
+     - 移除单独的新行输入区域和相关代码
+     - 统一空白行管理逻辑，确保只有一个空白行用于添加新数据
+  2. **后端修复**:
+     - 修改RelationshipService中的setRelationship方法
+     - 确保修改lang时删除具有相同property和value的现有关系，只保留一条数据
 - **验证结果**:
-  - ✅ 分号处理功能实现完成
-  - ✅ 带引号的lang处理功能实现完成
-  - ✅ 前后空格处理功能实现完成
+  - ✅ 删除数据后不再出现多条空白行
+  - ✅ 修改lang后不再出现两条数据
   - ✅ 本地git提交成功
-- **遗留问题/待优化**:
-  - 无
-
-### 交互 #28: Annotations优化 - Class节点显示名称逻辑优化
-
-- **需求类型**: 功能开发
-- **需求内容**: Class Hierarchy中节点ClassName在前端显示的名称的规则，优先级从高到低，分别为：首先是该节点对应annotations中能匹配到("rdfs:label"+项目语言)的annotation；如果没有匹配的，其次就是匹配到("rdfs:label"+语言为空)的annotation，最后就是这个Class实体的ClassName
-- **需求提交人**: 用户
-- **需求提出时间**: 2026-03-30
-- **完成时间**: 2026-03-30
-- **思考主要内容**:
-  - 设计节点显示名称的优先级规则
-  - 实现getNodeDisplayName函数
-  - 修改buildTreeData函数，确保节点使用正确的显示名称
-  - 实现Annotation提交和删除后重新加载类层次结构的逻辑
-- **任务拆分**:
-  1. 实现getNodeDisplayName函数，按照优先级规则计算节点显示名称
-  2. 修改buildTreeData函数，使用getNodeDisplayName获取displayName
-  3. 修改submitAnnotation函数，当提交的是rdfs:label annotation时重新加载类层次结构
-  4. 修改handleAnnotationLangBlur和handleNewAnnotationLangBlur函数，同样处理rdfs:label annotation
-  5. 修改removeAnnotation函数，当删除的是rdfs:label annotation时重新加载类层次结构
-  6. 验证功能是否正常工作
-  7. 本地git提交
-- **实现方案**:
-  1. **显示名称优先级规则**:
-     - 首先查找匹配项目语言的rdfs:label annotation
-     - 其次查找语言为空的rdfs:label annotation
-     - 最后使用类名
-  2. **提交后更新**:
-     - 当提交的是rdfs:label annotation且语言符合条件时，调用loadClassHierarchy()重新加载类层次结构
-  3. **删除后更新**:
-     - 当删除的是rdfs:label annotation且语言符合条件时，调用loadClassHierarchy()重新加载类层次结构
-- **验证结果**:
-  - ✅ 节点显示名称优先级规则实现完成
-  - ✅ Annotation提交后更新节点名称功能实现完成
-  - ✅ Annotation删除后更新节点名称功能实现完成
-  - ✅ 本地git提交成功
+  - ✅ 版本号更新到0.1.16
+  - ✅ 文档更新完成
 - **遗留问题/待优化**:
   - 无
 
