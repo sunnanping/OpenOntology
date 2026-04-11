@@ -764,11 +764,28 @@
                         {{ lang.code }} ({{ lang.name }})
                       </div>
                     </div>
+                    <div class="annotation-actions">
+                      <button 
+                        v-if="rel.property || rel.target || rel.language" 
+                        class="annotation-delete" 
+                        @click="removeRelationship(index)"
+                      >
+                        <span class="delete-icon">×</span>
+                      </button>
+                    </div>
                     </div>
                   </div>
-                  <button class="annotation-delete" @click="removeRelationship(index)">
-                    <span class="delete-icon">×</span>
-                  </button>
+                  <div v-else class="annotation-lang-container">
+                    <div class="annotation-actions">
+                      <button 
+                        v-if="rel.property || rel.target" 
+                        class="annotation-delete" 
+                        @click="removeRelationship(index)"
+                      >
+                        <span class="delete-icon">×</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="annotation-input-row" v-if="showNewRelationshipInput">
