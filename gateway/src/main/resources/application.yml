@@ -56,6 +56,14 @@ spring:
           uri: lb://ontology-service
           predicates:
             - Path=/api/annotation/**
+        - id: metadata-service
+          uri: lb://ontology-service
+          predicates:
+            - Path=/api/metadata/**
+        - id: relationship-service
+          uri: lb://ontology-service
+          predicates:
+            - Path=/api/relationship/**
 
 server:
   port: 8082

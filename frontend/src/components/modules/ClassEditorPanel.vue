@@ -3464,7 +3464,7 @@ const loadRelationshipProperties = async () => {
     
     // 尝试加载ObjectProperty数据
     try {
-      const objectPropertiesResponse = await http.get('/property/findByType/OBJECT')
+      const objectPropertiesResponse = await http.get('/property/findByPropertyType/OBJECT')
       const objectProperties = objectPropertiesResponse.data || []
       objectProperties.forEach(prop => {
         if (prop.name) {
