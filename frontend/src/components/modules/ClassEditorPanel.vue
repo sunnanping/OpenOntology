@@ -3554,23 +3554,37 @@ const loadValueDataSources = async () => {
       }
     }
     
-    // 加载数据类型
-    try {
-      const datatypesResponse = await http.get('/metadata/datatypes')
-      valueDataSources.value.dataTypes = datatypesResponse.data || []
-    } catch (error) {
-      console.error('Failed to load data types from API:', error)
-      // 使用默认数据类型
-      if (!valueDataSources.value.dataTypes) {
-        valueDataSources.value.dataTypes = [
-          'string', 'int', 'integer', 'boolean', 'float', 'double',
-          'date', 'datetime', 'long', 'short', 'byte',
-          'unsignedInt', 'unsignedLong', 'unsignedShort', 'unsignedByte',
-          'decimal', 'negativeInteger', 'nonNegativeInteger', 'nonPositiveInteger', 'positiveInteger',
-          'real', 'rational', 'literal', 'thing'
-        ]
-      }
-    }
+    // 加载数据类型 - 使用本地定义的dataTypes清单，不从API获取
+    valueDataSources.value.dataTypes = [
+      'xsd:anyURI',
+      'xsd:base64Binary',
+      'xsd:boolean',
+      'xsd:byte',
+      'xsd:dateTime',
+      'xsd:dateTimeStamp',
+      'xsd:decimal',
+      'xsd:double',
+      'xsd:float',
+      'xsd:hexBinary',
+      'xsd:int',
+      'xsd:integer',
+      'xsd:language',
+      'xsd:long',
+      'xsd:Name',
+      'xsd:NCName',
+      'xsd:negativeInteger',
+      'xsd:nonNegativeInteger',
+      'xsd:nonPositiveInteger',
+      'xsd:positiveInteger',
+      'xsd:short',
+      'xsd:string',
+      'xsd:token',
+      'xsd:unsignedByte',
+      'xsd:unsignedInt',
+      'xsd:unsignedLong',
+      'xsd:unsignedShort'
+    ]
+    console.log('Using local dataTypes:', valueDataSources.value.dataTypes)
     
     // 缓存数据到localStorage
     try {
@@ -3591,11 +3605,33 @@ const loadValueDataSources = async () => {
     }
     if (!valueDataSources.value.dataTypes) {
       valueDataSources.value.dataTypes = [
-        'string', 'int', 'integer', 'boolean', 'float', 'double',
-        'date', 'datetime', 'long', 'short', 'byte',
-        'unsignedInt', 'unsignedLong', 'unsignedShort', 'unsignedByte',
-        'decimal', 'negativeInteger', 'nonNegativeInteger', 'nonPositiveInteger', 'positiveInteger',
-        'real', 'rational', 'literal', 'thing'
+        'xsd:anyURI',
+        'xsd:base64Binary',
+        'xsd:boolean',
+        'xsd:byte',
+        'xsd:dateTime',
+        'xsd:dateTimeStamp',
+        'xsd:decimal',
+        'xsd:double',
+        'xsd:float',
+        'xsd:hexBinary',
+        'xsd:int',
+        'xsd:integer',
+        'xsd:language',
+        'xsd:long',
+        'xsd:Name',
+        'xsd:NCName',
+        'xsd:negativeInteger',
+        'xsd:nonNegativeInteger',
+        'xsd:nonPositiveInteger',
+        'xsd:positiveInteger',
+        'xsd:short',
+        'xsd:string',
+        'xsd:token',
+        'xsd:unsignedByte',
+        'xsd:unsignedInt',
+        'xsd:unsignedLong',
+        'xsd:unsignedShort'
       ]
     }
     
@@ -3722,7 +3758,7 @@ const handleRelationshipValueBlur = async (index) => {
   
   // 保存数据
   const rel = selectedClass.value.relationships[index]
-  if (rel && rel.property && rel.value) {
+  if (rel && rel.property && (rel.target || rel.value)) {
     try {
       await saveRelationship(rel)
       
@@ -3743,7 +3779,7 @@ const handleNewRelationshipValueBlur = async () => {
   }, 200)
   
   // 保存新Relationship数据
-  if (newRelationship.value.property && newRelationship.value.value) {
+  if (newRelationship.value.property && (newRelationship.value.target || newRelationship.value.value)) {
     try {
       await addRelationship()
       
