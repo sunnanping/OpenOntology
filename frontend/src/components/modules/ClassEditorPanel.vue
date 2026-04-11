@@ -788,169 +788,6 @@
                   </div>
                 </div>
               </div>
-              <div class="annotation-input-row" v-if="showNewRelationshipInput">
-                <div class="annotation-content">
-                  <div class="annotation-property-search">
-                    <input 
-                      type="text" 
-                      class="annotation-property-input" 
-                      v-model="newRelationship.property" 
-                      placeholder="Enter property"
-                      @focus="handleNewRelationshipPropertyFocus"
-                      @input="handleNewRelationshipPropertyInput"
-                      @blur="handleRelationshipPropertyBlur"
-                    >
-                    <div v-if="showRelationshipPropertyDropdown && currentRelationshipIndex === -1" class="annotation-property-dropdown">
-                      <div 
-                        v-for="prop in filteredRelationshipProperties" 
-                        :key="prop"
-                        class="annotation-property-option"
-                        @click="selectNewRelationshipProperty(prop)"
-                      >
-                        {{ prop }}
-                      </div>
-                    </div>
-                  </div>
-                  <div class="annotation-value-search">
-                    <input 
-                      type="text" 
-                      class="annotation-value-input" 
-                      v-model="newRelationship.target" 
-                      :placeholder="getRelationshipConfig(newRelationship.property).placeholder"
-                      @focus="handleNewRelationshipValueFocus"
-                      @input="handleNewRelationshipValueInput"
-                      @blur="handleNewRelationshipValueBlur"
-                    >
-                    <!-- DataProperty类型：只显示DataTypes和New Datatype按钮 -->
-                    <div v-if="showValueDropdown && currentValueIndex === -1 && getRelationshipConfig(newRelationship.property).propertyType === 'datatype'" class="annotation-property-dropdown">
-                      <div class="dropdown-section">
-                        <div class="dropdown-section-title">Data Types</div>
-                        <div 
-                          v-for="datatype in filteredValues.dataTypes" 
-                          :key="datatype"
-                          class="annotation-property-option"
-                          @click="selectNewRelationshipValue(datatype)"
-                        >
-                          {{ datatype }}
-                        </div>
-                      </div>
-                      <div v-if="filteredValues.dataTypes.length === 0 && newRelationship.target" class="dropdown-section">
-                        <div class="dropdown-section-title">New</div>
-                        <div class="annotation-property-option new-option" @click="createNewValue('datatype', -1)">
-                          New Datatype named {{ newRelationship.target }}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <!-- ObjectProperty类型：显示Classes/Individuals，有内容时显示New按钮 -->
-                    <div v-if="showValueDropdown && currentValueIndex === -1 && getRelationshipConfig(newRelationship.property).propertyType === 'object' && newRelationship.target" class="annotation-property-dropdown">
-                      <div class="dropdown-section">
-                        <div class="dropdown-section-title">Classes</div>
-                        <div 
-                          v-for="cls in filteredValues.classes" 
-                          :key="cls.id"
-                          class="annotation-property-option"
-                          @click="selectNewRelationshipValue(cls.name)"
-                        >
-                          {{ cls.name }}
-                        </div>
-                      </div>
-                      <div class="dropdown-section">
-                        <div class="dropdown-section-title">Individuals</div>
-                        <div 
-                          v-for="individual in filteredValues.individuals" 
-                          :key="individual.id"
-                          class="annotation-property-option"
-                          @click="selectNewRelationshipValue(individual.name)"
-                        >
-                          {{ individual.name }}
-                        </div>
-                      </div>
-                      <div v-if="filteredValues.classes.length === 0 && filteredValues.individuals.length === 0" class="dropdown-section">
-                        <div class="dropdown-section-title">New</div>
-                        <div class="annotation-property-option new-option" @click="createNewValue('individual', -1)">
-                          New Individual named {{ newRelationship.target }}
-                        </div>
-                        <div class="annotation-property-option new-option" @click="createNewValue('class', -1)">
-                          New Class named {{ newRelationship.target }}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <!-- Default类型：显示所有选项 -->
-                    <div v-if="showValueDropdown && currentValueIndex === -1 && getRelationshipConfig(newRelationship.property).propertyType === 'default' && newRelationship.target" class="annotation-property-dropdown">
-                      <div class="dropdown-section">
-                        <div class="dropdown-section-title">Classes</div>
-                        <div 
-                          v-for="cls in filteredValues.classes" 
-                          :key="cls.id"
-                          class="annotation-property-option"
-                          @click="selectNewRelationshipValue(cls.name)"
-                        >
-                          {{ cls.name }}
-                        </div>
-                      </div>
-                      <div class="dropdown-section">
-                        <div class="dropdown-section-title">Individuals</div>
-                        <div 
-                          v-for="individual in filteredValues.individuals" 
-                          :key="individual.id"
-                          class="annotation-property-option"
-                          @click="selectNewRelationshipValue(individual.name)"
-                        >
-                          {{ individual.name }}
-                        </div>
-                      </div>
-                      <div class="dropdown-section">
-                        <div class="dropdown-section-title">Data Types</div>
-                        <div 
-                          v-for="datatype in filteredValues.dataTypes" 
-                          :key="datatype"
-                          class="annotation-property-option"
-                          @click="selectNewRelationshipValue(datatype)"
-                        >
-                          {{ datatype }}
-                        </div>
-                      </div>
-                      <div class="dropdown-section">
-                        <div class="dropdown-section-title">New</div>
-                        <div class="annotation-property-option new-option" @click="createNewValue('individual', -1)">
-                          New Individual named {{ newRelationship.target }}
-                        </div>
-                        <div class="annotation-property-option new-option" @click="createNewValue('class', -1)">
-                          New Class named {{ newRelationship.target }}
-                        </div>
-                        <div class="annotation-property-option new-option" @click="createNewValue('datatype', -1)">
-                          New Datatype named {{ newRelationship.target }}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div v-if="getRelationshipConfig(newRelationship.property).showLang" class="annotation-lang-container">
-                    <div class="annotation-lang-search">
-                      <input 
-                        type="text" 
-                        class="annotation-lang-input" 
-                        v-model="newRelationship.language" 
-                        placeholder="lang"
-                        @focus="handleNewRelationshipLangFocus"
-                        @input="handleNewRelationshipLangInput(newRelationship.language)"
-                        @blur="handleNewRelationshipLangBlur"
-                      >
-                      <div v-if="showLanguageDropdown && currentRelationshipLangIndex === -1" class="annotation-language-dropdown">
-                        <div 
-                          v-for="lang in filteredLanguages" 
-                          :key="lang.code" 
-                          class="annotation-language-option"
-                          @mousedown="selectNewRelationshipLanguage(lang)"
-                        >
-                          {{ lang.code }} ({{ lang.name }})
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -1284,38 +1121,7 @@
       </div>
     </div>
 
-    <!-- Add Relationship Modal -->
-    <div class="modal fade" :class="{ 'show': showAddRelationshipModal }" tabindex="-1" v-if="showAddRelationshipModal">
-      <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Add Relationship</h5>
-            <button type="button" class="btn-close" @click="showAddRelationshipModal = false"></button>
-          </div>
-          <div class="modal-body">
-            <form @submit.prevent="handleAddRelationship">
-              <div class="mb-3">
-                <label for="relationshipProperty" class="form-label">Property</label>
-                <select class="form-select form-select-sm" id="relationshipProperty" v-model="newRelationship.property" required>
-                  <option v-for="prop in availableProperties" :key="prop.id" :value="prop.name">
-                    {{ prop.name }}
-                  </option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="relationshipTarget" class="form-label">Target</label>
-                <select class="form-select form-select-sm" id="relationshipTarget" v-model="newRelationship.target" required>
-                  <option v-for="cls in availableClasses" :key="cls.id" :value="cls.name">
-                    {{ cls.name }}
-                  </option>
-                </select>
-              </div>
-              <button type="submit" class="btn btn-primary btn-sm">Add</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+
 
     <!-- Tags Modal -->
     <div class="modal fade" :class="{ 'show': showTagsModal }" tabindex="-1" v-if="showTagsModal">
@@ -1997,7 +1803,7 @@ const showImportClassesModal = ref(false)
 const showCreateCommentModal = ref(false)
 const showAddAnnotationModal = ref(false)
 const showAddParentModal = ref(false)
-const showAddRelationshipModal = ref(false)
+
 const showTagsModal = ref(false)
 const showMoveModal = ref(false)
 const showMergeModal = ref(false)
@@ -2144,13 +1950,7 @@ const newParent = ref({
 const parentSearchResults = ref([])
 const showParentSearchResults = ref(false)
 
-const newRelationship = ref({
-  property: '',
-  target: '',
-  language: ''
-})
 
-const showNewRelationshipInput = ref(true)
 
 // 项目默认语言
 const projectDefaultLanguage = computed(() => {
@@ -3699,33 +3499,7 @@ const selectRelationshipProperty = (property, index) => {
   showRelationshipPropertyDropdown.value = false
 }
 
-const handleNewRelationshipPropertyFocus = () => {
-  // 关闭其他所有下拉框
-  showValueDropdown.value = false
-  showLanguageDropdown.value = false
-  showAnnotationPropertyDropdown.value = false
-  
-  currentRelationshipIndex.value = -1
-  showRelationshipPropertyDropdown.value = true
-  handleNewRelationshipPropertyInput()
-}
 
-const handleNewRelationshipPropertyInput = () => {
-  const keyword = newRelationship.value.property.toLowerCase()
-  if (keyword) {
-    filteredRelationshipProperties.value = relationshipProperties.value.filter(prop => 
-      prop.toLowerCase().includes(keyword)
-    )
-  } else {
-    // 当输入框为空时，显示所有属性
-    filteredRelationshipProperties.value = relationshipProperties.value
-  }
-}
-
-const selectNewRelationshipProperty = (property) => {
-  newRelationship.value.property = property
-  showRelationshipPropertyDropdown.value = false
-}
 
 const handleRelationshipValueFocus = (index) => {
   // 关闭其他所有下拉框
@@ -3790,39 +3564,20 @@ const handleRelationshipValueBlur = async (index) => {
   }
 }
 
-// 处理新Relationship的Value输入框失去焦点
-const handleNewRelationshipValueBlur = async () => {
-  // 延迟关闭下拉框，以便点击选项时能触发选择事件
-  setTimeout(() => {
-    showValueDropdown.value = false
-    currentValueIndex.value = -1
-  }, 200)
-  
-  // 保存新Relationship数据
-  if (newRelationship.value.property && (newRelationship.value.target || newRelationship.value.value)) {
-    try {
-      await addRelationship()
-      
-      // 检查是否需要新增空白行
-      checkAndAddNewRelationshipRow()
-    } catch (error) {
-      console.error('Failed to save new relationship on value blur:', error)
-    }
-  }
-}
+
 
 // 检查并添加新的空白Relationship行
 const checkAndAddNewRelationshipRow = () => {
   // 检查是否已存在空白待填写的行
   const hasEmptyRow = selectedClass.value.relationships.some(rel => 
-    !rel.property && !rel.value
+    !rel.property && !rel.target
   )
   
   // 如果不存在空白行，则添加一行
   if (!hasEmptyRow) {
     selectedClass.value.relationships.push({
       property: '',
-      value: '',
+      target: '',
       language: ''
     })
   }
@@ -3861,48 +3616,7 @@ const selectRelationshipValue = (value, index) => {
   showValueDropdown.value = false
 }
 
-const handleNewRelationshipValueFocus = () => {
-  // 检查property是否为空
-  if (!newRelationship.value.property) {
-    ElMessage.warning('First, please enter property')
-    // 将焦点移动到property输入框
-    nextTick(() => {
-      const propertyInput = document.querySelector('.annotation-input-row .annotation-property-input')
-      if (propertyInput) {
-        propertyInput.focus()
-      }
-    })
-    return
-  }
-  
-  // 关闭其他所有下拉框
-  showRelationshipPropertyDropdown.value = false
-  showLanguageDropdown.value = false
-  showAnnotationPropertyDropdown.value = false
-  
-  currentValueIndex.value = -1
-  showValueDropdown.value = true
-  handleNewRelationshipValueInput()
-}
 
-const handleNewRelationshipValueInput = () => {
-  const keyword = newRelationship.value.target.toLowerCase()
-  
-  // 过滤classes
-  filteredValues.value.classes = valueDataSources.value.classes.filter(cls => 
-    cls.name.toLowerCase().includes(keyword)
-  )
-  
-  // 过滤individuals
-  filteredValues.value.individuals = valueDataSources.value.individuals.filter(individual => 
-    individual.name.toLowerCase().includes(keyword)
-  )
-  
-  // 过滤dataTypes
-  filteredValues.value.dataTypes = valueDataSources.value.dataTypes.filter(datatype => 
-    datatype.toLowerCase().includes(keyword)
-  )
-}
 
 // 处理Relationship语言输入框获取焦点
 const handleRelationshipLangFocus = (index) => {
@@ -3989,16 +3703,11 @@ const getRelationshipConfig = (property) => {
 
 
 
-const selectNewRelationshipValue = (value) => {
-  newRelationship.value.target = value
-  showValueDropdown.value = false
-}
+
 
 const createNewValue = async (type, index) => {
   let name = ''
-  if (index === -1) {
-    name = newRelationship.value.target
-  } else if (selectedClass.value.relationships[index]) {
+  if (selectedClass.value.relationships[index]) {
     name = selectedClass.value.relationships[index].target
   }
   
@@ -4023,9 +3732,7 @@ const createNewValue = async (type, index) => {
     
     if (result) {
       // 先更新本地数据
-      if (index === -1) {
-        newRelationship.value.target = name
-      } else if (selectedClass.value.relationships[index]) {
+      if (selectedClass.value.relationships[index]) {
         selectedClass.value.relationships[index].target = name
       }
       
@@ -4033,18 +3740,7 @@ const createNewValue = async (type, index) => {
       await new Promise(resolve => setTimeout(resolve, 500))
       
       // 然后保存Relationship到后端
-      if (index === -1) {
-        // 新关系
-        if (newRelationship.value.property) {
-          console.log('Calling addRelationship with:', {
-            selectedClass: selectedClass.value,
-            newRelationship: newRelationship.value
-          })
-          await addRelationship()
-        } else {
-          console.log('Skipping addRelationship because property is empty:', newRelationship.value)
-        }
-      } else if (selectedClass.value.relationships[index]) {
+      if (selectedClass.value.relationships[index]) {
         // 现有关系
         console.log('Updating existing relationship with:', {
           entityId: selectedClass.value.id,
@@ -4116,83 +3812,7 @@ const handleRelationshipLangBlur = async (rel, index) => {
   }
 }
 
-const handleNewRelationshipLangFocus = () => {
-  currentRelationshipLangIndex.value = -1
-  filteredLanguages.value = languages.value
-  showLanguageDropdown.value = true
-  
-  // 当新行的lang输入框获得焦点时，检查property和value是否有值
-  if (newRelationship.value.property && newRelationship.value.target) {
-    // 可以在这里添加逻辑
-  }
-}
 
-// 处理新Relationship语言输入
-const handleNewRelationshipLangInput = (keyword) => {
-  currentRelationshipLangIndex.value = -1
-  
-  // 根据关键字过滤语言列表
-  if (keyword) {
-    const query = keyword.toLowerCase()
-    filteredLanguages.value = languages.value.filter(lang => 
-      lang.code.toLowerCase().includes(query) || 
-      lang.name.toLowerCase().includes(query)
-    )
-  } else {
-    filteredLanguages.value = languages.value
-  }
-  showLanguageDropdown.value = true
-}
-
-// 选择新Relationship语言
-const selectNewRelationshipLanguage = (lang) => {
-  newRelationship.value.language = lang.code
-  showLanguageDropdown.value = false
-  currentRelationshipLangIndex.value = -1
-}
-
-const handleNewRelationshipLangBlur = async () => {
-  // 当新行的lang输入框失去焦点时，向后台添加数据
-  if (newRelationship.value.property && newRelationship.value.value) {
-    try {
-      // 检查(property+lang)组合的唯一性
-      const isUnique = checkNewRelationshipUniqueness()
-      if (!isUnique) {
-        ElMessage.warning('Relationship with this property and language already exists')
-        return
-      }
-      
-      // 根据property类型决定是否包含language字段
-      const config = getRelationshipConfig(newRelationship.value.property)
-      const requestData = {
-        entityId: selectedClass.value.id,
-        entityType: 'CLASS',
-        property: newRelationship.value.property,
-        value: newRelationship.value.value
-      }
-      
-      // 只有DataProperty类型才包含language字段
-      if (config.showLang && newRelationship.value.language) {
-        requestData.language = newRelationship.value.language
-      }
-      
-      await http.post('/relationship/set', requestData)
-      await loadClassDetails(selectedClass.value.id)
-      // 重置新行数据
-      newRelationship.value = {
-        property: '',
-        value: '',
-        language: ''
-      }
-      
-      // 检查是否需要新增空白行
-      checkAndAddNewRelationshipRow()
-    } catch (error) {
-      console.error('Failed to add relationship:', error)
-      ElMessage.error('Failed to add relationship')
-    }
-  }
-}
 
 const checkRelationshipUniqueness = (currentRel, currentIndex) => {
   if (!selectedClass.value.relationships) return true
@@ -4208,17 +3828,7 @@ const checkRelationshipUniqueness = (currentRel, currentIndex) => {
   return true
 }
 
-const checkNewRelationshipUniqueness = () => {
-  if (!selectedClass.value.relationships) return true
-  
-  for (const rel of selectedClass.value.relationships) {
-    if (rel.property === newRelationship.value.property && 
-        rel.language === newRelationship.value.language) {
-      return false
-    }
-  }
-  return true
-}
+
 
 const removeRelationship = async (index) => {
   if (!selectedClass.value || !selectedClass.value.relationships) return
@@ -4290,37 +3900,7 @@ const createNewDatatype = async (name) => {
   }
 }
 
-const addRelationship = async () => {
-  if (!selectedClass.value || !newRelationship.value.property || !newRelationship.value.target) return
-  
-  try {
-    // 检查(property+lang)组合的唯一性
-    const isUnique = checkNewRelationshipUniqueness()
-    if (!isUnique) {
-      ElMessage.warning('Relationship with this property and language already exists')
-      return
-    }
-    
-    await http.post('/relationship/set', {
-      entityId: selectedClass.value.id,
-      entityType: 'CLASS',
-      property: newRelationship.value.property,
-      value: newRelationship.value.target,
-      language: newRelationship.value.language
-    })
-    await loadClassDetails(selectedClass.value.id)
-    // 重置新relationship表单
-    newRelationship.value = {
-      property: '',
-      target: '',
-      language: ''
-    }
-    ElMessage.success('Relationship added successfully')
-  } catch (error) {
-    console.error('Failed to add relationship:', error)
-    ElMessage.error('Failed to add relationship. Please try again.')
-  }
-}
+
 
 // 删除选中的类
 const deleteSelectedClass = async () => {
@@ -4603,23 +4183,7 @@ const removeSuperClass = (index) => {
 }
 
 // 添加关系
-const handleAddRelationship = async () => {
-  if (!selectedClass.value || !newRelationship.value.property || !newRelationship.value.target) return
-  
-  try {
-    await http.post('/relationship/create', {
-      sourceId: selectedClass.value.id,
-      property: newRelationship.value.property,
-      target: newRelationship.value.target
-    })
-    showAddRelationshipModal.value = false
-    newRelationship.value = { property: '', target: '' }
-    await loadClassDetails(selectedClass.value.id)
-  } catch (error) {
-    console.error('Failed to add relationship:', error)
-    alert('Failed to add relationship')
-  }
-}
+
 
 // 调整大小功能
 const startResizeLeft = (e) => {

@@ -59,14 +59,13 @@ public class RelationshipService {
     }
 
     public Relationship setRelationship(Relationship relationship) {
-        // Delete existing relationship with same property and language
+        // Delete existing relationship with same property and value (regardless of language)
         List<Relationship> existingRelationships = relationshipRepository.findByEntityIdAndEntityType(
             relationship.getEntityId(), relationship.getEntityType());
         
         for (Relationship existing : existingRelationships) {
             if (existing.getProperty().equals(relationship.getProperty()) &&
-                (existing.getLanguage() == null ? relationship.getLanguage() == null : 
-                 existing.getLanguage().equals(relationship.getLanguage()))) {
+                existing.getValue().equals(relationship.getValue())) {
                 relationshipRepository.deleteById(existing.getId());
             }
         }
