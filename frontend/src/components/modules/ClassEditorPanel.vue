@@ -4004,6 +4004,9 @@ const createNewValue = async (type, index) => {
       // 重新加载类详情，确保界面显示最新数据
       await loadClassDetails(selectedClass.value.id)
       
+      // 重新加载value数据源，确保包含新创建的实体
+      await loadValueDataSources()
+      
       showValueDropdown.value = false
       ElMessage.success(`New ${type} created successfully`)
     }
