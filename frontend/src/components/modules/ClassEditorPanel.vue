@@ -2406,6 +2406,12 @@ const loadClassDetails = async (classId) => {
     const relationshipsResponse = await http.get(`/relationship/findByEntityIdAndEntityType/${classId}/CLASS`)
     console.log('Relationships response:', relationshipsResponse.data)
     selectedClass.value.relationships = relationshipsResponse.data || []
+    // 将后端返回的value属性转换为target属性
+    selectedClass.value.relationships.forEach(rel => {
+      if (rel.value) {
+        rel.target = rel.value
+      }
+    })
     console.log('Relationships loaded:', selectedClass.value.relationships)
     
     // 如果annotations为空，添加默认的rdfs:label annotation
@@ -4166,13 +4172,15 @@ const removeRelationship = async (index) => {
   try {
     const rel = selectedClass.value.relationships[index]
     if (rel) {
+      console.log('Removing relationship:', rel)
       await http.post('/relationship/delete', {
         entityId: selectedClass.value.id,
         entityType: 'CLASS',
         property: rel.property,
-        value: rel.target
+        value: rel.target || rel.value
       })
       await loadClassDetails(selectedClass.value.id)
+      ElMessage.success('Relationship deleted successfully')
     }
   } catch (error) {
     console.error('Failed to remove relationship:', error)
