@@ -3411,13 +3411,11 @@ const addParent = async () => {
       return
     }
     
-    await http.post('/class/addSuperClass', {
-      classId: selectedClass.value.id,
-      superClassId: cls.id
-    })
+    await http.post(`/class/addSuperClass/${selectedClass.value.id}/${cls.id}`)
     await loadClassDetails(selectedClass.value.id)
     // 重置新parent表单
     newParent.value.name = ''
+    ElMessage.success('Parent added successfully')
   } catch (error) {
     console.error('Failed to add parent:', error)
   }
