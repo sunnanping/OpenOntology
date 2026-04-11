@@ -764,6 +764,7 @@
                         {{ lang.code }} ({{ lang.name }})
                       </div>
                     </div>
+                    </div>
                     <div class="annotation-actions">
                       <button 
                         v-if="rel.property || rel.target || rel.language" 
@@ -772,7 +773,6 @@
                       >
                         <span class="delete-icon">×</span>
                       </button>
-                    </div>
                     </div>
                   </div>
                   <div v-else class="annotation-lang-container">
