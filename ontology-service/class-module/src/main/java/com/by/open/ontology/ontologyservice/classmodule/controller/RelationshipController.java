@@ -14,6 +14,47 @@ public class RelationshipController {
 
     @Autowired
     private RelationshipService relationshipService;
+    
+    // 删除请求参数类
+    private static class RelationshipDeleteRequest {
+        private String entityId;
+        private String entityType;
+        private String property;
+        private String value;
+        
+        // getters and setters
+        public String getEntityId() {
+            return entityId;
+        }
+        
+        public void setEntityId(String entityId) {
+            this.entityId = entityId;
+        }
+        
+        public String getEntityType() {
+            return entityType;
+        }
+        
+        public void setEntityType(String entityType) {
+            this.entityType = entityType;
+        }
+        
+        public String getProperty() {
+            return property;
+        }
+        
+        public void setProperty(String property) {
+            this.property = property;
+        }
+        
+        public String getValue() {
+            return value;
+        }
+        
+        public void setValue(String value) {
+            this.value = value;
+        }
+    }
 
     @PostMapping("/create")
     public ResponseEntity<Relationship> create(@RequestBody Relationship relationship) {
@@ -51,13 +92,14 @@ public class RelationshipController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/delete")
+    @PostMapping("/delete")
     public ResponseEntity<Void> deleteByEntityIdAndEntityTypeAndPropertyAndValue(
-            @RequestParam String entityId,
-            @RequestParam String entityType,
-            @RequestParam String property,
-            @RequestParam String value) {
-        relationshipService.deleteByEntityIdAndEntityTypeAndPropertyAndValue(entityId, entityType, property, value);
+            @RequestBody RelationshipDeleteRequest request) {
+        relationshipService.deleteByEntityIdAndEntityTypeAndPropertyAndValue(
+                request.getEntityId(), 
+                request.getEntityType(), 
+                request.getProperty(), 
+                request.getValue());
         return ResponseEntity.ok().build();
     }
 

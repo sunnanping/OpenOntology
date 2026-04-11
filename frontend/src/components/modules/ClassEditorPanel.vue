@@ -4166,13 +4166,11 @@ const removeRelationship = async (index) => {
   try {
     const rel = selectedClass.value.relationships[index]
     if (rel) {
-      await http.delete('/relationship/delete', {
-        params: {
-          entityId: selectedClass.value.id,
-          entityType: 'CLASS',
-          property: rel.property,
-          value: rel.target
-        }
+      await http.post('/relationship/delete', {
+        entityId: selectedClass.value.id,
+        entityType: 'CLASS',
+        property: rel.property,
+        value: rel.target
       })
       await loadClassDetails(selectedClass.value.id)
     }
